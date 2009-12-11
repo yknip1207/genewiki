@@ -9,6 +9,9 @@ Created: 20091208 AS
 
 Known issues:
 	- doesn't handle special characters
+
+To Do list:
+	- implement some sort of caching
 """
 
 print 'Content-Type: application/json'
