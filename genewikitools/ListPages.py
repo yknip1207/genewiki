@@ -1,8 +1,14 @@
 from django.utils import simplejson as json
 import urllib
+import sys
 
+"""
+List the title of all pages in the Gene Wiki.
 
-print 'Content-Type: text/html;charset=utf-8'
+Created: 20091208 AS
+"""
+
+print 'Content-Type: application/json'
 print ''
 
 apiUrl = "http://en.wikipedia.org/w/api.php"
@@ -37,8 +43,4 @@ while True:
     else:
         break
 
-#    if len(geneWikiList) > 100:
-#        break
-
-print ("\n".join(geneWikiList))
-
+print json.dumps({"Count": len(geneWikiList), "PageList": geneWikiList}, indent=4)
