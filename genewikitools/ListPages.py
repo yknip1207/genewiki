@@ -6,6 +6,9 @@ import sys
 List the title of all pages in the Gene Wiki.
 
 Created: 20091208 AS
+
+Known issues:
+	- doesn't handle special characters
 """
 
 print 'Content-Type: application/json'
