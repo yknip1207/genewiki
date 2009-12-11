@@ -14,7 +14,7 @@ To Do list:
 	- implement some sort of caching
 """
 
-print 'Content-Type: application/json'
+print 'Content-Type: text/plain'
 print ''
 
 apiUrl = "http://en.wikipedia.org/w/api.php"
