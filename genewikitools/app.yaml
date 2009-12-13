@@ -7,11 +7,11 @@ handlers:
 - url: /ListPages
   script: ListPages.py
 
-- url: /DataStoreTest
-  script: DataStoreTest.py
-
 - url: /RefreshPageList
   script: RefreshPageList.py
+
+- url: /Pubmed2Mesh
+  script: Pubmed2Mesh.py
 
 - url: .*
   script: PrintDoc.py

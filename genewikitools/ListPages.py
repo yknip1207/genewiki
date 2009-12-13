@@ -17,6 +17,7 @@ class PageList(db.Model):
 
 #### MAIN ####
 
+#print 'Content-Type: text/html;charset=utf-8'
 print 'Content-Type: text/plain'
 print ''
 
