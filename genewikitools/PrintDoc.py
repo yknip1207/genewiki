@@ -17,6 +17,11 @@ List of tools
    Output: MeSH terms for each PMID (JSON)
    Example: <a href="/Pubmed2Mesh?pmids=18464898,16492761">/Pubmed2Mesh?pmids=18464898,16492761</a>
 
+/ReadGeneWikiPage
+   Input: article name
+   Output: Wikipedia article text
+   Example: <a href="/ReadGeneWikiPage?article=ITK_(gene)">/ReadGeneWikiPage?article=ITK_(gene)</a>
+
 /RefreshPageList
    Input: None
    Output: confirmation message

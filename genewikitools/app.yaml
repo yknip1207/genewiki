@@ -13,5 +13,8 @@ handlers:
 - url: /Pubmed2Mesh
   script: Pubmed2Mesh.py
 
+- url: /ReadGeneWikiPage
+  script: ReadGeneWikiPage.py
+
 - url: .*
   script: PrintDoc.py
