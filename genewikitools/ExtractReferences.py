@@ -1,6 +1,7 @@
 import urllib
 import re
 import sys
+from django.utils import simplejson as json
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
@@ -11,40 +12,103 @@ class Reference ():
 	self.pmid = ''
 	self.mesh = []
 
-def replaceWithDashes(mo):
-   return (mo.group(1)+"-"*len(mo.group(2))+mo.group(3))
+    def parsePmid(self):
+        matchObject = re.search("pmid[ =]*(\d+)",self.reference)
+        if( not matchObject is None ):
+	    self.pmid = matchObject.group(1)
+
+    def exportToHash(self):
+	output = {}
+	output['sentence'] = self.sentence
+	output['reference'] = self.reference
+	output['pmid'] = self.pmid
+	output['mesh'] = self.mesh
+	return(output)
 
 def getSentenceBefore(matchObject):
+    # Strategy: 
+    #   - retrieve document from beginning to start of match object
+    #   - reverse that string
+    #   - search for first occurrence of period or newline
+    #   - return string from period/newline to start of match object
+
     strBefore = matchObject.string[0:matchObject.start()]
-    strBefore = re.sub("(<ref[^>]*>)([^<]*)(</ref>)",replaceWithDashes,strBefore)
+    strBefore = re.sub("<ref[^>]*>[^<]*</ref>","",strBefore)  # remove all other refs
 #    strBefore = re.sub("<ref>[^>]*</ref>",replaceWithDashes,strBefore)
     strBeforeReversed = strBefore[::-1]
     sentenceBreaks = re.finditer("[.\n]",strBeforeReversed)
     for sentenceBreak in sentenceBreaks:
-	if sentenceBreak.start() < 5:
+	if sentenceBreak.start() < 5: ### skip if period occurs right before ref
 	    continue
         nextStop = sentenceBreak.start()
 	break
-    print "BEF: ", strBefore
-    print "NS: ", nextStop
-    return( strBefore[-1*nextStop:])
 
+    # pull out sentence fragment, add a "^" to mark ref location
+    sentencePreceding = strBefore[-1*nextStop:]
+    sentencePreceding = sentencePreceding + "^"
+
+    ### if a period does not occur immediately before ref, then add after ref until
+    ###    period or newline
+#    print "RE: ", re.search("\.\s*$",sentencePreceding )
+    if( re.search("\.\s*\^$",sentencePreceding ) is None ):
+	strAfter = matchObject.string[matchObject.end():]
+        strAfter = re.sub("<ref[^>]*>[^<]*</ref>","",strAfter)  # remove all other refs
+	sentenceBreaks = re.finditer("[.\n]",strAfter)
+	for sentenceBreak in sentenceBreaks:
+	    nextStop = sentenceBreak.start()
+	    if( sentenceBreak.group(0) == "." ):
+                sentencePreceding = sentencePreceding + strAfter[0:nextStop+1]
+	    else:
+                sentencePreceding = sentencePreceding + strAfter[0:nextStop]
+
+	    break
+
+    ### clean sentence of wiki-formatting characters
+    sentencePreceding = re.sub("['[\]]","",sentencePreceding)
+		
+    return( sentencePreceding )
+
+### Create a Reference object and populate it with info from MatchObject
 def createReference( matchObject ):
     ref = Reference()
     ref.reference = matchObject.group(0)
     ref.sentence = getSentenceBefore( matchObject )
-    print "MATCH: ",matchObject.start(),"-",matchObject.end()
-    print "REF: ", ref.reference
-    print "SENTENCE: ", ref.sentence
-    print ''
+    ref.parsePmid()
+#    print "MATCH: ",matchObject.start(),"-",matchObject.end()
+#    print "REF: ", ref.reference
+#    print "SENTENCE: ", ref.sentence
+#    print "PMID: ", ref.pmid
+#    print ''
+    return(ref)
+
+### Given an array of references, populate the MeSH terms
+def addMesh( references ):
+    pmids = []
+    for ref in references:
+	if( ref.pmid != ""):
+	    pmids.append(ref.pmid)
+
+#    print "PMIDs: ", ",".join(pmids)
+    url = "http://genewikitools.appspot.com/Pubmed2Mesh?pmids=" + ",".join(pmids)
+    f = urllib.urlopen( url )
+    z = f.read()
+#    print z
+    meshIndex = json.loads(z)
+    for ref in references:
+	if( ref.pmid != ""):
+#	    print "PMID: ", ref.pmid
+#	    print meshIndex[ref.pmid]
+	    ref.mesh = meshIndex[ref.pmid]
+
+    return( references )
 
 
 class ExtractReferences( webapp.RequestHandler ):
     def get(self):
-	print "Content-type: text/plain"
-	print ''
+	self.response.headers['Content-type'] = 'text/plain'
+#	print "Content-type: text/plain"
+#	print ''
 	articleName = self.request.get('article')
-	print articleName
 
         content = self.getContent(articleName)
 #	print "CONTENT: ", content
@@ -55,7 +119,10 @@ class ExtractReferences( webapp.RequestHandler ):
 	for matchObject in refList:
             references.append( createReference(matchObject) )
 
-	print "count: ",len(references)
+	references = addMesh( references )
+
+	z = [ x.exportToHash() for x in references ]
+	self.response.out.write( json.dumps(z,indent=4) )
 
     def getContent(self, articleName):
 	url = "http://genewikitools.appspot.com/ReadGeneWikiPage?article="+articleName

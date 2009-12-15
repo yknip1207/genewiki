@@ -4,6 +4,9 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /ExtractReferences
+  script: ExtractReferences.py
+
 - url: /ListPages
   script: ListPages.py
 

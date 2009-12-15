@@ -6,6 +6,11 @@ print '''
 List of tools
 -------------
 
+/ExtractReferences
+   Input: Wikipedia article name
+   Output: reference report with MeSH terms (JSON)
+   Example: <a href="/ExtractReferences">/ExtractReferences?article=ITK_(gene)</a>
+
 /ListPages
    Input: None
    Output: page titles of all Gene Wiki pages (JSON)
@@ -18,8 +23,8 @@ List of tools
    Example: <a href="/Pubmed2Mesh?pmids=18464898,16492761">/Pubmed2Mesh?pmids=18464898,16492761</a>
 
 /ReadGeneWikiPage
-   Input: article name
-   Output: Wikipedia article text
+   Input: Wikipedia article name
+   Output: Wikipedia article text (Plain text)
    Example: <a href="/ReadGeneWikiPage?article=ITK_(gene)">/ReadGeneWikiPage?article=ITK_(gene)</a>
 
 /RefreshPageList
