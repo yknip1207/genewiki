@@ -11,6 +11,7 @@ class Reference ():
 	self.reference = ''
 	self.pmid = ''
 	self.mesh = []
+	self.geneId = ''
 
     def parsePmid(self):
         matchObject = re.search("pmid[ =]*(\d+)",self.reference)
@@ -23,6 +24,7 @@ class Reference ():
 	output['reference'] = self.reference
 	output['pmid'] = self.pmid
 	output['mesh'] = self.mesh
+	output['geneId'] = self.geneId
 	return(output)
 
 def getSentenceBefore(matchObject):
@@ -74,10 +76,11 @@ def getSentenceBefore(matchObject):
     return( sentencePreceding )
 
 ### Create a Reference object and populate it with info from MatchObject
-def createReference( matchObject ):
+def createReference( matchObject,entrezGeneId ):
     ref = Reference()
     ref.reference = matchObject.group(0)
     ref.sentence = getSentenceBefore( matchObject )
+    ref.geneId = entrezGeneId
     ref.parsePmid()
 #    print "MATCH: ",matchObject.start(),"-",matchObject.end()
 #    print "REF: ", ref.reference
@@ -116,13 +119,16 @@ class ExtractReferences( webapp.RequestHandler ):
 	articleName = self.request.get('article')
 
         content = self.getContent(articleName)
+	mo = re.search("{{PBB\|geneid=(\d+)}}",content)
+	entrezGeneId = mo.group(1)
+	
 #	print "CONTENT: ", content
 #	refList = re.findall( '([^.\n]*\.\s*<ref.*</ref>)', content )
 #	refList.extend( re.findall( '([^.\n]+<ref.*</ref>[^.\n]*\.)', content ) )
         refList = re.finditer( '(<ref[^<]*</ref>)', content )
 	references = []
 	for matchObject in refList:
-            references.append( createReference(matchObject) )
+            references.append( createReference(matchObject,entrezGeneId) )
 
 	references = addMesh( references )
 
