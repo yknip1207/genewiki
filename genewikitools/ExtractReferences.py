@@ -34,7 +34,8 @@ def getSentenceBefore(matchObject):
 
     strBefore = matchObject.string[0:matchObject.start()]
     strBefore = re.sub("<ref[^>]*>[^<]*</ref>","",strBefore)  # remove all other refs
-#    strBefore = re.sub("<ref>[^>]*</ref>",replaceWithDashes,strBefore)
+    strBefore = re.sub("<ref[^>]*>","",strBefore)  # remove <ref name=pmid8810341\/>
+
     strBeforeReversed = strBefore[::-1]
     sentenceBreaks = re.finditer("[.\n]",strBeforeReversed)
     for sentenceBreak in sentenceBreaks:
@@ -53,6 +54,7 @@ def getSentenceBefore(matchObject):
     if( re.search("\.\s*\^$",sentencePreceding ) is None ):
 	strAfter = matchObject.string[matchObject.end():]
         strAfter = re.sub("<ref[^>]*>[^<]*</ref>","",strAfter)  # remove all other refs
+        strAfter = re.sub("<ref[^>]*>","",strAfter)  # remove <ref name=pmid8810341\/>
 	sentenceBreaks = re.finditer("[.\n]",strAfter)
 	for sentenceBreak in sentenceBreaks:
 	    nextStop = sentenceBreak.start()
@@ -64,6 +66,9 @@ def getSentenceBefore(matchObject):
 	    break
 
     ### clean sentence of wiki-formatting characters
+    # fix [[target|label]] type of wikilinks
+    sentencePreceding = re.sub(r"\[\[[^]]*\|([^]|]*)\]\]",r"\1",sentencePreceding)
+    # remove all other wikilinking syntax
     sentencePreceding = re.sub("['[\]]","",sentencePreceding)
 		
     return( sentencePreceding )
