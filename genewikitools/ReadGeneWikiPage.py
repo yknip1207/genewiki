@@ -1,5 +1,6 @@
 from django.utils import simplejson as json
 import urllib
+import re
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 

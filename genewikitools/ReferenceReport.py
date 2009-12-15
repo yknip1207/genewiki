@@ -3,7 +3,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson as json
 import urllib
 import re
-#import sys
+import sys
 
 ### GLOBAL VARS
 #species = {"Humans": 1,"Mice": 1,"Rats": 1,"Zebrafish": 1,"Drosophila": 1}
@@ -23,7 +23,14 @@ class ReferenceReport( webapp.RequestHandler ):
 
         content = self.getReferences(articleName)
 #	print "CONTENT: ", content
-	references = json.loads(content)
+	references = ''
+	try:
+	    references = json.loads(content)
+	except ValueError:
+	    print "Something went wrong with JSON parsing"
+	    print "CONTENT: ", content
+	    sys.exit(1)
+
 #	print "LEN: ", len(references)
         speciesList = "\t".join(species)
 	header = "\t".join(["Human Entrez Gene ID",speciesList,"Wikipedia Article Name","PMID","Citing sentence"])+"\n"
@@ -55,7 +62,8 @@ class ReferenceReport( webapp.RequestHandler ):
 	    f = urllib.urlopen( url )
     	    z = f.read()
 	except DownloadError:
-	    print "Something went wrong..."
+	    print "Something went wrong with downloading content..."
+	    sys.exit(1)
 	return z
 
 ###

@@ -1,4 +1,4 @@
 cron:
 - description: daily update of Gene Wiki page index
   url: /RefreshPageList
-  schedule: every 24 hours
+  schedule: every 2 hours
