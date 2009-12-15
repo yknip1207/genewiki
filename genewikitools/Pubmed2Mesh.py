@@ -11,41 +11,57 @@ from xml.dom import minidom
 
 class Pubmed2Mesh( webapp.RequestHandler):
     def get(self):
+#	print "Content-type: text/plain"
+#	print ''
         self.response.headers['Content-type'] = 'text/plain'
 
-        pmidList = (16492761, 18464898)
-	pmidParam = self.request.get('pmids')
-	pmidList = pmidParam.split(",")
+#        pmidList = (16492761, 18464898)
+	pmids = self.request.get('pmids')
         
-	outputHash = {}
-
-        for pmid in pmidList:
-            MeshList = self.getMesh(pmid)
-	    outputHash[pmid] = MeshList
+	outputHash = self.getMesh(pmids)
         
         self.response.out.write( json.dumps( outputHash, indent = 4))
 
-    def getMesh( self, pmid ):
+    def getMesh( self, pmids ):
         urlparams = {
             'db': 'pubmed',
             'retmode': 'xml',
-            'id': pmid,
+            'id': pmids,
 	    'email': 'asu@gnf.org'
             }
         eutilsURL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
         
         f = urllib.urlopen( eutilsURL, urllib.urlencode(urlparams) )
         dom = minidom.parse(f)
+#	print 'DOM'
+#	print dom.toprettyxml()
         
-        nodeList = dom.getElementsByTagName('MeshHeading')
-    #    print "Length: ", nodeList.length
-        MeshList = []
-        for node in nodeList:
-            for n in node.getElementsByTagName('DescriptorName'):
-                for n2 in n.childNodes:
-    #                print "D: ", n2.data
-                    MeshList.append(n2.data)
-        return( MeshList )
+	outputHash = {}
+	pubmedList = dom.getElementsByTagName('MedlineCitation')
+#        self.response.out.write("P: "+str(pubmedList.length))
+	for pubmedEntry in pubmedList:
+            ### get PMID
+	    pmid = pubmedEntry.getElementsByTagName('PMID')[0].childNodes[0].data
+#	    print "P: ", pmid
+#	    self.response.out.write("P: "+str(p.length))
+#	    self.response.out.write(p)
+#	    for z in p.childNodes:
+#		pmid = z.data
+#	    self.response.out.write("PMID: "+pmid)
+
+	    ### get MeshList
+            nodeList = pubmedEntry.getElementsByTagName('MeshHeading')
+        #    print "Length: ", nodeList.length
+            MeshList = []
+            for node in nodeList:
+                for n in node.getElementsByTagName('DescriptorName'):
+                    for n2 in n.childNodes:
+        #                print "D: ", n2.data
+                        MeshList.append(n2.data)
+
+            outputHash[pmid] = MeshList
+
+        return( outputHash )
 
 ###
 ### MAIN
