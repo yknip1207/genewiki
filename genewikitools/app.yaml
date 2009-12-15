@@ -19,5 +19,8 @@ handlers:
 - url: /ReadGeneWikiPage
   script: ReadGeneWikiPage.py
 
+- url: /ReferenceReport
+  script: ReferenceReport.py
+
 - url: .*
   script: PrintDoc.py
