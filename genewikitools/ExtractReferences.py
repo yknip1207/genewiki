@@ -117,6 +117,7 @@ class ExtractReferences( webapp.RequestHandler ):
 #	print "Content-type: text/plain"
 #	print ''
 	articleName = self.request.get('article')
+	articleName = re.sub(" ","_",articleName)
 
         content = self.getContent(articleName)
 	mo = re.search("{{PBB\|geneid=(\d+)}}",content)

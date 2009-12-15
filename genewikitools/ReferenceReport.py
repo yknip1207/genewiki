@@ -18,6 +18,8 @@ class ReferenceReport( webapp.RequestHandler ):
 #	print "Content-type: text/plain"
 #	print ''
 	articleName = self.request.get('article')
+	articleName = re.sub(" ","_",articleName)
+#	print "ART: ", articleName
 
         content = self.getReferences(articleName)
 #	print "CONTENT: ", content

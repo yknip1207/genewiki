@@ -16,6 +16,8 @@ class GeneWikiPage( webapp.RequestHandler):
     def get(self):
 	self.response.headers['Content-type'] = 'text/plain'
 	articleName = self.request.get('article')
+	articleName = re.sub(" ","_",articleName)
+	
 	content = self._get_content(articleName)
 #	self.response.out.write( "Content: " + content + "\n" )
 
