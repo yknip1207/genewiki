@@ -96,12 +96,46 @@ def addMesh( references ):
 	if( ref.pmid != ""):
 	    pmids.append(ref.pmid)
 
+    if( len(pmids) == 0 ):
+	return(references)
 #    print "PMIDs: ", ",".join(pmids)
-    url = "http://genewikitools.appspot.com/Pubmed2Mesh?pmids=" + ",".join(pmids)
-    f = urllib.urlopen( url )
+    url = "http://genewikitools.appspot.com/Pubmed2Mesh"
+    urlparams = {
+         'pmids': ",".join(pmids)
+	 }
+#    try:
+#        f = urllib.urlopen( url, urllib.urlencode(urlparams) )
+#        z = f.read()
+#	print "Z: ", z
+#        meshIndex = json.loads(z)
+#    except:
+##	return(references)
+#	print 'Content-type: text/plain'
+#	print ''
+#	print "ExtractReferences: Error reading Pubmed2Mesh"
+#	print "URL: ", url
+#	print "urlparams: ", urlparams
+#	print "num pubmeds: ", len(pmids)
+#	print "Content: ", z
+#	sys.exit(1)
+
+    f = urllib.urlopen( url, urllib.urlencode(urlparams) )
     z = f.read()
+    try:
+        meshIndex = json.loads(z)
+    except:
+	print 'Content-type: text/plain'
+	print ''
+	print "ExtractReferences: Error reading Pubmed2Mesh"
+	print "URL: ", url
+	print "urlparams: ", urlparams
+	print "num pubmeds: ", len(pmids)
+	print "Content: ", z, "."
+	sys.exit(1)
+        
+
 #    print z
-    meshIndex = json.loads(z)
+
     for ref in references:
 	if( ref.pmid != ""):
 #	    print "PMID: ", ref.pmid
@@ -144,8 +178,12 @@ class ExtractReferences( webapp.RequestHandler ):
 	try:
 	    f = urllib.urlopen( url )
     	    z = f.read()
-	except DownloadError:
+	except :
+            print 'Content-type: text/plain'
+	    print ''
 	    print "Something went wrong..."
+	    print "URL: ", url
+	    print "Z: ", z
 	return z
 
 ###

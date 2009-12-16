@@ -2,6 +2,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from django.utils import simplejson as json
 import urllib
+import sys
 from xml.dom import minidom
 
 
@@ -31,8 +32,16 @@ class Pubmed2Mesh( webapp.RequestHandler):
             }
         eutilsURL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
         
-        f = urllib.urlopen( eutilsURL, urllib.urlencode(urlparams) )
-        dom = minidom.parse(f)
+	try:
+            f = urllib.urlopen( eutilsURL, urllib.urlencode(urlparams) )
+            dom = minidom.parse(f)
+	except:
+	    print 'Content-type: text/plain'
+	    print ''
+	    print 'Pubmed2Mesh: Error getting eUtils\n'
+	    print 'URL: ', eutilsURL
+	    print 'params: ', json.dumps(urlparams,indent=4)
+	    sys.exit(1)
 #	print 'DOM'
 #	print dom.toprettyxml()
         

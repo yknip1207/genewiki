@@ -23,12 +23,15 @@ class ReferenceReport( webapp.RequestHandler ):
 
         content = self.getReferences(articleName)
 #	print "CONTENT: ", content
-	references = ''
+#	references = ''
 	try:
 	    references = json.loads(content)
-	except ValueError:
-	    print "Something went wrong with JSON parsing"
-	    print "CONTENT: ", content
+	except:
+	    print "Content-type: text/plain"
+	    print ''
+	    print "ReferenceReport: Something went wrong with JSON parsing ("+articleName+")"
+	         
+	    print "CONTENT: \n------\n", content
 	    sys.exit(1)
 
 #	print "LEN: ", len(references)
@@ -61,8 +64,11 @@ class ReferenceReport( webapp.RequestHandler ):
 	try:
 	    f = urllib.urlopen( url )
     	    z = f.read()
-	except DownloadError:
-	    print "Something went wrong with downloading content..."
+	except:
+	    print "Content-type: text/plain"
+	    print ''
+	    print "ReferenceReport: Something went wrong with downloading content..."
+	    print "URL: ", url
 	    sys.exit(1)
 	return z
 
