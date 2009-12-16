@@ -100,6 +100,7 @@ def addMesh( references ):
 	return(references)
 #    print "PMIDs: ", ",".join(pmids)
     url = "http://genewikitools.appspot.com/Pubmed2Mesh"
+#    url = "http://localhost:8081/Pubmed2Mesh"
     urlparams = {
          'pmids': ",".join(pmids)
 	 }
@@ -146,10 +147,17 @@ def addMesh( references ):
 
 
 class ExtractReferences( webapp.RequestHandler ):
+    def setUrlRoot(self):
+        mo = re.search("http://([^/]*)/",self.request.url)
+        self.urlRoot = mo.group(1)
+        return
+
     def get(self):
-	self.response.headers['Content-type'] = 'text/plain'
 #	print "Content-type: text/plain"
 #	print ''
+	self.setUrlRoot()
+	self.response.headers['Content-type'] = 'text/plain'
+#	print "SELF1: ", self.request.url
 	articleName = self.request.get('article')
 	articleName = re.sub(" ","_",articleName)
 
@@ -165,13 +173,17 @@ class ExtractReferences( webapp.RequestHandler ):
 	for matchObject in refList:
             references.append( createReference(matchObject,entrezGeneId) )
 
-	references = addMesh( references )
+#	references = addMesh( references )
 
 	z = [ x.exportToHash() for x in references ]
 	self.response.out.write( json.dumps(z,indent=4) )
 
     def getContent(self, articleName):
-	url = "http://genewikitools.appspot.com/ReadGeneWikiPage?article="+articleName
+	url = ''.join(['http://',self.urlRoot,'/ReadGeneWikiPage?article=',articleName])
+	url = ''.join(['http://genewikitools.appspot.com/ReadGeneWikiPage?article=',articleName])
+
+#        url = "http://localhost:8081/ReadGeneWikiPage?article=ITK_(gene)"
+#        url = "http://genewikitools.appspot.com/ReadGeneWikiPage?article=ITK_(gene)"
 #	url = "http://localhost:8081/ReadGeneWikiPage?article="+articleName
 #	print "URL:",url
 #	f = urllib.urlopen( "http://genewikitools.appspot.com/ReadGeneWikiPage?article=AKR1C1" )
@@ -183,7 +195,8 @@ class ExtractReferences( webapp.RequestHandler ):
 	    print ''
 	    print "Something went wrong..."
 	    print "URL: ", url
-	    print "Z: ", z
+	    sys.exit(1)
+
 	return z
 
 ###

@@ -4,14 +4,19 @@ runtime: python
 api_version: 1
 
 handlers:
-- url: /ExtractReferences
-  script: ExtractReferences.py
+
+### Main tools
 
 - url: /ListPages
   script: ListPages.py
 
-- url: /RefreshPageList
-  script: RefreshPageList.py
+- url: /ReferenceReport
+  script: ReferenceReport.py
+
+### Helper tools
+
+- url: /ExtractReferences
+  script: ExtractReferences.py
 
 - url: /Pubmed2Mesh
   script: Pubmed2Mesh.py
@@ -19,8 +24,16 @@ handlers:
 - url: /ReadGeneWikiPage
   script: ReadGeneWikiPage.py
 
-- url: /ReferenceReport
-  script: ReferenceReport.py
+- url: /RefreshPageList
+  script: RefreshPageList.py
+
+
+### Test scripts below
+- url: /EnvironmentVariablesTest
+  script: EnvironmentVariablesTest.py
+
+- url: /GetGAEIpAddress
+  script: GetGAEIpAddress.py
 
 - url: .*
   script: PrintDoc.py
