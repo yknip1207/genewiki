@@ -3,19 +3,31 @@ print ''
 
 print '''
 <pre>
-List of tools
+LIST OF TOOLS
 -------------
 
-/ExtractReferences
-   Input: Wikipedia article name
-   Output: reference report with MeSH terms (JSON)
-   Example: <a href="/ExtractReferences">/ExtractReferences?article=ITK_(gene)</a>
+Main tools
+----------
 
 /ListPages
    Input: None
    Output: page titles of all Gene Wiki pages (JSON)
    Example: <a href="/ListPages">/ListPages</a>
    Note: returns the most recent entry in the data store
+
+/ReferenceReport
+   Input: Wikipedia article name
+   Output: Tab-delimited reference report (plain text)
+   Example: <a href="/ReferenceReport?article=FYN">/ReferenceReport?article=FYN</a>
+
+
+Helper tools
+------------
+
+/ExtractReferences
+   Input: Wikipedia article name
+   Output: reference report with MeSH terms (JSON)
+   Example: <a href="/ExtractReferences">/ExtractReferences?article=ITK_(gene)</a>
 
 /Pubmed2Mesh
    Input: List of Pubmed IDs (comma separated)

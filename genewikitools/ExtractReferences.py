@@ -70,8 +70,18 @@ def getSentenceBefore(matchObject):
     ### clean sentence of wiki-formatting characters
     # fix [[target|label]] type of wikilinks
     sentencePreceding = re.sub(r"\[\[[^]]*\|([^]|]*)\]\]",r"\1",sentencePreceding)
+    # if line starts with a '|' character, label as a "Table" statement
+    if( re.match("^(\|[+]*)",sentencePreceding )):
+	sentencePreceding = re.sub("^(\|[+]*)","",sentencePreceding)
+        sentencePreceding = "".join(["(Table)",sentencePreceding])
+    # if line starts with a '#' or '*' character, label as a "List" statement
+    if( re.match("^[#*]",sentencePreceding )):
+	sentencePreceding = re.sub("^([#*])","",sentencePreceding)
+        sentencePreceding = "".join(["(List)",sentencePreceding])
     # remove all other wikilinking syntax
     sentencePreceding = re.sub("['[\]]","",sentencePreceding)
+    # remove newlines
+    sentencePreceding = re.sub("\n","",sentencePreceding)
 		
     return( sentencePreceding )
 
@@ -120,8 +130,13 @@ def addMesh( references ):
 #	print "Content: ", z
 #	sys.exit(1)
 
-    f = urllib.urlopen( url, urllib.urlencode(urlparams) )
+#    print "URL: ", url
+#    print "urlparams: ", urllib.urlencode(urlparams)
+    ### not sure why the next statement is not working via POST
+    f = urllib.urlopen( url+"?"+ urllib.urlencode(urlparams))
     z = f.read()
+#    print "Z: ", z, "."
+#    meshIndex = json.loads(z)
     try:
         meshIndex = json.loads(z)
     except:
@@ -129,11 +144,10 @@ def addMesh( references ):
 	print ''
 	print "ExtractReferences: Error reading Pubmed2Mesh"
 	print "URL: ", url
-	print "urlparams: ", urlparams
+	print "urlparams: ", urllib.urlencode(urlparams)
 	print "num pubmeds: ", len(pmids)
 	print "Content: ", z, "."
 	sys.exit(1)
-        
 
 #    print z
 
@@ -165,15 +179,18 @@ class ExtractReferences( webapp.RequestHandler ):
 	mo = re.search("{{PBB\|geneid=(\d+)}}",content)
 	entrezGeneId = mo.group(1)
 	
-#	print "CONTENT: ", content
-#	refList = re.findall( '([^.\n]*\.\s*<ref.*</ref>)', content )
-#	refList.extend( re.findall( '([^.\n]+<ref.*</ref>[^.\n]*\.)', content ) )
+	# match typical references like <ref>...</ref>
         refList = re.finditer( '(<ref[^<]*</ref>)', content )
 	references = []
 	for matchObject in refList:
             references.append( createReference(matchObject,entrezGeneId) )
 
-#	references = addMesh( references )
+	# match other references like <ref name="..." />
+        refList = re.finditer( '(<ref[^>]*/\s*>)', content )
+	for matchObject in refList:
+            references.append( createReference(matchObject,entrezGeneId) )
+
+	references = addMesh( references )
 
 	z = [ x.exportToHash() for x in references ]
 	self.response.out.write( json.dumps(z,indent=4) )
