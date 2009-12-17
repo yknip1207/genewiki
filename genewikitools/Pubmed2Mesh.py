@@ -43,9 +43,10 @@ class Pubmed2Mesh( webapp.RequestHandler):
 	except:
 	    print 'Content-type: text/plain'
 	    print ''
-	    print 'Pubmed2Mesh: Error getting eUtils\n'
+	    print 'Pubmed2Mesh: Error getting ***or parsing*** eUtils\n'
 	    print 'URL: ', eutilsURL
-	    print 'params: ', json.dumps(urlparams,indent=4)
+	    print 'params(JSON): ', json.dumps(urlparams,indent=4)
+	    print 'params(URLencoded): ', urllib.urlencode(urlparams)
 	    sys.exit(1)
 #	print 'DOM'
 #	print dom.toprettyxml()
