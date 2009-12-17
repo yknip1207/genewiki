@@ -12,16 +12,21 @@ from xml.dom import minidom
 
 class Pubmed2Mesh( webapp.RequestHandler):
     def get(self):
+	pmids = self.request.get('pmids')
+	self.printOutput(pmids)
+        
+
+    def post(self):
+	pmids = self.request.get('pmids')
+	self.printOutput(pmids)
+
+    def printOutput( self, pmids ):
 #	print "Content-type: text/plain"
 #	print ''
         self.response.headers['Content-type'] = 'text/plain'
-
-#        pmidList = (16492761, 18464898)
-	pmids = self.request.get('pmids')
-        
 	outputHash = self.getMesh(pmids)
-        
         self.response.out.write( json.dumps( outputHash, indent = 4))
+	
 
     def getMesh( self, pmids ):
         urlparams = {

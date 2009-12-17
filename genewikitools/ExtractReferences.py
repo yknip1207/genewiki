@@ -133,7 +133,7 @@ def addMesh( references ):
 #    print "URL: ", url
 #    print "urlparams: ", urllib.urlencode(urlparams)
     ### not sure why the next statement is not working via POST
-    f = urllib.urlopen( url+"?"+ urllib.urlencode(urlparams))
+    f = urllib.urlopen( url,urllib.urlencode(urlparams))
     z = f.read()
 #    print "Z: ", z, "."
 #    meshIndex = json.loads(z)

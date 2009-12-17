@@ -35,5 +35,8 @@ handlers:
 - url: /GetGAEIpAddress
   script: GetGAEIpAddress.py
 
+- url: /PostTest
+  script: PostTest.py
+
 - url: .*
   script: PrintDoc.py
