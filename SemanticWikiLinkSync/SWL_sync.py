@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import simplejson as json
 import urllib
 import re
@@ -64,17 +66,20 @@ if len(ModList)!=0:
     z = f.read()
     output = json.loads(z)
     pages = output['query']['pages'].keys()
-    content = output['query']['pages'][pages[0]]['revisions'][0]['*'].encode('utf-8')
+    contentSWL = output['query']['pages'][pages[0]]['revisions'][0]['*'].encode('utf-8')
 
-###########################################
-#
-#   Wiki page content, JSON encoded (a single text string).
-#   SWL to SMW syntax conversion here (in general, any text manipulation). 
-#
-###########################################
+#   contentSWL is Wiki page content, JSON encoded (a single text string).
+#   SWL to SMW syntax conversion (in general, any text manipulation). 
+
+    contentSMW = re.sub(r'\{\{SWL\|target=(.*?)\|type=(.*?)\}\}',
+                         r'[[\2::\1]]',
+                         contentSWL)
+
+
+
 
     page = site.Pages[articleName]
-    res=page.save(content,summary='MWSync-test')     # WriteAPI at work
+    res=page.save(contentSMW,summary='MWSync')     # WriteAPI at work
     print res
 
 # The remaining are just logfiles, not important.
@@ -90,7 +95,7 @@ if len(ModList)!=0:
   log_obj.write(str(succ)+" pages mirrored successfully.")
   log_obj.write("\n")
   log_obj.close()
-  NewList_str=json.dumps(NewList)
+  NewList_str=json.dumps(SWL)
   NewList_obj=open('OldListSWL','w')
   NewList_obj.write(NewList_str)
   NewList_obj.close()
@@ -98,6 +103,4 @@ else:
   log_obj.write("No changes.")
   log_obj.write("\n")
   log_obj.close()
-
-
 
