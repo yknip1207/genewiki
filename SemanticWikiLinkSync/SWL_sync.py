@@ -69,7 +69,7 @@ if len(ModList) != 0:
         log_obj.write("No connection")
         log_obj.write("\n")
         log_obj.close()
-    site.login('i9606', 'i9606wiki')
+    site.login('smw site user','smw site pass')
     for articleName in ModList:
         UrlParams['titles'] = articleName
         f = urllib.urlopen(UrlRoot, urllib.urlencode(UrlParams))
