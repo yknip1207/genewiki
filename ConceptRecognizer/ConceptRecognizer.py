@@ -26,21 +26,27 @@ wikifam['wikispecies'] = 'species'
 wikifam['wikiversity'] = 'v'
 
 # Default ontologies
-ontologies = '42876,42879'  #gene ontology and human disease
+ontologies = '42925'  #gene ontology extension
 
+class conceptInfo:
+    """ This is a data structure to contain the information of a concept
+    recognized by the NCBO text-mining tool"""
+    def __init__(self, preferredName="", synonyms=[], link=""):
+        self.preferredName=preferredName
+        self.synonyms = synonyms
+        self.link = link
 
+        
 class recognizer:
-""" This class looks at a wiki page and looks for biomedical keywords. It then looks to see
-if there are any links for such words, and if not, it will look for related articles in the same
-or another wiki project and save links (wiki link format) in a dictionary.
-        pagetitle - tile of wiki article to add interwiki links to
-        Ontologies - NCBO ontologies to use for recognizing concepts
-        family - the wiki family (project) of the article of interest
-        language - language of the article of interest
-        linkfam - the wiki family (project) where to look for related articles (links)
-        linklang - the wiki language where to look for related articles (links)
-"""
-    def __init__(self, pagetitle, Ontologies=ontologies, family="wikipedia", language="en", linkfam="wikipedia", linklang="en"):
+    """ This class looks at a wiki page and looks for biomedical keywords. It then looks to see
+    if there are any links for such words, and if not, it will look for related articles in the same
+    or another wiki project and save links (wiki link format) in a dictionary data structure.
+            pagetitle - tile of wiki article to add interwiki links to
+            Ontologies - NCBO localOntologyID to use for recognizing concepts
+            family - the wiki family (project) of the article of interest
+            language - language of the article of interest
+    """
+    def __init__(self, pagetitle, Ontologies=ontologies, family="wikipedia", language="en"):
         global fmly
         global lng
         global site
@@ -51,24 +57,20 @@ or another wiki project and save links (wiki link format) in a dictionary.
         lng = language
         self.content = self.getContent(pagetitle, family, language)
         self.xmlDoc = self.textMine(self.content, Ontologies)
-        #self.Keywords = 
-        self.LinksDict = self.findLinks(self.extractWords(self.xmlDoc), linkfam, linklang)
-                
-    def getContent(self, pagetitle, family, language):
-        # Get the contents of a wiki article by title
+        
+    def getContent(self, pagetitle, family="wikipedia", language="en"):
+        """Get the contents of a wiki article by title"""
         pagecontent = page.get(get_redirect = True)
         pagecontent = pagecontent.encode(page.encoding(), "replace")
         return pagecontent
 
-    def textMine(self, text, Ontologies):
-        # Send text to NCBO text-mining tool and retrieve keywords
-        # output a dictionary of keywords, values are empty
+    def textMine(self, text, Ontologies=ontologies):
+        """Send text to NCBO text-mining tool and retrieve concept info
+        output an xml object"""
         url = 'http://rest.bioontology.org/obs/annotator'
         values = {
             'scored':'false',
             'textToAnnotate':text,
-            'format':'xml',
-            'withSynonyms':'false',
             'ontologiesToExpand':Ontologies,
             'ontologiesToKeepInResult':Ontologies
             }
@@ -77,44 +79,85 @@ or another wiki project and save links (wiki link format) in a dictionary.
         result = response.read()
         return result
 
+    def stripTags(self, string, tagName):
+        """Strips xml tag, <tagName>, from string"""
+        newStr = string.replace("<"+tagName+">", "")
+        newStr = newStr.replace("</"+tagName+">", "")
+        return newStr
+
     def extractWords(self, xmlObject):
-        # Parse the xml string obtained from NCBO, look for preferredName tag
-        # returns a dictionary with empty values
+        """ Parse the xml string obtained from NCBO, look for annotationBean tag, which is the xml
+        node containing all information on a particular concept.
+        Returns a dictionary with concepts as key and preferredName and synonyms as values"""
         xmldoc = minidom.parseString(xmlObject)
-        conceptList = xmldoc.getElementsByTagName('preferredName')        
-        # Create dictionary and insert keywords
-        keylist = {}
-        for node in conceptList:
-            # Convert xml node to string, then replace end tag with empty string
-            keyw=str(node.toxml()).replace("</preferredName>", "")
-            # replace front tag as well
-            keyw=keyw.replace("<preferredName>", "")
-            # insert keyword.  the value is empty
-            keylist[keyw]=""
+        conceptList = xmldoc.getElementsByTagName('annotationBean')        
+        keylist = {} # dictionary to store info
+        for concept in conceptList:
+            word = str((concept.getElementsByTagName('name'))[0].toxml())
+            word = self.stripTags(word, 'name')
+            keylist[word]=conceptInfo()
+            preferredName = str((concept.getElementsByTagName('preferredName'))[0].toxml())
+            synList = concept.getElementsByTagName('string')
+            synonyms = []
+            for synonym in synList:
+                syn = str(synonym.toxml())
+                syn = self.stripTags(syn, 'string')
+                synonyms.append(syn)
+            keylist[word].preferredName = self.stripTags(preferredName, 'preferredName')
+            keylist[word].synonyms = synonyms           
         return keylist
 
-    def findLinks(self, keywordDict, family, language):
-        linksite = getSite(language, family)  #this is the wiki project additional links will be retrieved from 
-        # Get a list of the links already in the article and see if the keywords found
-        # on the NCBO are already there. If they are, there is no need to look for them
+    def processConceptLinks(self, keywordDict):
+        """Get a list of the links already in the article and see if the concepts found
+        on the NCBO, which are in the keywordDict, are already there. If they are, there is no need to
+        look for them so they will be deleted from the dictionary. Returns a modified keyword dictionary
+        """
         pagelinks = page.linkedPages()
         linklist = []
         for link in pagelinks:
             linklist.append(link.title())
-        # delete any keywords that are already linked
+        # delete any concepts from the dictionary that are already linked
         for word in keywordDict.keys():
-            if word in linklist:
+            if word or keywordDict[word].preferredName or [a for a in keywordDict[word].synonyms] in linklist:
                 del keywordDict[word]
-        # Now, see if there are wiki pages for the keywords remaining and store
-        # links (if any) as value in keylist dictionary                 
+        return keywordDict
+
+    def findLinks(self, keywordDict, family="wikipedia", language="en"):
+        """See if there are wiki pages for the concepts remaining and store
+        links (if any) as link value in keylist dictionary"""
+        linksite = getSite(language, family)  #this is the wiki site where additional links will be retrieved from                  
         for word in keywordDict.keys():
-            wikilink = Page(linksite, word)
-            if wikilink.exists():
-                if family==fmly:
-                    link = wikilink.aslink() # local link
+            wikilink = ""
+            if Page(linksite, word).exists():
+                wikilink = Page(linksite, word)
+            elif Page(linksite, keywordDict[word].preferredName).exists():
+                wikilink = Page(linksite, keywordDict[word].preferredName)
+            else:
+                for syn in keywordDict[word].synonyms:
+                    if Page(linksite, syn).exists():
+                        wikilink = Page(linksite, syn)
+                        break
+            if wikilink != "":
+                if family==fmly and language ==lng: # local link
+                    if wikilink.title()!= word:
+                        link = '[[' + wikilink.title() + '|' + word + ']]'
+                    else:
+                        link = wikilink.aslink()
+                elif family==fmly:
+                    if wikilink.title()!= word:
+                        link = '[[' + wikifam[family] + ':' + wikilink.title() + '|' + word + ']]'
+                    else:
+                        link = '[[' + wikifam[family] + ':' + wikilink.title() + ']]'
+                elif language==lng:
+                    if wikilink.title()!= word:
+                        link = '[[' + language + ':' + wikilink.title() + '|' + word + ']]'
+                    else:
+                        link = '[[' + language + ':' + wikilink.title() + ']]'
+                elif wikilink.title()!= word:
+                    link = '[[' + wikifam[family] + ':' + language + ':' + wikilink.title() + '|' + word + ']]'
                 else:
-                    link = '[[' + wikifam[family] + ':' + language + ':' + wikilink.title() + ']]'
-                keywordDict[word] = link
+                    link = '[[' + wikifam[family] + ':' + language + ':' + wikilink.title() + ']]'                
+                keywordDict[word].link = link
         return keywordDict        
         
     
