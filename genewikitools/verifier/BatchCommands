@@ -1,0 +1,5 @@
+
+appcfg.py download_data --app_id=<app-id> --kind=<kind> --url=http://<appname>.appspot.com/remote_api --filename=<data-filename>
+
+appcfg.py download_data --app_id=genewikitools --kind=Anno --url=http://localhost:9999/remote_api --filename=Anno.csv
+

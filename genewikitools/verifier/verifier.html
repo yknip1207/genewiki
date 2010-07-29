@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/static/main.css" />
+  </head>
+  <body>
+
+
+    	  <div>gene: {{anno.geneWikiPageName}}</div>
+   	  	  <div>ontology: {{anno.ontology}}</div>
+   	      <div>ontTerm: {{anno.ontTerm}}</div>
+   	      <div>first sentence: {{anno.firstSentence}}</div>
+   	      <div>contextSentence: {{anno.contextSentence}}</div>
+   	  <br></br>
+    <form action="/verifier/newassess" method="post">
+      <div>Vote<input name="vote"></input></div>
+      <div>Comment<textarea name="comment" rows="3" cols="60"></textarea></div>
+      		<input type="hidden" name="annokey" value="{{annokey}}"></input>
+	  <div><input type="submit" value="add annotation">
+	  </div>
+    </form>
+	<div><a href="{{logouturl}}">Logout</a></div>
+  </body>
+</html>
