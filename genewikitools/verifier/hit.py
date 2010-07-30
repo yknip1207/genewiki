@@ -1,5 +1,6 @@
 import os
 import cgi
+import urllib
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -7,12 +8,26 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import login_required
 
+
 class Anno(db.Model):
+    entrezGeneId = db.StringProperty();
     geneWikiPageName = db.StringProperty();
     ontology = db.StringProperty();
     firstSentence = db.TextProperty();
     contextSentence = db.TextProperty();
+    sectionHeading = db.StringProperty();
+    targetWikiPageTitle = db.StringProperty();
     ontTerm = db.StringProperty();
+    ontAcc = db.StringProperty();
+    stringMatchingMethod = db.StringProperty();
+    directMatch = db.StringProperty();
+    parentMatch = db.StringProperty();
+    confidence = db.FloatProperty();
+    goPrior = db.FloatProperty();
+    yahooIntersectionScore = db.FloatProperty();
+    yahooGeneHits = db.IntegerProperty();
+    yahooTermHits = db.IntegerProperty();
+    yahooIntersectionHits = db.IntegerProperty();
     date = db.DateTimeProperty(auto_now_add=True)
     
 class Assessment(db.Model):
@@ -46,7 +61,23 @@ class Verify(webapp.RequestHandler):
             self.response.out.write("All done <a href=\""+logouturl+"\">Log in as another user</a>")
 
         else:                            
+            if "omponent" in anno.ontology:
+                anno.ontology = " can be located in "
+            elif "unction" in anno.ontology:
+                anno.ontology = " has molecular function "
+            elif "rocess" in anno.ontology:
+                anno.ontology = " plays a role in the process of "
+            anno.contextSentence = anno.contextSentence.replace("!-","<b>")
+            anno.contextSentence = anno.contextSentence.replace("-!","</b>")
+             
+            wikipageurl = "http://mobile.wikipedia.org/transcode.php?go="+anno.geneWikiPageName
+           # wikipageurl = "http://en.wikipedia.org/wiki/"+anno.geneWikiPageName  
+           # f = urllib.urlopen("http://genewikitools.appspot.com/ReadGeneWikiPage?article="+anno.geneWikiPageName)
+           # wikipage = f.read()
+                
             template_values = {
+            #                   'wikipage': wikipage,
+                               'wikipageurl': wikipageurl,
                                'anno': anno,
                                'annokey': str(anno.key()),
                                'logouturl': logouturl
@@ -57,14 +88,17 @@ class Verify(webapp.RequestHandler):
 class NewVerification(webapp.RequestHandler):
     def post(self):
         assess = Assessment()
-        assess.author = users.get_current_user()
         assess.vote = self.request.get('vote')
-        assess.comment = self.request.get('comment')
-        theanno = Anno()
-        theanno = theanno.get(self.request.get('annokey'))
-        assess.anno = theanno
-        assess.put()
-        self.redirect('/verifier/')
+        if ((not assess.vote) or (assess.vote == '')):
+            self.redirect('/verifier/')
+        else:
+            assess.author = users.get_current_user()
+            assess.comment = self.request.get('comment')
+            theanno = Anno()
+            theanno = theanno.get(self.request.get('annokey'))
+            assess.anno = theanno
+            assess.put()
+            self.redirect('/verifier/')
 
 
 class ListAnnos(webapp.RequestHandler):    
@@ -96,7 +130,8 @@ class NewAnno(webapp.RequestHandler):
         anno.firstSentence = self.request.get('firstSentence')
         anno.contextSentence = self.request.get('contextSentence')
         anno.ontTerm = self.request.get('ontTerm')
-
+        anno.ontAcc = self.request.get('ontAcc')
+        
         anno.put()
         self.redirect('/verifier/listannos')
 

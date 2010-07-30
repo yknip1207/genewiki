@@ -3,21 +3,42 @@
     <link type="text/css" rel="stylesheet" href="/static/main.css" />
   </head>
   <body>
+  <center>
+	<div id="main-content" style="margin: 20px 20px 20px 20px;">
+		<span id="main-question" style="text-align:center">
+		Does the following text indicate to you that the gene 
+		'<a href="http://en.wikipedia.org/wiki/{{anno.geneWikiPageName}}" target="_blank">{{anno.geneWikiPageName}}</a>' {{anno.ontology}} <a href="http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term={{anno.ontAcc}}" target="_blank">'{{anno.ontTerm}}'</a>?
+		</span>
+		<br></br>
+		  <div id="snippet">
+		  <blockquote>
+		  "{{anno.contextSentence}}"
+		  </blockquote>
+		  </div>
+		  Snippet extracted from: 
+		  <div id="wiki-text" >
+				  <iframe src ="{{wikipageurl}}" width="700" height="300" scrolling="yes">
+  				<p>Your browser does not support iframes.</p>
+		  </iframe>
 
-
-    	  <div>gene: {{anno.geneWikiPageName}}</div>
-   	  	  <div>ontology: {{anno.ontology}}</div>
-   	      <div>ontTerm: {{anno.ontTerm}}</div>
-   	      <div>first sentence: {{anno.firstSentence}}</div>
-   	      <div>contextSentence: {{anno.contextSentence}}</div>
+   	     </div>
    	  <br></br>
     <form action="/verifier/newassess" method="post">
-      <div>Vote<input name="vote"></input></div>
-      <div>Comment<textarea name="comment" rows="3" cols="60"></textarea></div>
-      		<input type="hidden" name="annokey" value="{{annokey}}"></input>
-	  <div><input type="submit" value="add annotation">
-	  </div>
+ 		<input type="hidden" name="annokey" value="{{annokey}}"></input>
+
+ <div id="user-answer">
+      	<input type="radio" name="vote" value="Yes"/> Yes 
+		<input type="radio" name="vote" value="No"/> No 
+		<input type="radio" name="vote" value="no answer"/> I can't tell<br/>
+</div>
+<div id="user-comment">
+      	(Optional) Comment <textarea name="comment" rows="3" cols="60"></textarea>
+</div>
+	  <br/>
+	  <input type="submit" value="Submit">
     </form>
 	<div><a href="{{logouturl}}">Logout</a></div>
+	</div>
+	</center>
   </body>
 </html>
