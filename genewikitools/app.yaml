@@ -1,0 +1,56 @@
+application: genewikitools
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+### static files
+- url: /static
+  static_dir: static
+
+### remote api for uploading and downloading data in bulk
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
+
+### Main tools
+
+- url: /ListPages
+  script: ListPages.py
+
+- url: /ReferenceReport
+  script: ReferenceReport.py
+
+### Helper tools
+
+- url: /ExtractReferences
+  script: ExtractReferences.py
+
+- url: /Pubmed2Mesh
+  script: Pubmed2Mesh.py
+
+- url: /ReadGeneWikiPage
+  script: ReadGeneWikiPage.py
+
+- url: /RefreshPageList
+  script: RefreshPageList.py
+
+### annotation verifier
+
+- url: /verifier/.*
+  script: verifier/hit.py
+
+### Test scripts below
+- url: /EnvironmentVariablesTest
+  script: EnvironmentVariablesTest.py
+
+- url: /GetGAEIpAddress
+  script: GetGAEIpAddress.py
+
+- url: /PostTest
+  script: PostTest.py
+
+- url: .*
+  script: PrintDoc.py

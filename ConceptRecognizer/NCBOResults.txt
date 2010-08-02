@@ -1,0 +1,182 @@
+**CALRETICULIN**
+
+transduction===[[Transduction]]
+systemic lupus erythematosus===[[Systemic lupus erythematosus]]
+rough endoplasmic reticulum===[[Rough endoplasmic reticulum]]
+DNA===[[DNA]]
+syndrome===[[Syndrome]]
+glycosylation===[[Glycosylation]]
+protein processing===
+transcription===[[Transcription]]
+signal transduction===[[Signal transduction]]
+binding===[[Binding]]
+disease===[[Disease]]
+endoplasmic reticulum===[[Endoplasmic reticulum]]
+cell===[[Cell]]
+Congenital heart block===
+nucleus===[[Nucleus]]
+signaling===[[Signaling]]
+Hemochromatosis===[[Hemochromatosis]]
+Heart Block===
+protein===[[Protein]]
+lupus erythematosus===[[Lupus erythematosus]]
+
+**INSULIN**
+
+plasma membrane===[[Plasma membrane]]
+anovulation===[[Anovulation]]
+hypoglycemic coma===
+Acidosis===[[Acidosis]]
+proteolysis===[[Proteolysis]]
+metabolic syndrome X===[[Metabolic syndrome X]]
+binding===[[Binding]]
+autophagy===[[Autophagy]]
+polycystic ovary syndrome===[[Polycystic ovary syndrome]]
+fibril===[[Fibril]]
+digestion===[[Digestion]]
+hypertension===[[Hypertension]]
+learning===[[Learning]]
+peptide hormone===[[Peptide hormone]]
+diabetes mellitus===[[Diabetes mellitus]]
+protein===[[Protein]]
+Dizziness===[[Dizziness]]
+transport===[[Transport]]
+transduction===[[Transduction]]
+aging===[[Aging]]
+death===[[Death]]
+syndrome===[[Syndrome]]
+transcription===[[Transcription]]
+innervation===[[Innervation]]
+translation===[[Translation]]
+endoplasmic reticulum===[[Endoplasmic reticulum]]
+cell===[[Cell]]
+Insulin Resistance===[[Insulin Resistance]]
+growth===[[Growth]]
+Alzheimer's disease===[[Alzheimer's disease]]
+signal transduction===[[Signal transduction]]
+secretion===[[Secretion]]
+gene expression===[[Gene expression]]
+gluconeogenesis===[[Gluconeogenesis]]
+DNA===[[DNA]]
+signaling pathway===[[Signaling pathway]]
+glycolysis===[[Glycolysis]]
+memory===[[Memory]]
+vesicle===[[Vesicle]]
+adenoma===[[Adenoma]]
+receptor complex===
+enhancer binding===
+signaling===[[Signaling]]
+Glycosuria===[[Glycosuria]]
+Starvation===[[Starvation]]
+membrane===[[Membrane]]
+hyperglycemia===[[Hyperglycemia]]
+islet cell adenoma===
+cognition===[[Cognition]]
+hypoglycemia===[[Hypoglycemia]]
+disease===[[Disease]]
+endocytosis===[[Endocytosis]]
+amyloidosis===[[Amyloidosis]]
+insulin===[[Insulin]]
+insulinoma===[[Insulinoma]]
+obesity===[[Obesity]]
+anaphylaxis===[[Anaphylaxis]]
+
+**P53**
+
+carcinoma in situ===[[Carcinoma in situ]]
+cell cycle arrest===
+cancer===[[Cancer]]
+Werner syndrome===[[Werner syndrome]]
+cytosol===[[Cytosol]]
+cell growth===[[Cell growth]]
+SWI/SNF complex===
+binding===[[Binding]]
+protein kinase activity===
+metaphase===[[Metaphase]]
+growth===[[Growth]]
+conjugation===[[Conjugation]]
+protein ubiquitination===
+protein===[[Protein]]
+MDM2 binding===
+chromosome===[[Chromosome]]
+ubiquitin===[[Ubiquitin]]
+transduction===[[Transduction]]
+aging===[[Aging]]
+p53 binding===
+melanoma===[[Melanoma]]
+syndrome===[[Syndrome]]
+tumor suppressor===[[Tumor suppressor]]
+cell division===[[Cell division]]
+transcription===[[Transcription]]
+DNA binding===
+induction of apoptosis===
+cell===[[Cell]]
+kinase activity===
+proliferating cell nuclear antigen===[[Proliferating cell nuclear antigen]]
+muscular atrophy===[[Muscular atrophy]]
+retinoblastoma===[[Retinoblastoma]]
+membrane===[[Membrane]]
+DNA-dependent protein kinase complex===
+signalosome===
+programmed cell death===[[Programmed cell death]]
+senescence===[[Senescence]]
+ataxia telangiectasia===[[Ataxia telangiectasia]]
+DNA Damage===
+localization===[[Localization]]
+apoptosis===[[Apoptosis]]
+dephosphorylation===[[Dephosphorylation]]
+Radiation-Induced DNA Damage===
+leukemia===[[Leukemia]]
+enhancer binding===
+host===[[Host]]
+cell cycle regulator===
+cell cycle===[[Cell cycle]]
+signaling===[[Signaling]]
+sarcomere===[[Sarcomere]]
+cardiomyopathy===[[Cardiomyopathy]]
+tumor antigen===[[Tumor antigen]]
+nucleus===[[Nucleus]]
+exonuclease activity===
+death===[[Death]]
+hyperpigmentation===[[Hyperpigmentation]]
+cell death===[[Cell death]]
+gene expression===[[Gene expression]]
+RNA===[[RNA]]
+signal transduction===[[Signal transduction]]
+regulation of transcription===
+disease===[[Disease]]
+phosphorylation===[[Phosphorylation]]
+endocytosis===[[Endocytosis]]
+Recruitment===[[Recruitment]]
+nucleocytoplasmic transport===
+Spinal Muscular Atrophy===[[Spinal Muscular Atrophy]]
+insulin===[[Insulin]]
+reproduction===[[Reproduction]]
+Cockayne syndrome===[[Cockayne syndrome]]
+Ataxia===[[Ataxia]]
+carcinoma===[[Carcinoma]]
+angiogenesis===[[Angiogenesis]]
+bloom syndrome===[[Bloom syndrome]]
+necrosis===[[Necrosis]]
+transport===[[Transport]]
+cell proliferation===[[Cell proliferation]]
+
+**CATALASE**
+
+acatalasia===[[Acatalasia]]
+cell===[[Cell]]
+catalase activity===
+tuberculosis===[[Tuberculosis]]
+senescence===[[Senescence]]
+aging===[[Aging]]
+binding===[[Binding]]
+photorespiration===[[Photorespiration]]
+nitrogen fixation===[[Nitrogen fixation]]
+organelle===[[Organelle]]
+host===[[Host]]
+growth===[[Growth]]
+peroxisomal disorder===[[Peroxisomal disorder]]
+learning===[[Learning]]
+peroxisome===[[Peroxisome]]
+protein===[[Protein]]
+
