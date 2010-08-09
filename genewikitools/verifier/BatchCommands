@@ -7,13 +7,8 @@ appcfg.py download_data --app_id=genewikitools --kind=Anno --url=http://genewiki
 appcfg.py create_bulkloader_config --filename=bulkloader.yaml --url=http://genewikitools.appspot.com/remote_api
 
 appcfg.py download_data --config_file=bulkloader-annos.yaml --filename=annos.csv --kind=Anno --url=http://genewikitools.appspot.com/remote_api
-appcfg.py upload_data --config_file=bulkloader-annos.yaml --filename=annos.csv --kind=Anno --url=http://genewikitools.appspot.com/remote_api
+appcfg.py upload_data --config_file=bulkloader-annos-big.yaml --filename=testannos2.csv --kind=Anno --url=http://genewikitools.appspot.com/remote_api
+
+C:\Users\bgood\Programs\Google>bulkloader.py --config_file=bulkloader-annos-big.yaml --filename=testannos2.csv --kind=Anno --url=http:/localhost:9999/remote_api --app_id=genewikitools
 
 
-		  <iframe src ="{{wikipageurl}}" width="700" height="300" scrolling="yes">
-  				<p>Your browser does not support iframes.</p>
-		  </iframe>
-		  
-		  		<div id="wiki-text" style="width:700;height:300;scrolling:yes">
-				{{wikipage}}
-   	     </div>

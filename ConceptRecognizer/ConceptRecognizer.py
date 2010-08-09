@@ -32,12 +32,13 @@ insulin[concept].link
 """
 
 # Add path to pywikipedia folder
-mydir = "./"
-pwbdir = mydir + "pywikipedia/"
+mydir = ".\\"
+pwbdir = mydir + "pywikipedia\\"
 import sys
 sys.path.append(pwbdir)
 
 from wikipedia import *
+#import wikipedia
 import urllib
 import urllib2
 from xml.dom import minidom
@@ -90,14 +91,19 @@ class recognizer:
         global site
         global page
         try:
+            print 'init rec'
             site = getSite(language, family)
         except NoSuchSite:
             print "Invalid wiki language and/or family"
         else:
+            print 'init rec 1'
             page = Page(site, pagetitle)
+            print 'init rec 1.5'
             fmly = family
             lng = language
+            print 'init rec 2'
             self.content = self.getContent(pagetitle, family, language)
+            print 'init rec 3'
             self.xmlDoc = self.textMine(self.content, Ontologies)
         
     def getContent(self, pagetitle, family="wikipedia", language="en"):
@@ -106,6 +112,7 @@ class recognizer:
             print "No page title provided for wiki page"
             return
         try:
+            print 'get content'
             pagecontent = page.get(get_redirect = True)
         except (NoPage, BadTitle, PageNotFound):
             print "Invalid wiki page title"

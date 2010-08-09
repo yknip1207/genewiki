@@ -4,9 +4,11 @@ Test the ConceptRecognizer's text-mining results for given wiki pages
 This script runs Gene Wiki pages through the ConceptRecognizer module
 and outputs results in tab/semicolon delimited text file
 """
+
 from ConceptRecognizer import recognizer
 
-pagetitle = raw_input("Enter title of wiki page: ")
+#pagetitle = raw_input("Enter title of page to test ")
+pagetitle = "CDKN1B"
 
 try:
     r = recognizer(pagetitle)
@@ -15,7 +17,7 @@ try:
     #conceptDict = r.processConceptLinks(conceptDict) 
     fullDict = r.findLinks(conceptDict)
 except Exception:
-    print 'An error has occurred'
+    print 'An error has occurred in Recognizer test'
 else:
     f = open(pagetitle + '.txt', 'w')
     f.write("**" + pagetitle.upper() + "**\n")

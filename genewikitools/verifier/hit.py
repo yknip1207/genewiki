@@ -1,6 +1,7 @@
 import os
 import cgi
 import urllib
+from django.utils import simplejson as json
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -8,6 +9,24 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import login_required
 
+def parseWikipediaText(text, pagetitle):
+    UrlRoot = "http://en.wikipedia.org/w/api.php"
+    UrlParams = {
+            'action': 'parse',
+            'title': pagetitle,
+            'text': text,
+            'redirects': 'true',
+            'format': 'json'
+            }
+    f = urllib.urlopen(UrlRoot, urllib.urlencode(UrlParams) )
+    z = f.read()
+    if z:
+        output = json.loads(z)
+        parsed = output['parse']['text']['*']
+        return parsed
+    else:
+        print "parseWikipedia returned no response"
+        return
 
 class Anno(db.Model):
     entrezGeneId = db.StringProperty();
@@ -71,12 +90,11 @@ class Verify(webapp.RequestHandler):
             anno.contextSentence = anno.contextSentence.replace("-!","</b>")
              
             wikipageurl = "http://mobile.wikipedia.org/transcode.php?go="+anno.geneWikiPageName
-           # wikipageurl = "http://en.wikipedia.org/wiki/"+anno.geneWikiPageName  
-           # f = urllib.urlopen("http://genewikitools.appspot.com/ReadGeneWikiPage?article="+anno.geneWikiPageName)
-           # wikipage = f.read()
-                
+
+         #   wikitext = parseWikipediaText(anno.contextSentence,anno.geneWikiPageName)
+                            
             template_values = {
-            #                   'wikipage': wikipage,
+          #                     'wikitext': wikitext,
                                'wikipageurl': wikipageurl,
                                'anno': anno,
                                'annokey': str(anno.key()),

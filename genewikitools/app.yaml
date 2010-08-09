@@ -5,14 +5,14 @@ api_version: 1
 
 handlers:
 
-### static files
-- url: /static
-  static_dir: static
-
 ### remote api for uploading and downloading data in bulk
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
+
+### static files
+- url: /static
+  static_dir: static
 
 
 ### Main tools
