@@ -98,7 +98,8 @@ class Verify(webapp.RequestHandler):
                                'wikipageurl': wikipageurl,
                                'anno': anno,
                                'annokey': str(anno.key()),
-                               'logouturl': logouturl
+                               'logouturl': logouturl,
+                               'username':verifier.nickname()
                                }            
             path = os.path.join(os.path.dirname(__file__), 'verifier.html')
             self.response.out.write(template.render(path, template_values))      
