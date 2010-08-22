@@ -4,20 +4,9 @@ This module runs a sample of gene wiki pages through the ConceptRecognizer modul
 and collects metrics data.  Outputs data into a semicolon delimited file 'Data.txt'
 """
 
-from ConceptRecognizer import recognizer
+from ConceptRecognizer import *
 import time
 
-class recognizerInfo:
-    """ This is a data structure for the recognizer metrics"""
-    def __init__(self):
-        self.size = 0
-        self.NCBOtime = None
-        self.scriptTime = None
-        self.conceptsCount = 0
-        self.HDcount = 0
-        self.GOcount = 0
-        self.GOEcount = 0
-        self.missedLinks = 0
 
 #Sample of Gene Wiki pages        
 pageList = [
@@ -135,47 +124,58 @@ pageList = [
         "CD36"
         ]
 
-Data = {}
+f = open('Data.txt', 'w')
+f.write("Title" + "\t" + "Size" + "\t" + "NCBOTime" + "\t" + "Step3Time" + "\t" + "step4Time" + "\t" + "step5Time" + "\t" + "step6Time" + "\t" + "scriptTime" + "\t" + "Concept count" + "\t" + "human disease" + "\t" + "gene ontology" + "\t" + "gene ontology extension" + "\t" + "missed links" + "\t" + "unknowns" + "\n")
+f.close()
+
 for pagetitle in pageList:
     start = time.clock()
     try:
         r = recognizer(pagetitle)
-        NCBOend = time.clock()
-        conceptDict = r.extractWords(r.xmlDoc)
-        conceptDict = r.processGOterms(conceptDict)
-        #conceptDict = r.processConceptLinks(conceptDict) 
-        fullDict = r.findLinks(conceptDict)
-        scriptEnd = time.clock()
-    except Exception:
-        pass
+    except (Error, InvalidPage, InvalidSite, ServerError, FileError) as inst:
+        print 'ERROR on', pagetitle, inst
     else:
-        HDcount = 0
-        GOcount = 0
-        GOEcount = 0
-        missedLinks = 0
-        for v in fullDict.itervalues():
-            if v.localOntologyID == "42925":
-                GOEcount=GOEcount+1
-            elif v.localOntologyID == "42986":
-                HDcount = HDcount+1
-            else:
-                GOcount=GOcount+1
-            if v.link=="" and v.linked=="False":
-                missedLinks = missedLinks + 1
+        try:
+            NCBOend = time.clock()
+            conceptDict = r.extractWords(r.xmlDoc)
+            step3end = time.clock()
+            conceptDict = r.processGOterms(conceptDict)
+            step4end = time.clock()
+            conceptDict = r.processConceptLinks(conceptDict)
+            step5end = time.clock()
+            fullDict = r.findLinks(conceptDict)
+            scriptEnd = time.clock()
+        except (Error, InvalidPage, InvalidSite, ServerError, FileError):
+            pass
+        else:
+            HDcount = 0
+            GOcount = 0
+            GOEcount = 0
+            missedLinks = 0
+            for v in fullDict.itervalues():
+                if v.localOntologyID == "42925":
+                    GOEcount=GOEcount+1
+                elif v.localOntologyID == "42986":
+                    HDcount = HDcount+1
+                else:
+                    GOcount=GOcount+1
+                if v.link=="NA" and v.linked=="False":
+                    missedLinks = missedLinks + 1
 
-        Data[pagetitle] = recognizerInfo()
-        Data[pagetitle].size = len(r.content)
-        Data[pagetitle].NCBOtime = NCBOend - start
-        Data[pagetitle].scriptTime = scriptEnd - start
-        Data[pagetitle].conceptsCount = len(fullDict)
-        Data[pagetitle].HDcount = HDcount
-        Data[pagetitle].GOcount = GOcount
-        Data[pagetitle].GOEcount = GOEcount
-        Data[pagetitle].missedLinks = missedLinks
+            size = len(r.content)
+            NCBOtime = NCBOend - start
+            step3Time = step3end - NCBOend
+            step4Time = step4end - step3end
+            step5Time = step5end - step4end
+            step6Time = scriptEnd - step5end
+            scriptTime = scriptEnd - start
+            conceptsCount = len(fullDict)
+            HDcount = HDcount
+            GOcount = GOcount
+            GOEcount = GOEcount
+            missedLinks = missedLinks
+            unknowns = (fullDict.keys()).count("unknown")
 
-if len(Data)>0:
-    f = open('Data.txt', 'w')
-    f.write("Title; Article size; NCBO running time; Script running time; Total Concepts; Human disease concepts; GO concepts; GO extension concepts; Missed links \n")
-    for k, v in Data.iteritems():
-        f.write(k + ";" + str(v.size) + ";" + str(v.NCBOtime) + ";" + str(v.scriptTime) + ";" + str(v.conceptsCount) + ";" + str(v.HDcount) + ";" + str(v.GOcount) + ";" + str(v.GOEcount) + ";" + str(v.missedLinks) + "\n")
-    f.close()
+            f = open('Data.txt', 'a')
+            f.write(pagetitle + "\t" + str(size) + "\t" + str(NCBOtime) + "\t" + str(step3Time) + "\t" + str(step4Time) + "\t" + str(step5Time) + "\t" + str(step6Time) + "\t" + str(scriptTime) + "\t" + str(conceptsCount) + "\t" + str(HDcount) + "\t" + str(GOcount) + "\t" + str(GOEcount) + "\t" + str(missedLinks) + "\t" + str(unknowns) + "\n")
+            f.close()

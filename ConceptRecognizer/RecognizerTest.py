@@ -1,14 +1,13 @@
 """
 Olga Rosado, San Diego State University, 2010
-Test the ConceptRecognizer's text-mining results for given wiki pages
+Test the ConceptRecognizer's text-mining results for given wiki pages.
 This script runs Gene Wiki pages through the ConceptRecognizer module
-and outputs results in tab/semicolon delimited text file
+and outputs results in tab delimited text file
 """
+from ConceptRecognizer import *
 
-from ConceptRecognizer import recognizer
 
-#pagetitle = raw_input("Enter title of page to test ")
-pagetitle = "CDKN1B"
+pagetitle = raw_input("Enter title of wiki page: ")
 
 try:
     r = recognizer(pagetitle)
@@ -16,16 +15,16 @@ try:
     conceptDict = r.processGOterms(conceptDict)
     #conceptDict = r.processConceptLinks(conceptDict) 
     fullDict = r.findLinks(conceptDict)
-except Exception:
-    print 'An error has occurred in Recognizer test'
+except (Error, InvalidPage, InvalidSite, ServerError, FileError) as inst:
+    print 'ERROR:', inst
 else:
     f = open(pagetitle + '.txt', 'w')
     f.write("**" + pagetitle.upper() + "**\n")
     f.write("Concepts recognized: " + str(len(fullDict)) + "\n\n\n")
-    f.write('{:15}'.format("Accession;") + '{:15}'.format("GO term ID;") + '{:15}'.format("Ontology ID;") + '{:30}'.format("Concept;") + '{:60}'.format("Preferred Name;") + '{:7}'.format("Linked;") + '{:10}'.format("LinkType;") + "Link\n")
-    f.write('{:15}'.format("=========;") + '{:15}'.format("==========;") + '{:15}'.format("===========;") + '{:30}'.format("=======;") + '{:60}'.format("==============;") + '{:7}'.format("======;") + '{:10}'.format("========;") + "====\n")
+    f.write("Accession\t" + "GO term ID\t" + "Ontology ID\t" + "Concept\t" + "Preferred Name\t" + "Linked\t" + "LinkType\t" + "Link\n")
+    f.write("=========\t" + "==========\t" + "===========\t" + "=======\t" + "==============\t" + "======\t" + "========\t" + "====\n")
         
     for k, v in fullDict.iteritems():
-        f.write('{:15}'.format(v.accession+ ";") + '{:15}'.format(v.GOtermID+ ";") + '{:15}'.format(v.localOntologyID + ";") + '{:30}'.format(k + ";") + '{:60}'.format(v.preferredName + ";") + '{:7}'.format(v.linked + ";") + '{:10}'.format(v.linkType + ";") + v.link + "\n")
+        f.write(v.accession+ "\t" + v.GOtermID+ "\t" + v.localOntologyID + "\t" + k + "\t" + v.preferredName + "\t" + v.linked + "\t" + v.linkType + "\t" + v.link + "\n")
     f.close()
 

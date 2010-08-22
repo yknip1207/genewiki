@@ -10,6 +10,13 @@ Classes:
     synInfo - data structure for containing information on concept synonyms
     recognizer - retrieves wiki articles and looks for biomedical concepts based on ontologies availabe in the NCBO text-mining tool
 
+Exceptions:
+    Error - base error class for general script problems
+    InvalidPage - raised when wiki title is not recognized, wiki page does not exist, or cannot be found
+    InvalidSite - raised when an invalid wiki family and/or language is provided
+    ServerError - raised when there is an issue connecting to the wikipedia or NCBO website
+    FileError - raised when there is a problem opening a file
+
 Methods:
     getContent - retrieves the content of wiki article by wiki title, family and language
     textMine - sends text to the NCBO for text-mining using given ontologies
@@ -18,7 +25,7 @@ Methods:
     processGOterms - loads GO term and synonym information from mysql dump files.  Inserts synonym info to dictionary
     processConceptLinks - gets a list of links already in wiki page, then checks to see if any of the concepts recognized are linked.
     findLinks - finds wiki links for concepts that are not linked on wiki family and language provided
-
+    
 Sample code:
 To text-mine the english Insulin wikipedia page and look for biomedical concept links in the english wikipedia:
     r = recognizer('Insulin', 'wikipedia', 'en')
@@ -32,13 +39,12 @@ insulin[concept].link
 """
 
 # Add path to pywikipedia folder
-mydir = ".\\"
-pwbdir = mydir + "pywikipedia\\"
+mydir = "./"
+pwbdir = mydir + "pywikipedia/"
 import sys
 sys.path.append(pwbdir)
 
 from wikipedia import *
-#import wikipedia
 import urllib
 import urllib2
 from xml.dom import minidom
@@ -54,9 +60,27 @@ wikifam['wikispecies'] = 'species'
 wikifam['wikiversity'] = 'v'
 
 # Default values
-ontologies = '42925,42986,42989'  #gene ontology, gene ontology extension, human disease ontology - localOntologyID
+ontologies = '42925,42986,42989'  #gene ontology, gene ontology extension, human disease ontology by NCBO's localOntologyID
 
 
+# Exception classes
+class Error(Exception):
+    """ConceptRecognizer error"""
+
+class InvalidPage(Error):
+    """Invalid wiki page"""
+
+class InvalidSite(Error):
+    """Site does not exist"""
+
+class ServerError(Error):
+    """Got unexpected server response"""
+
+class FileError(Error):
+    """Trouble manipulating file"""
+
+
+# Data structure classes    
 class conceptInfo:
     """ This is a data structure to contain the information of a concept
     recognized by the NCBO text-mining tool"""
@@ -67,7 +91,7 @@ class conceptInfo:
         self.preferredName=""
         self.synonyms = {}
         self.linked = "False"
-        self.link = ""
+        self.link = "NA"
         self.linkType = "NA"
 
 class synInfo:
@@ -75,7 +99,9 @@ class synInfo:
     def __init__(self):
         self.termID = "NA"
         self.typeID="NA"
-        
+
+
+# Recognizer class        
 class recognizer:
     """ This class looks at a wiki page and looks for biomedical keywords. It then looks to see
     if there are any links for such words, and if not, it will look for related articles in the same
@@ -91,41 +117,33 @@ class recognizer:
         global site
         global page
         try:
-            print 'init rec'
             site = getSite(language, family)
         except NoSuchSite:
-            print "Invalid wiki language and/or family"
+            raise InvalidSite('Invalid wiki language and/or family')
         else:
-            print 'init rec 1'
             page = Page(site, pagetitle)
-            print 'init rec 1.5'
             fmly = family
             lng = language
-            print 'init rec 2'
             self.content = self.getContent(pagetitle, family, language)
-            print 'init rec 3'
             self.xmlDoc = self.textMine(self.content, Ontologies)
         
     def getContent(self, pagetitle, family="wikipedia", language="en"):
-        """Get the contents of a wiki article by title"""
+        """Get the contents of a wiki article by title, wiki family and language"""
         if pagetitle is None:
-            print "No page title provided for wiki page"
-            return
+            raise Error('No page title provided for recognizer')
         try:
-            print 'get content'
             pagecontent = page.get(get_redirect = True)
-        except (NoPage, BadTitle, PageNotFound):
-            print "Invalid wiki page title"
+        except (NoPage, BadTitle, PageNotFound, ServerError):
+            raise InvalidPage('Invalid wiki page title')
         else:
             pagecontent = pagecontent.encode(page.encoding(), "replace")
             return pagecontent
 
     def textMine(self, text, Ontologies=ontologies):
-        """Send page content to NCBO text-mining tool and retrieve biomedical concepts
+        """Sends page content to NCBO text-mining tool and retrieves biomedical concepts
         Returns an xml object"""
         if text is None:
-            print "No content to mine"
-            return
+            raise Error('No content to mine')
         url = 'http://rest.bioontology.org/obs/annotator'
         values = {
             'scored':'false',
@@ -136,14 +154,16 @@ class recognizer:
         data = urllib.urlencode(values)
         try:
             response = urllib2.urlopen(url, data, 600)
-        except urllib2.URLError:
-            print "Error opening NCBO service website"
+        except (urllib2.URLError, urllib2.HTTPError):
+            raise ServerError('Error opening NCBO service website')
         else:
             result = response.read()
             return result
 
     def stripTags(self, string, tagName):
         """Strips xml tag, <tagName>, from string"""
+        if string is None:
+            raise Error('String cannot be None')
         newStr = string.replace("<"+tagName+">", "")
         newStr = newStr.replace("</"+tagName+">", "")
         return newStr
@@ -153,26 +173,31 @@ class recognizer:
         node containing all information on a particular concept.
         Returns a dictionary with concepts as key and preferredName, synonyms, and conceptID as values"""
         if xmlObject is None:
-            print "No xml object provided for parsing"
-            return
+            raise Error('No xml object provided for parsing')
         try:
             xmldoc = minidom.parseString(xmlObject)
         except Exception:
-            print "Error parsing xml object"
+            raise Error('Error parsing xml object')
         else:
             conceptList = xmldoc.getElementsByTagName('annotationBean')        
             keylist = {} # dictionary to store info
             for concept in conceptList:
-                word = str((concept.getElementsByTagName('name'))[0].toxml())
-                word = self.stripTags(word, 'name')
+                if len(concept.getElementsByTagName('name'))==0:
+                    word = "unknown"
+                else:
+                    word = str((concept.getElementsByTagName('name'))[0].toxml())
+                    word = self.stripTags(word, 'name')
                 keylist[word]=conceptInfo()
                 conceptID = str((concept.getElementsByTagName('localConceptId'))[0].toxml())
                 preferredName = str((concept.getElementsByTagName('preferredName'))[0].toxml())
-                synList = concept.getElementsByTagName('string')
-                for synonym in synList:
-                    syn = str(synonym.toxml())
-                    syn = self.stripTags(syn, 'string')
-                    keylist[word].synonyms[syn]=synInfo()
+                if len(concept.getElementsByTagName('string'))==0:
+                    synList = "None"
+                else:
+                    synList = concept.getElementsByTagName('string')
+                    for synonym in synList:
+                        syn = str(synonym.toxml())
+                        syn = self.stripTags(syn, 'string')
+                        keylist[word].synonyms[syn]=synInfo()
                 conceptID = (self.stripTags(conceptID, 'localConceptId')).split('/')
                 keylist[word].localOntologyID = conceptID[0]
                 keylist[word].accession = conceptID[1]
@@ -183,14 +208,13 @@ class recognizer:
         """Load the details of the Gene Ontology (GO) terms and synonyms from the MySQL dump files. Add info
         to the synonyms dictionary"""
         if keywordDict is None:
-            print "No keyword dictionary provided for processing"
-            return
+            raise Error('No keyword dictionary provided for processing')
         synDetails = {}
         termDetails = {}
         try:
             termf = open('go_daily-termdb-tables/term.txt', 'r+')
         except IOError:
-            print "Could not open GO term table dump file"
+            raise FileError('Could not open GO term table dump file')
         else:
             termfile = termf.readlines()
             termf.close()
@@ -200,7 +224,7 @@ class recognizer:
         try:
             synf = open('go_daily-termdb-tables/term_synonym.txt', 'r+')
         except IOError:
-            print "Could not open GO synonym table dump file"
+            raise FileError('Could not open GO synonym table dump file')
         else:
             synfile = synf.readlines()
             synf.close()
@@ -213,9 +237,10 @@ class recognizer:
                 if keywordDict[word].accession.startswith('GO'):
                     if keywordDict[word].accession in termDetails.keys():
                         keywordDict[word].GOtermID = termDetails[keywordDict[word].accession]
-                    for syn in keywordDict[word].synonyms.keys():
-                        if syn in synDetails.keys():
-                            keywordDict[word].synonyms[syn]=synDetails[syn]
+                    if keywordDict[word].synonyms != "None":
+                        for syn in keywordDict[word].synonyms.keys():
+                            if syn in synDetails.keys():
+                                keywordDict[word].synonyms[syn]=synDetails[syn]
         return keywordDict
 
     def processConceptLinks(self, keywordDict):
@@ -224,8 +249,7 @@ class recognizer:
         look for them so set the 'Linked' property to True. Returns a modified keyword dictionary
         """
         if keywordDict is None:
-            print "No keyword dictionary provided for processing"
-            return
+            raise Error('No keyword dictionary provided for processing')
         pagelinks = page.linkedPages()
         linklist = []
         for link in pagelinks:
@@ -240,12 +264,11 @@ class recognizer:
         links (if any) as link value in keylist dictionary. Only synonyms that are not of typeID 71 or 40 will be considered for links.
         Links are formatted in wikilink format."""
         if keywordDict is None:
-            print "No keyword dictionary provided for linking"
-            return
+            raise Error('No keyword dictionary provided for linking')
         try:
             linksite = getSite(language, family)  #this is the wiki site where additional links will be retrieved from                  
         except NoSuchSite:
-            print "Invalid wiki language and/or family for links"
+            raise InvalidSite('Invalid wiki language and/or family for links')
         else:
             for word in keywordDict.keys():
                 wikilink = ""
@@ -257,7 +280,7 @@ class recognizer:
                         for syn in keywordDict[word].synonyms.keys():
                             if Page(linksite, syn).exists() and keywordDict[word].synonyms[syn].typeID != ("71" or "40"):
                                 wikilink = Page(linksite, syn)
-                                if wikilink.title() == word:
+                                if wikilink.title() == (word or word.capitalize()):
                                     keywordDict[word].linkType = "concept"
                                 else:
                                     keywordDict[word].linkType = "synonym"
