@@ -5,7 +5,7 @@
 #
 # retrieve the list of all Gene Wiki pages
 #
-# AS 20100204
+# AS 20100204  
 #
 
 use LWP::Simple;
