@@ -6,14 +6,10 @@ package tests;
  * @author eclarke@gnf.org
  */
 
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+
+
 import java.io.StringReader;
-import java.util.List;
-import java.io.File;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -24,7 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
+
 
 import info.bliki.api.*;
 
@@ -44,37 +40,25 @@ public class BlikiTest {
 		}
 		
 		// if more results are available, use "cmcontinue" from the last query result
-		String cmcontinue = findNodeInXml(rawXmlResponse, "categorymembers");
-		
-		String[] valuePairs2 = {"list", "categorymembers", "cmtitle", "Category:Physics", "cmcontinue", cmcontinue};
-		rawXmlResponse = connector.queryXML(user, valuePairs2);
-		if (rawXmlResponse == null) {
-			System.out.println("No XML result for query.");
+		String cmcontinue = findNodeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
+		while(cmcontinue != null) {
+			String[] valuePairs2 = {"list", "categorymembers", "cmtitle", "Category:Physics", "cmcontinue", cmcontinue};
+			rawXmlResponse = connector.queryXML(user, valuePairs2);
+			if (rawXmlResponse == null) {
+				System.out.println("No XML result for query.");
+			}
+			System.out.println(rawXmlResponse);
+			
+			cmcontinue = findNodeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
 		}
-		System.out.println(rawXmlResponse);
 	}
 	
-	public static String findNodeInXml(String rawXmlResponse, String queryNode) {
-		
-//		File xmlfile = new File("C:\\tmp\\queryXMLoutput.xml");
-//		BufferedWriter writer = null;
-//		try {
-//			writer = new BufferedWriter(new FileWriter(xmlfile));
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		try {
-//			writer.write(rawXmlResponse);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		try {
-//			writer.close();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+	public static String findNodeInXml(String rawXmlResponse, String queryNode, String queryAttribute) {
+
+		// Parses the raw XML response from wp and looks for the queried attribute
+		// of a queried node so that we can get the next round of results.
+		// For this to work in our context, queryNode should be categorymembers and 
+		// queryAttribute should be cmcontinue.
 		
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -87,16 +71,16 @@ public class BlikiTest {
 			for (int i = 0; i < nodes.getLength(); i++) {
 				Element element = (Element) nodes.item(i);
 				// I was trying to make this more general for no particular reason,
-				// but I wound up just hardcoding some stuff into it for this application.
-				if(element.hasAttribute("cmcontinue")) {
-					cmcontinue = element.getAttribute("cmcontinue");
+				// but I wound up just hard-coding some stuff into it for this application.
+				if(element.hasAttribute(queryAttribute)) {
+					cmcontinue = element.getAttribute(queryAttribute);
 				}
 			}
-			System.out.println("cmcontinue value: " + cmcontinue);
+			System.out.println("Query attribute value: " + cmcontinue);
 			
 			return cmcontinue;
 		} catch (Exception e) {
-			System.out.println("Exception!");
+			System.out.println("Error :(");
 			e.printStackTrace();
 		}
 		
