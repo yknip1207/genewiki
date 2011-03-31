@@ -55,22 +55,30 @@ public class PageViewCounter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//		DescriptiveStatistics days = getPageViewSummaryForDateRange("Cleft_lip_and_palate", 2010, 2, 2, 2011, 2, 2);
-		//		System.out.println(days.toString());
-
-		String article_name_file = "/users/bgood/data/wikiportal/facebase_genes.txt";
-		Set<String> titles = FileFun.readOneColFile(article_name_file);
-		Calendar latest = Calendar.getInstance();
-		Calendar earliest = Calendar.getInstance();
-		earliest.add(Calendar.MONTH, -12);
-		JSONObject r1 = generatePageSetViewReportJSON(getPageViewSummaryForDateRange(titles, earliest, latest), earliest, latest);
-//		latest.add(Calendar.MONTH, -1);
-//		earliest.add(Calendar.MONTH, -2);
-//		JSONObject r2 = generatePageSetViewReportJSON("FaceBase PageViews", titles, earliest, latest);
-		JSONArray ja = new JSONArray();
-		ja.put(r1); 
-//		ja.put(r2);
-		System.out.println(ja.toString());
+		try {
+			String j = getPageViewJson("Calreticulin", "2010", "12");
+			System.out.println(j);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+//		//		DescriptiveStatistics days = getPageViewSummaryForDateRange("Cleft_lip_and_palate", 2010, 2, 2, 2011, 2, 2);
+//		//		System.out.println(days.toString());
+//
+//		String article_name_file = "/users/bgood/data/wikiportal/facebase_genes.txt";
+//		Set<String> titles = FileFun.readOneColFile(article_name_file);
+//		Calendar latest = Calendar.getInstance();
+//		Calendar earliest = Calendar.getInstance();
+//		earliest.add(Calendar.MONTH, -12);
+//		JSONObject r1 = generatePageSetViewReportJSON(getPageViewSummaryForDateRange(titles, earliest, latest), earliest, latest);
+////		latest.add(Calendar.MONTH, -1);
+////		earliest.add(Calendar.MONTH, -2);
+////		JSONObject r2 = generatePageSetViewReportJSON("FaceBase PageViews", titles, earliest, latest);
+//		JSONArray ja = new JSONArray();
+//		ja.put(r1); 
+////		ja.put(r2);
+//		System.out.println(ja.toString());
 	}
 
 	public static JSONObject generatePageSetViewReportJSON(Map<String, DescriptiveStatistics> page_views, Calendar earliest, Calendar latest){
