@@ -1,6 +1,6 @@
 package org.gnf.genewiki.stream;
 
-import com.ibm.icu.util.Calendar;
+import java.util.Calendar;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;

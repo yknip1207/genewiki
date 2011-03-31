@@ -35,7 +35,7 @@ import org.gnf.util.FileFun;
 import org.gnf.util.MapFun;
 import org.json.JSONArray;
 
-import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.Collections;
 
 /**
  * @author bgood

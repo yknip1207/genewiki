@@ -27,7 +27,7 @@ import org.gnf.util.StatFun;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.ibm.icu.util.Calendar;
+import java.util.Calendar;
 
 /**
  * @author bgood

@@ -20,7 +20,7 @@ import org.gnf.go.GOterm;
 
 import com.hp.hpl.jena.ontology.OntClass;
 
-import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.Collections;
 
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchSequenceServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub;
