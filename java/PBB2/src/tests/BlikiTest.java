@@ -23,7 +23,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 
-import info.bliki.api.*;
+import org.gnf.wikiapi.*;;
 
 
 public class BlikiTest {
@@ -41,7 +41,7 @@ public class BlikiTest {
 		}
 		
 		// if more results are available, use "cmcontinue" from the last query result
-		String cmcontinue = findNodeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
+		String cmcontinue = findAttributeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
 		while(cmcontinue != null) {
 			String[] valuePairs2 = {"list", "categorymembers", "cmtitle", "Category:Physics", "cmcontinue", cmcontinue};
 			rawXmlResponse = connector.queryXML(user, valuePairs2);
@@ -50,11 +50,11 @@ public class BlikiTest {
 			}
 			System.out.println(rawXmlResponse);
 			
-			cmcontinue = findNodeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
+			cmcontinue = findAttributeInXml(rawXmlResponse, "categorymembers", "cmcontinue");
 		}
 	}
 	
-	public static String findNodeInXml(String rawXmlResponse, String queryNode, String queryAttribute) {
+	public static String findAttributeInXml(String rawXmlResponse, String queryNode, String queryAttribute) {
 
 		// Parses the raw XML response from wp and looks for the queried attribute
 		// of a queried node so that we can get the next round of results.
