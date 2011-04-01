@@ -3,6 +3,7 @@ package tests;
 /**
  * Runs a query against Wikipedia for pages with a specific category.
  * Tests for the presence and functionality of gwtwiki/bliki api libraries (as a sanity check).
+ * Also a way to practice basic XML parsing.
  * @author eclarke@gnf.org
  */
 

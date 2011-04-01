@@ -7,7 +7,22 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
-import info.bliki.api.*;
+// GNF extension and reduction of the Bliki (gwtwiki) codebase
+// http://code.google.com/p/gwtwiki
+import org.gnf.wikiapi.User;
+
+/**
+ * 
+ * Runs test of credentials.json for authentication.
+ * credentials.json:
+ * |{
+ * | "user":"[your wikipedia username]".
+ * | "password:"[your wikipedia password]"
+ * |}
+ * 
+ * @author eclarke
+ *
+ */
 
 public class AuthenticateTest {
 
@@ -16,9 +31,6 @@ public class AuthenticateTest {
 		// credentials[0] = user; credentials[1] = password
 
 		// using jackson json libraries; safer than JSON.org java libs
-		//DEBUGGING
-		File dir1 = new File(".");
-		System.out.println("Current dir: " + dir1.getCanonicalPath());
 		JsonFactory jf = new JsonFactory();
 		JsonParser jp = jf.createJsonParser(new File(file));
 		
