@@ -50,7 +50,7 @@ public class RevisionStream {
 
 				Calendar latest = Calendar.getInstance();
 				Calendar earliest = Calendar.getInstance();
-				earliest.add(Calendar.YEAR, -2);
+				earliest.add(Calendar.MONTH, -1);
 		List<String> titles = new ArrayList<String>();
 //		//		Map<String, String> genes = GeneWikiUtils.read2columnMap("/Users/bgood/data/wikiportal/stream/test_genes.txt");
 //		//		List<String> ncbis = new ArrayList<String>(genes.keySet());
@@ -60,11 +60,14 @@ public class RevisionStream {
 //		titles.addAll(gene_wiki.values());
 //		Collections.sort(titles);
 //
-//		//		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
-//		//		titles.add("VIPR2"); 
-//		//		titles.add("VIPR1");
-//		//		titles.add("Human_chorionic_gonadotropin");
-		titles.add("SHC1");
+		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
+		titles.add("VIPR2"); 
+		titles.add("VIPR1");
+		titles.add("Human_chorionic_gonadotropin");
+		titles.add("MYH9"); 
+		titles.add("VAC14");
+		titles.add("TRIM21");
+		titles.add("Sonic hedgehog");
 //		//	printTweetables(titles, earliest, latest, rc);
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);

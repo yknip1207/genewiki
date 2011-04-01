@@ -3,10 +3,15 @@
  */
 package org.gnf.genewiki.stream;
 
+import static com.rosaloves.bitlyj.Bitly.as;
+import static com.rosaloves.bitlyj.Bitly.shorten;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gnf.genewiki.GeneWikiLink;
 import org.gnf.genewiki.GeneWikiPage;
@@ -18,6 +23,8 @@ import org.gnf.ncbo.web.AnnotatorClient;
 import org.gnf.ncbo.web.NcboAnnotation;
 import org.gnf.util.TextFun;
 
+import com.rosaloves.bitlyj.Url;
+
 /**
  * @author bgood
  *
@@ -25,7 +32,7 @@ import org.gnf.util.TextFun;
 public class Tweetables {
 	List<Tweetable> tweets;
 	String summaryForRSS;
-	
+
 	/**
 	 * Given two genewikipage's (revisions for the same article) emit a compressed summary of the meaningful changes that they contain
 	 * @param p_t0
@@ -44,30 +51,41 @@ public class Tweetables {
 		//reference tweet
 		if(base.references>0){
 			String summary = "";
-			summary += base.user+" added "+base.references+" refs to "+base.hashtag+", PMIDS: ";
-			summaryForRSS += "grew by "+base.references+" refs. PMIDS: ";
-			List<String> pmid0 = new ArrayList<String>();
-			for(Reference ref : p_t0.getRefs()){
+			if(base.references==1){
+				Reference ref = p_t0.getRefs().get(0);
+				summary += base.user+" added a reference to "+base.hashtag;
 				if(ref.getPmid()!=null){
-					pmid0.add(ref.getPmid());
+					String link = "http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid();
+					summary += " "+link;
 				}
-			}
-			Set<String> newones = new HashSet<String>();
-			for(Reference ref : p_t1.getRefs()){
-				if(ref.getPmid()!=null){
-					if(!pmid0.contains(ref.getPmid())&&newones.add(ref.getPmid())){
-						if((summary.length()+ref.getPmid().length())>115){
-							summary = summary.substring(0,summary.length()-1);
-							summary+="..";
-							break;
-						}
-						summary += ref.getPmid()+",";
-						summaryForRSS += "<a href=\"http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\">"+ref.getPmid()+"</a>,"; 
+			}else{
+				summary += base.user+" added "+base.references+" refs to "+base.hashtag+", PMIDS: ";
+
+				summaryForRSS += "grew by "+base.references+" refs. PMIDS: ";
+				List<String> pmid0 = new ArrayList<String>();
+				for(Reference ref : p_t0.getRefs()){
+					if(ref.getPmid()!=null){
+						pmid0.add(ref.getPmid());
 					}
 				}
+				Set<String> newones = new HashSet<String>();
+				for(Reference ref : p_t1.getRefs()){
+					if(ref.getPmid()!=null){
+						if(!pmid0.contains(ref.getPmid())&&newones.add(ref.getPmid())){
+							if((summary.length()+ref.getPmid().length())>115){
+								summary = summary.substring(0,summary.length()-1);
+								summary+="..";
+								break;
+							}
+							summary += ref.getPmid()+",";
+//							Url url = as(shorty.user, shorty.key).call(shorten("http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\""));
+//							String shorter = url.getShortUrl();
+							summaryForRSS += "<a href=\"http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\">"+ref.getPmid()+"</a>,"; 
+						}
+					}
+				}
+				if(summary.endsWith(","))summary = summary.substring(0,summary.length()-1);
 			}
-			if(summary.endsWith(","))summary = summary.substring(0,summary.length()-1);
-
 
 			Tweetable tweet = new Tweetable(base);
 			tweet.setSummary(summary);
@@ -199,10 +217,34 @@ public class Tweetables {
 			if(comment.length()>3){
 				String summary = "";
 				summary+= base.user+" edited "+base.hashtag+" : "+base.getUser_comment();
+				//filter out un-interesting, repeated bits
+				summary = summary.replaceAll("\\[\\[Project:AWB\\|AWB\\]\\] \\(\\d+\\)", "http://bit.ly/WP_AWB");
+				//	summary = summary.replaceAll("\\[\\[Special:Contributions\\/.\\{1,14\\}\\|.\\{1,14\\}\\]\\]", "");
+
+				//links with names
+				String regx = "\\[\\[.{1,40}\\|.{1,20}\\]\\]"; //\\|.\\{1,20\\}\\]\\]
+				Pattern pattern = 
+					Pattern.compile(regx);
+				Matcher matcher = 
+					pattern.matcher(summary);
+				while (matcher.find()) {
+					String  block = matcher.group().trim();
+					String newblock = block.replaceAll("\\[\\[.{1,40}\\|","");
+					newblock = newblock.substring(0, newblock.length()-2);
+					if(newblock.equals("talk")){
+						newblock = "";
+					}else if(newblock.equals("HG")){
+						newblock = "http://bit.ly/WP_HG";
+					}
+					summary = summary.replace(block, newblock);
+				}
+				summary = summary.replaceAll("()","");
+
+				//trim any excess
 				if(summary.length()>119){
 					summary = summary.substring(0,116)+"...";
 				}				
-				Tweetable tweet = new Tweetable(base);
+				Tweetable tweet = new Tweetable(base);				
 				tweet.setSummary(summary);
 				tweets.add(tweet);	
 				summaryForRSS += " and added "+base.bytes+" bytes.";
@@ -222,24 +264,24 @@ public class Tweetables {
 			tweets.add(tweet);	
 			summaryForRSS += " and added "+base.bytes+" bytes.";
 		}
-	
 
 
-}
 
-public List<Tweetable> getTweets() {
-	return tweets;
-}
+	}
 
-public void setTweets(List<Tweetable> tweets) {
-	this.tweets = tweets;
-}
+	public List<Tweetable> getTweets() {
+		return tweets;
+	}
 
-public String getSummaryForRSS() {
-	return summaryForRSS;
-}
+	public void setTweets(List<Tweetable> tweets) {
+		this.tweets = tweets;
+	}
 
-public void setSummaryForRSS(String summaryForRSS) {
-	this.summaryForRSS = summaryForRSS;
-}
+	public String getSummaryForRSS() {
+		return summaryForRSS;
+	}
+
+	public void setSummaryForRSS(String summaryForRSS) {
+		this.summaryForRSS = summaryForRSS;
+	}
 }
