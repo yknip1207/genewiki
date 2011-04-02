@@ -483,7 +483,7 @@ public class Connector {
 	 * @return the raw XML string produced by the query; <code>null</code>
 	 *         otherwise
 	 */
-	private String sendXML(User user, RequestBuilder requestBuilder) {
+	public String sendXML(User user, RequestBuilder requestBuilder) {
 		PostMethod method = createAuthenticatedPostMethod(user);
 		method.addParameters(requestBuilder.getParameters());
 		// if (params != null && !params.isEmpty()) {
