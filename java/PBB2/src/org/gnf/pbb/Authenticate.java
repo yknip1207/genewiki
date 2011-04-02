@@ -29,10 +29,11 @@ import org.gnf.wikiapi.User;
  */
 public class Authenticate {
 
-	public static void login(String credFile) throws Exception {
+	public static User login(String credFile) throws Exception {
 		/**
 		 * Uses a credentials.json file passed to it to log in to wikipedia.
 		 */
+		User user = null;
 		String[] credentials = {null, null};
 		// credentials[0] = user; credentials[1] = password
 
@@ -54,10 +55,13 @@ public class Authenticate {
 		}
 		
 		try{
-			User user = new User(credentials[0],credentials[1],"http://en.wikipedia.org/w/api.php");
+			user = new User(credentials[0],credentials[1],"http://en.wikipedia.org/w/api.php");
 			user.login();
+			System.out.println(user.getUsername());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		return user;
 	}
 }
