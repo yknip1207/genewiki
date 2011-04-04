@@ -29,7 +29,7 @@ import org.gnf.wikiapi.User;
  */
 public class Authenticate {
 
-	public static User login(String credFile) throws Exception {
+	public static String[] login(String credFile) throws Exception {
 		/**
 		 * Uses a credentials.json file passed to it to log in to wikipedia.
 		 */
@@ -54,14 +54,28 @@ public class Authenticate {
 			}
 		}
 		
-		try{
-			user = new User(credentials[0],credentials[1],"http://en.wikipedia.org/w/api.php");
-			user.login();
-			System.out.println(user.getUsername());
+		return credentials;
+		
+//		if (completeLogin) {
+//			try{
+//				user = new User(credentials[0],credentials[1],"http://en.wikipedia.org/w/api.php");
+//				Boolean rawLoginResponse = user.login();
+//				if (rawLoginResponse == null) { 
+//					System.out.println("Error logging in; server returned response:");
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return user;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			String[] credentials = login("credentials.json");
+			System.out.println(credentials[0]+ " " +credentials[1]);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		return user;
 	}
 }
