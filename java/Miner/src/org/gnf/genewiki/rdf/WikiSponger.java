@@ -1,5 +1,6 @@
 package org.gnf.genewiki.rdf;
 
+
 import info.bliki.api.Page;
 
 import java.io.FileOutputStream;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import org.gnf.genewiki.GeneWikiPage;
 import org.gnf.genewiki.GeneWikiLink;
+
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;

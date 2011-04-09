@@ -3,6 +3,7 @@
  */
 package org.gnf.genewiki.metrics;
 
+
 import info.bliki.api.Connector;
 import info.bliki.api.Page;
 import info.bliki.api.Revision;

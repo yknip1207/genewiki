@@ -1,5 +1,6 @@
 package org.gnf.genewiki.parse;
 
+
 import info.bliki.api.Page;
 import info.bliki.api.Revision;
 import info.bliki.api.XMLPagesParser;

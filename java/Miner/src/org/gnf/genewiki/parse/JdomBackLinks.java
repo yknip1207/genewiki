@@ -1,5 +1,6 @@
 package org.gnf.genewiki.parse;
 
+
 import info.bliki.api.Connector;
 import info.bliki.api.Link;
 import info.bliki.api.Page;
