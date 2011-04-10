@@ -6,7 +6,7 @@ package org.gnf.genewiki.stream;
 import static com.rosaloves.bitlyj.Bitly.as;
 import static com.rosaloves.bitlyj.Bitly.shorten;
 
-import info.bliki.api.Page;
+import org.gnf.wikiapi.Page;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

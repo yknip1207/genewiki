@@ -1,15 +1,14 @@
 package org.gnf.genewiki;
-import info.bliki.api.Category;
-import info.bliki.api.Connector;
-import info.bliki.api.Page;
-import info.bliki.api.User;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gnf.genewiki.parse.ParserAccess;
+import org.gnf.wikiapi.Category;
+import org.gnf.wikiapi.Connector;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.User;
 
 
 

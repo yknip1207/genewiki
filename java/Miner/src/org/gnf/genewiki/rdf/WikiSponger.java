@@ -1,7 +1,7 @@
 package org.gnf.genewiki.rdf;
 
 
-import info.bliki.api.Page;
+import org.gnf.wikiapi.Page;
 
 import java.io.FileOutputStream;
 import java.io.FileWriter;

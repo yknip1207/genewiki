@@ -1,11 +1,11 @@
 package org.gnf.util;
 
-import info.bliki.api.Connector;
-import info.bliki.api.Page;
-import info.bliki.api.ParseData;
-import info.bliki.api.User;
-import info.bliki.api.query.Parse;
-import info.bliki.api.query.RequestBuilder;
+import org.gnf.wikiapi.Connector;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.ParseData;
+import org.gnf.wikiapi.User;
+import org.gnf.wikiapi.query.Parse;
+import org.gnf.wikiapi.query.RequestBuilder;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

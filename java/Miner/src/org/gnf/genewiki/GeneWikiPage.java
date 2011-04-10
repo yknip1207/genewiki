@@ -1,10 +1,10 @@
 package org.gnf.genewiki;
 
-import info.bliki.api.Connector;
-import info.bliki.api.Link;
-import info.bliki.api.Page;
-import info.bliki.api.Revision;
-import info.bliki.api.User;
+import org.gnf.wikiapi.Connector;
+import org.gnf.wikiapi.Link;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.Revision;
+import org.gnf.wikiapi.User;
 
 import java.io.Serializable;
 import java.net.URLEncoder;

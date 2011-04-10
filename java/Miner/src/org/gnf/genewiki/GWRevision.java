@@ -3,7 +3,7 @@
  */
 package org.gnf.genewiki;
 
-import info.bliki.api.Revision;
+import org.gnf.wikiapi.Revision;
 
 /**
  * @author bgood

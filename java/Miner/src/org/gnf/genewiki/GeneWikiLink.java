@@ -1,6 +1,6 @@
 package org.gnf.genewiki;
 
-import info.bliki.api.Link;
+import org.gnf.wikiapi.Link;
 
 import java.io.Serializable;
 import java.util.List;

@@ -4,7 +4,7 @@
 package org.gnf.genewiki.metrics;
 
 
-import info.bliki.api.Page;
+import org.gnf.wikiapi.Page;
 
 import java.io.FileWriter;
 import java.io.IOException;
