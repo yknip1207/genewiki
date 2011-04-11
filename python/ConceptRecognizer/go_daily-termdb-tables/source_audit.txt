@@ -1,0 +1,1 @@
+/share/godev/goterm/data/go/ontology/gene_ontology_edit.obo	/share/godev/goterm/data/go/ontology/gene_ontology_edit.obo	gene_ontology_edit.obo	file	c2ea6e5177508f925fcb244fd58ae877	1279782511	1279782305
