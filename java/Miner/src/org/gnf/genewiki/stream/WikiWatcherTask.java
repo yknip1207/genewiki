@@ -58,22 +58,22 @@ public class WikiWatcherTask extends TimerTask {
 		if(n%15==0){
 			Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, false);
 			//once a day rebuild from scratch - won't work on linux...
-//			if(n>0&&n%360==0){ //720 = 24 hr at 2min
-//				try{
-//					gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, true);
-//				}catch(Exception e){
-//					System.err.println("Problem trying to rebuild index from scratch: ");
-//					e.printStackTrace();
-//				}
-//				System.out.println("Completely rebuilt the gene wiki index, total size now "+gene_wiki.keySet().size()+" was "+titles.size());
-//			}
+			//			if(n>0&&n%360==0){ //720 = 24 hr at 2min
+			//				try{
+			//					gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, true);
+			//				}catch(Exception e){
+			//					System.err.println("Problem trying to rebuild index from scratch: ");
+			//					e.printStackTrace();
+			//				}
+			//				System.out.println("Completely rebuilt the gene wiki index, total size now "+gene_wiki.keySet().size()+" was "+titles.size());
+			//			}
 			Set<String> ntitles = new HashSet<String>(gene_wiki.values());
 			System.out.println("Updated gene wiki index, total size now "+ntitles.size()+" was "+titles.size());
 			if(ntitles.size()>10200){
 				titles = new ArrayList<String>(ntitles);
 			}
 		}
-		
+
 		latest = Calendar.getInstance();
 		SimpleDateFormat timestamp = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss");
 		TimeZone tz = TimeZone.getTimeZone("GMT");
@@ -87,27 +87,40 @@ public class WikiWatcherTask extends TimerTask {
 			for(GWRevision gr : newones){
 				String title = gr.getTitle();
 				System.out.print(title+" ");
-				Map<String,Tweetables> rev_tweetables = RevisionStream.getTweetables(title, earliest, latest, rc);
-				for(Entry<String, Tweetables> rev_tweets : rev_tweetables.entrySet()){
-					for(Tweetable tweet : rev_tweets.getValue().tweets){	
+				Map<String,Tweetables> rev_tweetables = null;
+				try{
+					rev_tweetables = RevisionStream.getTweetables(title, earliest, latest, rc);
+				}catch(Exception e){
+					System.err.println("Something went wrong getting the tweetables ");
+					e.printStackTrace();
+				}
+				if(rev_tweetables!=null){
+					for(Entry<String, Tweetables> rev_tweets : rev_tweetables.entrySet()){
+						for(Tweetable tweet : rev_tweets.getValue().tweets){	
 
-						Url url = as(shorty.user, shorty.key).call(shorten(tweet.getDifflink()));
-						String shorter = url.getShortUrl();
-						String s = tweet.getSummary();
-						if(s.length()+1+shorter.length()>140){
-							s = s.substring(0,(139-shorter.length()));
-						}
-						String message = s+" "+shorter;
-						Tweeter.tweet(message);
-						System.out.println(message);
-						try {
-							Thread.currentThread().sleep(1000);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						//			System.out.println("tweeted\t"+tweet.getTimestamp()+"\t"+message.length()+"\n\t"+message);
+							try{
+								Url url = as(shorty.user, shorty.key).call(shorten(tweet.getDifflink()));
+								String shorter = url.getShortUrl();
+								String s = tweet.getSummary();
+								if(s.length()+1+shorter.length()>140){
+									s = s.substring(0,(139-shorter.length()));
+								}
+								String message = s+" "+shorter;
+								Tweeter.tweet(message);
+								System.out.println(message);
+							}catch (Exception e){
+								System.err.println("Something went wrong sending the tweet or shortening the URL. ");
+								e.printStackTrace();
+							}
+							try {
+								Thread.currentThread().sleep(1000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							//			System.out.println("tweeted\t"+tweet.getTimestamp()+"\t"+message.length()+"\n\t"+message);
 
+						}
 					}
 				}
 			}

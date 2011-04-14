@@ -3,7 +3,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.gnf.genewiki.metrics.RevisionCounter;
 import org.gnf.genewiki.parse.ParserAccess;
 import org.gnf.wikiapi.Category;
 import org.gnf.wikiapi.Connector;
@@ -21,10 +23,27 @@ public class WikiCategoryReader {
 	User user;
 
 	public WikiCategoryReader(){
-		user = new User("i9606", "2manypasswords", "http://en.wikipedia.org/w/api.php");
-		user.login();
+		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
+		init(creds.get("wpid"), creds.get("wppw"));
 	}
 
+	public WikiCategoryReader(String wikiapi){
+		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
+		init(creds.get("wpid"), creds.get("wppw"), wikiapi);
+	}
+	
+	public void init(String wikipedia_user, String wikipedia_password){
+		user = new User(wikipedia_user, wikipedia_password, "http://en.wikipedia.org/w/api.php");
+		user.login();
+	}
+	
+	public void init(String wiki_user, String wiki_password, String apiurl){
+		user = new User(wiki_user, wiki_password, apiurl);
+		user.login();
+	}
+	
 	public static void main(String[] args){
 		WikiCategoryReader r = new WikiCategoryReader();
 		//Genes_by_human_chromosome
@@ -200,5 +219,13 @@ public class WikiCategoryReader {
 		}
 		System.out.println(rawXmlResponse);
 
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 }

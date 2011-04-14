@@ -71,4 +71,12 @@ public class MapFun {
 		 }
 		 return outmap;
 	 }
+	 
+		public static Map<String, String> flipMapStringString(Map<String, String> inmap){
+			Map<String, String> outmap = new HashMap<String, String>();
+			for(Entry<String, String> in : inmap.entrySet()){
+				outmap.put(in.getValue(), in.getKey());
+			}
+			return outmap;
+		}
 }

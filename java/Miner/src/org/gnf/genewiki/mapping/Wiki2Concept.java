@@ -47,12 +47,12 @@ public class Wiki2Concept {
 		if(page.getTitle().matches("^[0-9]{1,10}\b")){
 			return null;
 		}
-		List<NcboAnnotation> title_annos = AnnotatorClient.ncboAnnotateText(page.getTitle().replaceAll("_"," "), false, true, true, true, true);		
+		List<NcboAnnotation> title_annos = AnnotatorClient.ncboAnnotateText(page.getTitle().replaceAll("_"," "), false, true, true, true, true, false);		
 		if(title_annos==null||title_annos.size()==0){
 			for(String test : page.getWikisynset()){
 				if(!test.equals(page.getTitle())){
 					List<NcboAnnotation> redirect_annos = new ArrayList<NcboAnnotation>();
-					redirect_annos.addAll(AnnotatorClient.ncboAnnotateText(test, false, true, true , true, true));
+					redirect_annos.addAll(AnnotatorClient.ncboAnnotateText(test, false, true, true , true, true, false));
 					for(NcboAnnotation anno : redirect_annos){
 						TextMapping tm = new TextMapping("redirect",test,anno);	
 						annos.add(tm);

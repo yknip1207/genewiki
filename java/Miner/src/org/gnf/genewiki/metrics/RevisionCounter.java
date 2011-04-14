@@ -45,6 +45,7 @@ import java.util.Collections;
 public class RevisionCounter {
 
 	User user;
+	String wikiapi;
 	ParserAccess parser;
 	Page wikidetails; 
 
@@ -52,8 +53,18 @@ public class RevisionCounter {
 		init(wikipedia_user, wikipedia_password);
 	}
 
+	public RevisionCounter(String wikipedia_user, String wikipedia_password, String wikiapi){
+		init(wikipedia_user, wikipedia_password, wikiapi);
+	}
+	
 	public void init(String wikipedia_user, String wikipedia_password){
 		user = new User(wikipedia_user, wikipedia_password, "http://en.wikipedia.org/w/api.php");
+		user.login();
+		parser = new ParserAccess();
+	}
+	
+	public void init(String wiki_user, String wiki_password, String apiurl){
+		user = new User(wiki_user, wiki_password, apiurl);
 		user.login();
 		parser = new ParserAccess();
 	}
@@ -65,13 +76,16 @@ public class RevisionCounter {
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-//		List<String> titles = new ArrayList<String>();
-//		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
-//		titles.addAll(gene_wiki.values());
-//		Collections.sort(titles);
-//		Calendar latest = Calendar.getInstance();
-//		Calendar earliest = Calendar.getInstance();
-//		earliest.add(Calendar.DAY_OF_YEAR, -2);
+		List<String> titles = new ArrayList<String>();
+		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
+		titles.addAll(gene_wiki.values());
+		Collections.sort(titles);
+		Calendar latest = Calendar.getInstance();
+		Calendar earliest = Calendar.getInstance();
+		earliest.add(Calendar.YEAR, -1);
+		String outfile = "/Users/bgood/data/SMW/genewiki_edit_report";
+		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);
+		
 //		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
 //		System.out.println(revs.size());
 		

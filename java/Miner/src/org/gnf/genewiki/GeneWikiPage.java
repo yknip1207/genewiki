@@ -1,5 +1,6 @@
 package org.gnf.genewiki;
 
+import org.gnf.wikiapi.Category;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.Link;
 import org.gnf.wikiapi.Page;
@@ -90,6 +91,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 	List<Reference> refs;
 	List<Sentence> sentences;
 	List<Heading> headings;
+	List<Category> categories;
 
 	public GeneWikiPage(){
 		init("","");
@@ -469,6 +471,21 @@ public class GeneWikiPage implements Serializable, Comparable{
 		}
 	}	
 
+	public void setCategories(){
+		List<String> titles = new ArrayList<String>();
+		titles.add(this.getTitle());
+		List<Page> listOfPages = user.queryCategories(titles);
+		for (Page page : listOfPages) {
+			for (int j = 0; j < page.sizeOfCategoryList(); j++) {
+				Category cat = page.getCategory(j);
+				if(this.categories==null){
+					categories = new ArrayList<Category>();
+				}
+				this.categories.add(cat);
+			}
+		}
+	}
+	
 
 	/**
 	 * If extlinks has been set, try to dig external identifiers out of the links.  Currently only looks at ncbi gene
@@ -1386,6 +1403,14 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 	public void setLastComment(String lastComment) {
 		this.lastComment = lastComment;
+	}
+
+	public List<Category> getCategories() {
+		return categories;
+	}
+
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
 	}
 
 }
