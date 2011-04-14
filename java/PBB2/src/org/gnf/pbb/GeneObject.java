@@ -1,14 +1,22 @@
 /**
- * Create an object to store the information in a GNF_Protein_box template, flatten it, and manipulate it
+ * The model in the model-view-controller configuration for PBB.
  */
 package org.gnf.pbb;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
+ * 
  * @author eclarke
  *
+ * A GeneObject contains getters and setters for most variables stored in mygene.info (with some exceptions).
+ * Ideally it is a serializable object able to be stored and passed around.
+ * Contains two member classes: GeneOntology and GeneOntologyCollection.
  */
 
 public class GeneObject implements Serializable{
@@ -26,44 +34,88 @@ public class GeneObject implements Serializable{
 	private int Homologene = 0;
 	private int MGIid = 0;
 	private String GeneAtlas_image = "";
-	public static class GeneOntology {
-		private List<String> terms;
-		private List<String> ids;
-		private String[] collated;
+	
+	/**
+	 * @author eclarke
+	 * GeneOntologyCollection is a composite of many GeneOntology objects.
+	 */
+	public static class GeneOntologyCollection {
+		private HashSet<GeneOntology> Ontologies;
 		
-		public List<String> getTerms() { return terms; }
-		public List<String> getIds() { return ids; }
-		public String[] getCollated() { return collated; }
-		
-		public void setTerms(List<String> _terms) {this.terms = _terms;}
-		public void setIds(List<String> _ids) {this.ids = _ids;}
-		public void setCollated(String[] _collated) { this.collated = _collated; }
-		
-		public void setGeneOntologies(List<String> terms, List<String> ids) {
+		public GeneOntologyCollection() {
+			this.Ontologies = new HashSet<GeneOntology>();
+		}
 
-			String term;
-			// String[] collated = new String[terms.size()];
-			if (terms.size() == ids.size()) {
-				for (int i = 0; i < terms.size(); i++) {
-					term = terms.get(i);
-					// Checking for and removing duplicates
-					if (terms.lastIndexOf(term) != terms.indexOf(term)) {
-						terms.remove(terms.lastIndexOf(term));
-						ids.remove(terms.lastIndexOf(term)); // since the duplicate in both would be at the same index
-					}
-
-					// collated[i] = "{{GNF_GO|id=GO:" + ids.get(i) + " |text = " + term;
-				}
+		/**
+		 * Creates new GeneOntology objects from matching lists of terms and ids, with a specified category.
+		 * The terms and ids list must be of the same length and in the same order (they usually are if parsed
+		 * from a source file correctly).
+		 * @param terms list
+		 * @param ids list
+		 * @param category
+		 */
+		public void setGeneOntologies(List<String> terms, List<String> ids, String category) {
+			for (int i = 0; i < ids.size(); i++) {
+				boolean success = Ontologies.add(new GeneOntology(ids.get(i), terms.get(i), category));
+				if (!success) System.out.printf("The selected ontology, \"%s:%s\", was already present; not added.",ids.get(i), terms.get(i));
 			}
-			
-			setIds(ids);
-			setTerms(terms);
-			// setCollated(collated);
+		}
+		
+		public LinkedHashMap<String, GeneOntology> getAllOntologies() {
+			LinkedHashMap<String, GeneOntology> map = new LinkedHashMap<String, GeneOntology>();
+			for (GeneOntology go : Ontologies) {
+				map.put(go.getId(), go);
+			}
+			return map;	
+		}
+		
+		public GeneOntology getOntologyById(String id) {
+			LinkedHashMap<String, GeneOntology> ontList = this.getAllOntologies();
+			return ontList.get(id);
+		}
+		
+		/**
+		 * Returns a list of GeneOntology objects matching a specified category. Warning: not optimized for speed!
+		 * @param category
+		 * @return list of GeneOntology objects
+		 */
+		public List<GeneOntology> getOntologiesByCategory(String category) {
+			List<GeneOntology> list = new ArrayList<GeneOntology>();
+			HashSet<String> foundCategories = new HashSet<String>();
+			for (GeneOntology go : Ontologies) {
+				foundCategories.add(go.getCategory());
+				if (go.getCategory() == category) list.add(go);
+			}
+			if (list.size() == 0) {
+				System.out.println("No matches for the specified category found. These categories were found: " + foundCategories);
+			}
+			return list;
+		}
+
+	}
+	public static class GeneOntology {
+		private String id;
+		private String term;
+		private String category;
+		public String getId() { return id; }
+		public String getTerm() { return term; }
+		public String getCategory() { return category; }
+		public void setId(String id) { this.id = id; }
+		public void setTerm(String term) { this.term = term; }
+		public void setCategory(String category) { this.category = category; }
+		
+		public GeneOntology(String id, String term, String category) {
+			setId(id);
+			setTerm(term);
+			setCategory(category);
+		}
+		
+		public String printWikified() {
+			return "GNF_GO|id=GO:"+getId()+" |text = "+getTerm();
 		}
 	}
-	public GeneOntology GoFunctions = new GeneOntology();
-	public GeneOntology GoComponents = new GeneOntology();
-	public GeneOntology GoProcesses = new GeneOntology();
+	
+	public GeneOntologyCollection geneOntologies = new GeneOntologyCollection();
 	private int HsEntrezGene, MmEntrezGene = 0;
 	private String HsEnsemble, MmEnsemble= "";
 	private String[] HsRefSeqProtein,MmRefSeqProtein = {};
@@ -211,7 +263,7 @@ public class GeneObject implements Serializable{
 				try {
 					Integer.parseInt(s); // We're not storing them as ints, just checking
 				} catch (NumberFormatException nfe){
-					System.out.println("Invalid or EC number parsed. " + nfe.getMessage());
+					System.out.println("Invalid EC number parsed. " + nfe.getMessage());
 					errorflag = true; // there is likely a more graceful way to do this, but oh well
 				}
 				
@@ -264,29 +316,6 @@ public class GeneObject implements Serializable{
 		return GeneAtlas_image;
 	}
 
-	public GeneOntology getGoFunctions() {
-		return GoFunctions;
-	}
-	
-	public void setGoFunctions(GeneOntology go) {
-		GoFunctions = go;
-	}
-	
-	public GeneOntology getGoComponents() {
-		return GoComponents;
-	}
-	
-	public void setGoComponents(GeneOntology go) {
-		GoComponents = go;
-	}
-	
-	public GeneOntology getGoProcesses() {
-		return GoProcesses;
-	}
-	
-	public void setGoProcesses(GeneOntology go) {
-		GoProcesses = go;
-	}
 
 	public void setHsEntrezGene(int hsEntrezGene) {
 		HsEntrezGene = hsEntrezGene;
