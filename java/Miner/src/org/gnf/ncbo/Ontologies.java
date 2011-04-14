@@ -18,6 +18,7 @@ public class Ontologies {
 	public static final String NCBI_ORG_CLASS_ONT = "1132";//"38802";
 	public static final String SNOMED_ONT = "1353";//"42789"; 
 	public static final String PRO_ONT = "1052";//"44133"; //ontology of proteins - source of gene names... http://pir.georgetown.edu/pro/pro.shtml 
+	public static final String OMIM_ONT = "1348";
 	
 	public Map<String, String> ont_names;
 	
@@ -33,6 +34,7 @@ public class Ontologies {
 		ont_names.put(NCBI_ORG_CLASS_ONT, "NCBI Organism classification");
 		ont_names.put(SNOMED_ONT, "SNOMED");
 		ont_names.put(PRO_ONT, "Protein Ontology");
+		ont_names.put(OMIM_ONT, "OMIM");
 	}
 /**
  *       <ontologyBean>

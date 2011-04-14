@@ -23,8 +23,8 @@ public class AnnotatorClient {
 
 	public static void main( String[] args ) {
 		String text ="The cerebellum is in the brain. The cell had a cell membrane and a nucleolus. Schizophrenia is a disease.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
-		boolean useGO = true; boolean useDO = true; boolean useFMA = true; boolean usePRO = true;
-		List<NcboAnnotation> annos = ncboAnnotateText(text, true, useGO, useDO, useFMA, usePRO);
+		boolean useGO = true; boolean useDO = true; boolean useFMA = true; boolean usePRO = true; boolean useOMIM = true;
+		List<NcboAnnotation> annos = ncboAnnotateText(text, true, useGO, useDO, useFMA, usePRO, useOMIM);
 		
 		for(NcboAnnotation anno : annos){
 			System.out.println(anno + " --- "+text.substring(anno.getContext().getFrom()-1, anno.getContext().getTo()+1));
@@ -33,8 +33,8 @@ public class AnnotatorClient {
 	}
 	
 
-	public static List<NcboAnnotation> ncboAnnotateText(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO){
-		Map<String, String> reqParams = getParametersNoMapping(text2annotate, allowSynonyms, useGO, useDO, useFMA, usePRO);
+	public static List<NcboAnnotation> ncboAnnotateText(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM){
+		Map<String, String> reqParams = getParametersNoMapping(text2annotate, allowSynonyms, useGO, useDO, useFMA, usePRO, useOMIM);
 		return(ncboAnnotate(reqParams, text2annotate));
 	}
 
@@ -44,7 +44,7 @@ public class AnnotatorClient {
 	 * @param text2annotate
 	 * @return
 	 */
-	public static Map<String, String> getParametersNoMapping(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO){
+	public static Map<String, String> getParametersNoMapping(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM){
 		Map<String, String> params = new HashMap<String,String>();
 		params.put("isVirtualOntologyId", "true");
 		params.put("rqnum", "0");
@@ -84,6 +84,9 @@ public class AnnotatorClient {
 		}
 		if(usePRO){
 			onts2use+=Ontologies.PRO_ONT +",";
+		}
+		if(useOMIM){
+			onts2use+=Ontologies.OMIM_ONT +",";
 		}
 		if(onts2use.endsWith(",")){
 			onts2use = onts2use.substring(0, onts2use.length()-1);

@@ -95,7 +95,7 @@ public class GeneWikiPageMapper {
 			if(text==null||text.length()<5){
 				continue;
 			}
-			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, useGO, useDO, useFMA, usePRO);
+			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, useGO, useDO, useFMA, usePRO, false);
 			if(annos==null||annos.size()==0){
 				continue;
 			}
