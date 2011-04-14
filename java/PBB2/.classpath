@@ -8,5 +8,7 @@
 	<classpathentry kind="lib" path="C:/Users/eclarke/lib/commons-lang-2.6-bin/commons-lang-2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="C:/Users/eclarke/lib/commons-logging-1.1.1-bin/commons-logging-1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/eclarke/workspace/jars/commons-codec-1.3.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jwbfSVN"/>
+	<classpathentry kind="lib" path="C:/Users/eclarke/lib/jackson-mapper-asl-1.7.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

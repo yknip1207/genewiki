@@ -1,6 +1,7 @@
 package org.gnf.genewiki;
 
-import info.bliki.api.Page;
+
+import org.gnf.wikiapi.Page;
 
 import java.io.BufferedReader;
 import java.io.File;

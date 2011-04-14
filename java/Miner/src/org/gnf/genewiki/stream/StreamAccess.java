@@ -3,7 +3,8 @@
  */
 package org.gnf.genewiki.stream;
 
-import info.bliki.api.Page;
+
+import org.gnf.wikiapi.Page;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -5,7 +5,8 @@ package org.gnf.genewiki.stream;
 
 import static com.rosaloves.bitlyj.Bitly.as;
 import static com.rosaloves.bitlyj.Bitly.shorten;
-import info.bliki.api.Page;
+
+import org.gnf.wikiapi.Page;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,14 +61,14 @@ public class RevisionStream {
 //		titles.addAll(gene_wiki.values());
 //		Collections.sort(titles);
 //
-		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
-		titles.add("VIPR2"); 
-		titles.add("VIPR1");
-		titles.add("Human_chorionic_gonadotropin");
-		titles.add("MYH9"); 
-		titles.add("VAC14");
-		titles.add("TRIM21");
-		titles.add("Sonic hedgehog");
+//		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
+//		titles.add("VIPR2"); 
+//		titles.add("VIPR1");
+//		titles.add("Human_chorionic_gonadotropin");
+//		titles.add("MYH9"); 
+//		titles.add("VAC14");
+		titles.add("CD117");
+//		titles.add("Sonic hedgehog");
 //		//	printTweetables(titles, earliest, latest, rc);
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);

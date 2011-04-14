@@ -1,8 +1,9 @@
 package org.gnf.genewiki.parse;
 
-import info.bliki.api.AbstractXMLParser;
-import info.bliki.api.Page;
-import info.bliki.api.Revision;
+
+import org.gnf.wikiapi.AbstractXMLParser;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.Revision;
 
 import java.util.ArrayList;
 import java.util.List;

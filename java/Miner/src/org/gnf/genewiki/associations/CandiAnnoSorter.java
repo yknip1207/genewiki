@@ -340,11 +340,11 @@ public class CandiAnnoSorter {
 				for(DOterm dot : dos){
 					if(dot.getAccession().equals(canno.getTarget_accession())){
 						if(dot.isInferred_parent()){
-							canno.getEvidence().setMatches_existing_annotation_directly(true);
+							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
 						}else if(dot.isInferred_child()){
 							canno.getEvidence().setMatches_child_of_existing_annotation(true);
 						}else{
-							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+							canno.getEvidence().setMatches_existing_annotation_directly(true);
 						}
 						
 					}
@@ -367,11 +367,11 @@ public class CandiAnnoSorter {
 					for(GOterm go : gos){
 						if(go.getAccession().equals(canno.getTarget_accession())){
 							if(go.isInferred_parent()){
-								canno.getEvidence().setMatches_existing_annotation_directly(true);
+								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
 							}else if(go.isInferred_child()){
 								canno.getEvidence().setMatches_child_of_existing_annotation(true);
 							}else{
-								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+								canno.getEvidence().setMatches_existing_annotation_directly(true);
 							}							
 						}
 					}
@@ -395,11 +395,11 @@ public class CandiAnnoSorter {
 					if(go.getAccession().equals(canno.getTarget_accession())){
 						canno.getEvidence().setGo_evidence_type(go.getEvidence());
 						if(go.isInferred_parent()){
-							canno.getEvidence().setMatches_existing_annotation_directly(true);
+							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
 						}else if(go.isInferred_child()){
 							canno.getEvidence().setMatches_child_of_existing_annotation(true);
 						}else{
-							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+							canno.getEvidence().setMatches_existing_annotation_directly(true);
 						}
 						
 					}

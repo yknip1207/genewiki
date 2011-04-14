@@ -167,6 +167,8 @@ public class Connector {
 				int responseCode = client.executeMethod(method);
 				if (responseCode == HttpStatus.SC_OK) {
 					String responseBody = getAsXmlString(method);
+					//XXX ec DEBUG
+					System.out.println(responseBody);
 					XMLUserParser parser = new XMLUserParser(user, responseBody);
 					parser.parse();
 					if (i == 0 && user.getResult().equals(User.NEED_TOKEN_ID)) {
@@ -174,6 +176,8 @@ public class Connector {
 					} else if (user.getResult().equals(User.SUCCESS_ID)) {
 						return user;
 					} else {
+						//XXX ec DEBUG
+						System.out.println("No token ID or success ID given; broken.");
 						break;
 					}
 				}

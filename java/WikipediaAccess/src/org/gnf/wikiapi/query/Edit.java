@@ -53,6 +53,12 @@ public class Edit extends RequestBuilder{
         put("section", String.valueOf(section));
         return this;
     }
+    
+    // if creating a new section, need to pass the value "new" which is not an int
+    public Edit section(String section) {
+    	put("section", section);
+    	return this;
+    }
 
     public Edit text(String text) {
         put("text", text);
@@ -62,5 +68,10 @@ public class Edit extends RequestBuilder{
     public Edit token(String token) {
         put("token", token);
         return this;
+    }
+    
+    public Edit summary(String summary) {
+    	put("summary", summary);
+    	return this;
     }
 }

@@ -16,6 +16,10 @@ public class User {
 	public static final String NEED_TOKEN_ID = "NeedToken";
 
 	public static final String ILLEGAL_ID = "Illegal";
+	
+	public static final String THROTTLED_ID = "Throttled";
+	
+	public static final String BLOCKED_ID = "Blocked"; // Oops...
 
 	String result;
 

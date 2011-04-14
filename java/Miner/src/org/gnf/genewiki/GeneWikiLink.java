@@ -1,9 +1,11 @@
 package org.gnf.genewiki;
 
+import org.gnf.wikiapi.Link;
+
 import java.io.Serializable;
 import java.util.List;
 
-import info.bliki.api.Link;
+
 
 /**
  * @author bgood

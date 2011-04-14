@@ -1,8 +1,5 @@
 package org.gnf.genewiki.parse;
 
-import info.bliki.api.Page;
-import info.bliki.api.Revision;
-import info.bliki.api.XMLPagesParser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,6 +9,8 @@ import java.util.regex.Pattern;
 
 import org.gnf.genewiki.GWRevision;
 import org.gnf.genewiki.GeneWikiPage;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.XMLPagesParser;
 
 public class ParserAccess implements Serializable{
 

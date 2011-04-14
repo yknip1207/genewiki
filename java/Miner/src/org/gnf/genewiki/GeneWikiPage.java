@@ -1,5 +1,11 @@
 package org.gnf.genewiki;
 
+import org.gnf.wikiapi.Connector;
+import org.gnf.wikiapi.Link;
+import org.gnf.wikiapi.Page;
+import org.gnf.wikiapi.Revision;
+import org.gnf.wikiapi.User;
+
 import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -29,15 +35,6 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
-import info.bliki.api.Connector;
-import info.bliki.api.Link;
-import info.bliki.api.Page;
-import info.bliki.api.Revision;
-import info.bliki.api.User;
-//import info.bliki.wiki.filter.HTMLConverter;
-//import info.bliki.wiki.filter.PlainTextConverter;
-//import info.bliki.wiki.model.Configuration;
-//import info.bliki.wiki.model.WikiModel;
 
 
 /****
