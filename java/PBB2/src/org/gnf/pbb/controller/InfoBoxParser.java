@@ -129,13 +129,21 @@ public class InfoBoxParser {
 		return fields;
 	}
 	
+	/**
+	 * Call this to see an output of all the fields and their values in the fields map.
+	 */
 	public void fieldsIntegrityCheck() {
 		System.out.println("Fields map size: "+fields.size());
 		for (String str : fields.keySet()) {
 			System.out.println("Value for key " + str + ": " + fields.get(str));
 		}
 	}
-	
+	/**
+	 * @deprecated
+	 * @param key
+	 * @return
+	 */
+	@Deprecated
 	public static List<String> getField(String key) {
 		if (fields.get(key) == null) {
 			logger.warning("Value for key " + key + "returned null; this may indicate no such key exists.");
@@ -143,8 +151,15 @@ public class InfoBoxParser {
 		return fields.get(key);
 	}
 
-	public void newBoxFromTitle(WikipediaInterface wikiManager, String displayIdentifier, boolean useCache) {
-		String rawText = wikiManager.retrieveArticle(displayIdentifier, useCache);	
+	/**
+	 * Uses an existing Wikipedia interface to pull an article from the cache, if it exists, or from Wikipedia.
+	 * To force a refresh, set the useCache flag to false.
+	 * @param wikiInterface
+	 * @param displayIdentifier
+	 * @param useCache
+	 */
+	public void newBoxFromTitle(WikipediaInterface wikiInterface, String displayIdentifier, boolean useCache) {
+		String rawText = wikiInterface.retrieveArticle(displayIdentifier, useCache);	
 		try {
 			setFieldsFromText(rawText);
 		} catch (IOException e) {
