@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/static/main.css" />
+  </head>
+  <body>
+    {% for anno in annos %}
+	  <div>gene: {{anno.geneWikiPageName}}</div>
+   	  <div>ontology: {{anno.ontology}}</div>
+   	  <div>ontTerm: {{anno.ontTerm}}</div>
+   	  <div>first sentence: {{anno.firstSentence}}</div>
+   	  <div>contextSentence: {{anno.contextSentence}}</div>
+    {% endfor %}
+
+    <a href="{{ url }}">{{ url_linktext }}</a>
+
+  </body>
+</html>

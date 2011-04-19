@@ -1,0 +1,23 @@
+K 13
+svn:externals
+V 152
+spelling http://svn.wikimedia.org/svnroot/pywikipedia/trunk/spelling/
+simplejson http://simplejson.googlecode.com/svn/tags/simplejson-2.0.9/simplejson/
+
+K 10
+svn:ignore
+V 138
+*.pyc
+*.pyo
+*.log
+*.dump
+*.dump.bz2
+*.txt
+user-config.py
+autonomous_problems.dat
+sax_parse_bug.dat
+login-data
+password-file
+user-fixes.py
+
+END
