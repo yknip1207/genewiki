@@ -40,7 +40,7 @@ public interface Controller {
 	 * @param overwrite display values with object values for key 
 	 * @return updated display key:value map for output
 	 */
-	LinkedHashMap<String, List<String>> updateDisplayTerms(LinkedHashMap<String, List<String>> objectData, 
+	LinkedHashMap<String, List<String>> updateValues(LinkedHashMap<String, List<String>> objectData, 
 			LinkedHashMap<String, List<String>> displayData, boolean overwrite);
 	
 

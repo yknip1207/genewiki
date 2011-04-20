@@ -96,7 +96,7 @@ public class PBBController implements Controller {
 	}
 
 	@Override
-	public LinkedHashMap<String, List<String>> updateDisplayTerms(
+	public LinkedHashMap<String, List<String>> updateValues(
 			LinkedHashMap<String, List<String>> objectData,
 			LinkedHashMap<String, List<String>> displayData, boolean overwrite) {
 		

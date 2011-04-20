@@ -234,6 +234,22 @@ public class WpController implements ViewController {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} else {
+			String live_title = "Template:PBB/" + title;
+			if(!isAuthenticated())
+				authenticate("credentials.json");
+			try {
+				SimpleArticle page = wpBot.readData(live_title);
+				page.setText(content);
+				page.setEditSummary(changes);
+				//XXX wpBot.writeContent(page);
+			} catch (ActionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ProcessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
