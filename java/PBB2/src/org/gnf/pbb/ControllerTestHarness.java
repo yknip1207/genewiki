@@ -1,4 +1,4 @@
-package tests;
+package org.gnf.pbb;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +16,7 @@ public class ControllerTestHarness {
 		for (String geneId : args) {
 			LinkedHashMap<String, List<String>> modelDataMap = controller.importObjectData(geneId).getGeneDataAsMap();
 			LinkedHashMap<String, List<String>> viewDataMap = controller.importDisplayData(geneId);
-			LinkedHashMap<String, List<String>> updatedViewDataMap = controller.updateDisplayTerms(modelDataMap, viewDataMap, OVERWRITE);
+			LinkedHashMap<String, List<String>> updatedViewDataMap = controller.updateValues(modelDataMap, viewDataMap, OVERWRITE);
 			
 			String updatedViewData = controller.outputDisplay(updatedViewDataMap);
 			
