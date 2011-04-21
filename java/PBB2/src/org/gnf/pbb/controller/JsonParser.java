@@ -4,7 +4,6 @@
  */
 package org.gnf.pbb.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -22,18 +21,23 @@ public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
 
 	public static final String baseURL = "http://mygene.info/gene/";
-	File tempfile;
+	public static final String metadataLoc = "http://mygene.info/metadata";
+	public static JsonNode metadata = null;
+	//File tempfile;
 	
 	public static JsonNode getJsonForId(int id) throws JsonParseException, JsonMappingException, IOException {
 		URL geneURL;
 		URLConnection connection;
 		JsonNode node = null;
 		geneURL = new URL(baseURL + Integer.toString(id)); // would look like "http://mygene.info/gene/410"
+		URL mdURL = new URL(metadataLoc);
+		URLConnection mdConnection;
 		try {
 			connection = geneURL.openConnection();
-		
+			mdConnection = mdURL.openConnection();
 			ObjectMapper mapper = new ObjectMapper();
 			node = mapper.readValue(connection.getInputStream(),JsonNode.class);
+			metadata = mapper.readValue(mdConnection.getInputStream(), JsonNode.class);
 		
 		} catch (IOException e) {
 			System.err.println("There was an error opening connection to " + geneURL.toString());
@@ -102,6 +106,11 @@ public class JsonParser {
 				gene.setMmGenLocEnd(rootNode.path("genomic_pos").get("end").getIntValue());
 				gene.setMmUniprot(rootNode.path("uniprot").get("TrEMBL").getTextValue());
 			}
+			
+			// set the GenLoc db numbers from mygene.info's metadata file
+			gene.setHsGenLocDb(metadata.path("GENOME_ASSEMBLY").get("human").getTextValue());
+			gene.setMmGenLocDb(metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
+			
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

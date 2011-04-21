@@ -218,6 +218,7 @@ public class WpController implements ViewController {
 	public String update(String content, String title, String changes, boolean dryRun) throws Exception {
 		if (dryRun) {
 			writeContentToCache(content, "DRYRUN_"+title);
+			System.out.println(changes);
 			System.out.println("Wrote file "+cacheDirectory+"DRYRUN_"+title);
 		} else if (USE_SANDBOX) {
 			if(!isAuthenticated())
@@ -242,7 +243,7 @@ public class WpController implements ViewController {
 				SimpleArticle page = wpBot.readData(live_title);
 				page.setText(content);
 				page.setEditSummary(changes);
-				//XXX wpBot.writeContent(page);
+				wpBot.writeContent(page);
 			} catch (ActionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

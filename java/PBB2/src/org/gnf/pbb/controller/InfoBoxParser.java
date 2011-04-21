@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gnf.pbb.exceptions.NoBotsException;
+
 /**
  * @author eclarke
  * 
@@ -41,9 +43,10 @@ public class InfoBoxParser {
 	 * @param rawText
 	 * 				 the raw source text passed as a string object
 	 * @throws IOException 
+	 * @throws NoBotsException 
 	 */
-	public static void setFieldsFromText(String rawText) throws IOException {
-		logger.finest("Starting parse...");
+	public static void setFieldsFromText(String rawText) throws IOException, NoBotsException {
+		logger.fine("Starting parse...");
 		//System.out.println(rawText);
 		String nl = System.getProperty("line.separator");
 		String rawValueString;
@@ -77,6 +80,12 @@ public class InfoBoxParser {
 		// returns the entire string till the newline after the field's "=" sign
 		//Pattern r_fieldValues = Pattern.compile("(?<=\\=\\s)(.*)$");
 		Pattern r_fieldValues = Pattern.compile("(?<=\\=)(.*)$");
+		
+		Pattern r_nobots = Pattern.compile("\\{\\{nobots\\}\\}");
+		Matcher nobotsFinder = r_nobots.matcher(rawText);
+		if (nobotsFinder.find()) {
+			throw new NoBotsException(nobotsFinder.start(), nobotsFinder.end());
+		}
 		
 		Matcher fieldMatcher = r_fieldName.matcher(rawText);
 		Matcher fieldValueMatcher;
@@ -173,8 +182,9 @@ public class InfoBoxParser {
 	 * @param wikiInterface
 	 * @param displayIdentifier
 	 * @param useCache
+	 * @throws NoBotsException 
 	 */
-	public void newDisplayDataMap(WpController wikiInterface, String displayIdentifier, boolean useCache) {
+	public void newDisplayDataMap(WpController wikiInterface, String displayIdentifier, boolean useCache) throws NoBotsException {
 		String wikiTitle = "Template:PBB/" + displayIdentifier;
 		String rawText = wikiInterface.retrieveContent(wikiTitle, useCache);	
 		try {

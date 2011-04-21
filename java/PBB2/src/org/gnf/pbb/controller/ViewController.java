@@ -1,12 +1,10 @@
-/**
- * Manages authentication, view representation (including view retrieval and updating), cache system, and 
- * logging.
- */
+
 package org.gnf.pbb.controller;
 
 /**
+ * Manages authentication, view representation (including view retrieval and updating), cache system, and 
+ * logging.
  * @author eclarke
- * 
  */
 public interface ViewController {
 
