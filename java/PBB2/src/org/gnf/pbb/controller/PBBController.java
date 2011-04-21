@@ -8,8 +8,6 @@ import java.util.logging.Logger;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.gnf.pbb.GeneObject;
-import org.gnf.pbb.PbbUpdate;
-import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.NoBotsException;
 
 /**

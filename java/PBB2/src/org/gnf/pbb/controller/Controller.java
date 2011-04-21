@@ -3,7 +3,6 @@ package org.gnf.pbb.controller;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.ValidationException;
 
