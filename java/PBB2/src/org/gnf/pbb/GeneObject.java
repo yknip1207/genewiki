@@ -15,7 +15,8 @@ import java.util.List;
  * @author eclarke
  *
  * A GeneObject contains getters and setters for most variables stored in mygene.info (with some exceptions).
- * Ideally it is a serializable object able to be stored and passed around.
+ * Ideally it is a serializable object able to be stored and passed around; it is also able to output its fields
+ * as a linked hash map to facilitate comparisons and iterable procedures.
  * Contains two member classes: GeneOntology and GeneOntologyCollection.
  */
 
@@ -82,7 +83,8 @@ public class GeneObject implements Serializable{
 		}
 		
 		/**
-		 * Returns a list of GeneOntology objects matching a specified category. Warning: not optimized for speed!
+		 * Returns a list of GeneOntology objects matching a specified category.
+		 * TODO: Optimize? Inefficient category search.
 		 * @param category
 		 * @return list of GeneOntology objects
 		 */
@@ -99,6 +101,11 @@ public class GeneObject implements Serializable{
 			return list;
 		}
 		
+		/**
+		 * Returns a string from a list of ontologies in the format specified by ontology.printWikified()
+		 * @param list
+		 * @return
+		 */
 		public List<String> getOntologiesAsWikiLinks(List<GeneOntology> list) {
 			List<String> ontologiesString = new ArrayList<String>();
 			for(GeneOntology go : list) {
@@ -125,6 +132,10 @@ public class GeneObject implements Serializable{
 			setCategory(category);
 		}
 		
+		/**
+		 * Format ontology to go between {{ }} brackets as a non-expanded template link
+		 * @return
+		 */
 		public String printWikified() {
 			return "GNF_GO|id="+getId()+" |text = "+getTerm();
 		}
@@ -135,6 +146,7 @@ public class GeneObject implements Serializable{
 	private String HsEnsemble, MmEnsemble= "";
 	private String[] HsRefSeqProtein,MmRefSeqProtein = {};
 	private String[] HsRefSeqmRNA, MmRefSeqmRNA = {};
+	private String HsGenLocDb, MmGenLocDb = "";
 	private int HsGenLocChr, MmGenLocChr = 0;
 	private int HsGenLocStart, MmGenLocStart = 0;
 	private int HsGenLocEnd, MmGenLocEnd = 0;
@@ -371,7 +383,12 @@ public class GeneObject implements Serializable{
 		return HsRefSeqmRNA;
 	}
 
-
+	public void setHsGenLocDb(String db) {
+		HsGenLocDb = db;
+		geneData.put("Hs_GenLoc_db", toList(db));
+	}
+	
+	public String getHsGenLocDb() {return HsGenLocDb; }
 	
 
 	public void setHsGenLocChr(int hsGenLocChr) {
@@ -398,7 +415,7 @@ public class GeneObject implements Serializable{
 
 	public void setHsGenLocEnd(int hsGenLocEnd) {
 		HsGenLocEnd = hsGenLocEnd;
-		geneData.put("Hs_GeneLoc_end", toList(Integer.toString(hsGenLocEnd)));
+		geneData.put("Hs_GenLoc_end", toList(Integer.toString(hsGenLocEnd)));
 	}
 
 	public int getHsGenLocEnd() {
@@ -473,6 +490,11 @@ public class GeneObject implements Serializable{
 	}
 
 
+	public void setMmGenLocDb(String db) {
+		this.MmGenLocDb = db;
+		geneData.put("Mm_GenLoc_db", toList(db));
+	}
+	
 
 	public void setMmGenLocChr(int mmGenLocChr) {
 		MmGenLocChr = mmGenLocChr;
