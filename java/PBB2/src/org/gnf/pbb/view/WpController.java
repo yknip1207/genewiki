@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 
 import net.sourceforge.jwbf.core.actions.util.ActionException;
 import net.sourceforge.jwbf.core.actions.util.ProcessException;
+import net.sourceforge.jwbf.core.bots.util.CacheHandler;
+import net.sourceforge.jwbf.core.bots.util.SimpleCache;
 import net.sourceforge.jwbf.core.contentRep.Article;
 import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
 import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
@@ -215,7 +217,8 @@ public class WpController implements ViewController {
 	}
 
 	@Override
-	public String update(String content, String title, String changes, boolean dryRun) throws Exception {
+	public synchronized String update(String content, String title, String changes, boolean dryRun) throws Exception {
+		String status = "";
 		if (dryRun) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			System.out.println(changes);
@@ -240,10 +243,24 @@ public class WpController implements ViewController {
 			if(!isAuthenticated())
 				authenticate("credentials.json");
 			try {
-				SimpleArticle page = wpBot.readData(live_title);
+				wpBot.setCacheHandler(new SimpleCache(new File(cacheDirectory), 5000));
+				Boolean hasCache = wpBot.hasCacheHandler();
+				Article page = wpBot.readContent(live_title);
+				String prevContent = page.getText();
 				page.setText(content);
 				page.setEditSummary(changes);
-				wpBot.writeContent(page);
+				page.setEditor("Protein Box Bot");
+				SimpleArticle article = page.getSimpleArticle();
+				wpBot.writeContent(article);
+				if (content.equals(prevContent)) {
+					
+					status = "No difference in outputted content was detected, and so \n" +
+							"no new revision state may have been logged for the page " + live_title;
+					logger.warning(status);
+				} else {
+					status = "Success writing new content to page " + live_title;
+					logger.info(status);
+				}
 			} catch (ActionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -252,7 +269,8 @@ public class WpController implements ViewController {
 				e.printStackTrace();
 			}
 		}
-		return null;
+		
+		return status;
 	}
 
 }
