@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -20,9 +21,12 @@ import net.sourceforge.jwbf.core.contentRep.Article;
 import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
 import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.gnf.pbb.util.DiffUtils;
+import org.gnf.pbb.util.DiffUtils.Diff;
 /**
  * Manages retrieving articles from wikipedia and maintaining a logged-in state.
  * Also handles the cache files and writing to/from them when the useCache flag is 
@@ -32,7 +36,7 @@ import org.codehaus.jackson.JsonToken;
  */
 public class WpController implements ViewController {
 	
-	private final boolean USE_SANDBOX = false; // no live updates yet... stick to the sandbox.
+	private final boolean USE_SANDBOX = true; // no live updates yet... stick to the sandbox.
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
 	private final static Logger logger = Logger.getLogger(WpController.class.getName());
@@ -150,7 +154,7 @@ public class WpController implements ViewController {
 		String content = "";
 		if (!isAuthenticated()) {
 			//XXX This should not be class: severe in production
-			logger.severe("DEBUG: Bot is logging in- is this expected?");
+			logger.info("Bot is logging in...");
 			try {
 				authenticate("credentials.json");
 			} catch (Exception e) {
@@ -219,55 +223,47 @@ public class WpController implements ViewController {
 	@Override
 	public synchronized String update(String content, String title, String changes, boolean dryRun) throws Exception {
 		String status = "";
+		String live_title = "";
 		if (dryRun) {
 			writeContentToCache(content, "DRYRUN_"+title);
-			System.out.println(changes);
-			System.out.println("Wrote file "+cacheDirectory+"DRYRUN_"+title);
+			logger.info(changes);
+			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);
+			return null;
 		} else if (USE_SANDBOX) {
-			if(!isAuthenticated())
-				authenticate("credentials.json");
-			try {
-				SimpleArticle page = wpBot.readData(SANDBOX_URL);
-				page.setText(content);
-				page.setEditSummary(changes);
-				wpBot.writeContent(page);
-			} catch (ActionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ProcessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			live_title = SANDBOX_URL;
 		} else {
-			String live_title = "Template:PBB/" + title;
-			if(!isAuthenticated())
-				authenticate("credentials.json");
-			try {
-				wpBot.setCacheHandler(new SimpleCache(new File(cacheDirectory), 5000));
-				Boolean hasCache = wpBot.hasCacheHandler();
-				Article page = wpBot.readContent(live_title);
-				String prevContent = page.getText();
-				page.setText(content);
-				page.setEditSummary(changes);
-				page.setEditor("Protein Box Bot");
-				SimpleArticle article = page.getSimpleArticle();
-				wpBot.writeContent(article);
-				if (content.equals(prevContent)) {
-					
-					status = "No difference in outputted content was detected, and so \n" +
-							"no new revision state may have been logged for the page " + live_title;
-					logger.warning(status);
-				} else {
-					status = "Success writing new content to page " + live_title;
-					logger.info(status);
-				}
-			} catch (ActionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ProcessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			live_title = "Template:PBB/" + title;
+		}
+		
+		if(!isAuthenticated())
+			authenticate("credentials.json");
+		try {
+			Article page = wpBot.readContent(live_title);
+			String prevContent = page.getText();
+			page.setText(content);
+			page.setEditSummary(changes);
+			page.setEditor("Protein Box Bot");
+			SimpleArticle article = page.getSimpleArticle();
+			wpBot.writeContent(article);
+			if (content.equals(prevContent)) {	
+				status = "No difference in outputted content was detected, and so \n" +
+						"no new revision state may have been logged for the page " + live_title;
+				logger.warning(status);
+			} else {
+				DiffUtils diff = new DiffUtils();
+				LinkedList<Diff> diffs = diff.diff_main(prevContent, content);
+				diff.diff_cleanupSemantic(diffs);
+				String htmlDiff = diff.diff_prettyHtml(diffs);
+				writeContentToCache(htmlDiff, "DIFFS_"+title+".html");
+				status = "Success writing new content to page " + live_title;
+				logger.info(status);
 			}
+		} catch (ActionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ProcessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		return status;
