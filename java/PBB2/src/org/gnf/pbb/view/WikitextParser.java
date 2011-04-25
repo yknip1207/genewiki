@@ -111,19 +111,45 @@ public class WikitextParser implements ViewParser {
 	 */
 	private void extractFields(String rawText) {
 		Pattern fieldStart = Pattern.compile("(?<=^\\s|\\s)([\\w]*)(?=\\s\\=)");
+		Pattern refBrackets = Pattern.compile("(?<=<ref)(.*)(?=/ref>)");
 		Matcher fieldStartFinder = fieldStart.matcher(rawText);
-		
+		List<String> fieldValue = new ArrayList<String>();
 		String nl = System.getProperty("line.separator");
+		
+		// FIXME: Reference tags are problematic because they generally
+		// enclose citation information, which is not part of the template
+		// info we're parsing but looks just like it. This hack basically
+		// checks to see if a found field is inside those tags, and if it is,
+		// the parser ignores it. 
+		int start = rawText.length(), end = rawText.length();
+		Matcher refFinder = refBrackets.matcher(rawText);
+		try {
+			refFinder.find();
+			start = refFinder.start();
+			end = refFinder.end();
+		} catch (Exception e) {
+			// If the parser didn't find anything, that's fine. Ignore the 
+			// MatchNotFound exception.
+		}
 		while (fieldStartFinder.find()) {
 			String substring = rawText.substring(fieldStartFinder.end(), rawText.indexOf(nl, fieldStartFinder.end()));
 			String fieldName = fieldStartFinder.group();
-			logger.finer("Field found: "+fieldName);
-			List<String> fieldValue = extractFieldValue(substring);
-			
-			logger.finer("Added field to data map: "+fieldName+" = "+fieldValue);
-			viewData.put(fieldName, fieldValue);
-		}
-		
+			boolean invalidFieldValue = false;
+			if (start < fieldStartFinder.start() && fieldStartFinder.end() < end) {
+				logger.info("Field "+fieldName+" invalid; inside <ref></ref> tags.");
+				invalidFieldValue = true;
+			} else if (refBrackets.matcher(substring).find() && !invalidFieldValue) {
+				fieldValue = extractFieldValue(substring, false);
+			} else if (!invalidFieldValue) {
+				fieldValue = extractFieldValue(substring, true);
+			}
+			if (!invalidFieldValue) {
+				logger.finer("Field found: "+fieldName);	
+				logger.finer("Added field to data map: "+fieldName+" = "+fieldValue);
+				viewData.put(fieldName, fieldValue);
+			}
+				
+		}		
 	}
 
 	/**
@@ -133,7 +159,7 @@ public class WikitextParser implements ViewParser {
 	 * @param substring
 	 * @return list of values (generally only one entry in list)
 	 */
-	private List<String> extractFieldValue(String substring) {		
+	private List<String> extractFieldValue(String substring, boolean findTemplateLinks) {		
 		Pattern fieldValues = Pattern.compile("(?<=\\=)(.*)$");
 		Matcher fieldValuesFinder = fieldValues.matcher(substring);
 		
@@ -141,13 +167,18 @@ public class WikitextParser implements ViewParser {
 		String fieldValue = fieldValuesFinder.group();
 		// Clean up our results
 		fieldValue = fieldValue.trim();
-		if (fieldValue.startsWith(";"))
+		if (fieldValue.startsWith(";") && fieldValue.length() > 2)
 			fieldValue = fieldValue.substring(2);
+		
 		// Test for the presence of non-expanded template links / {{example}}
 		List<String> fieldValueList = new ArrayList<String>();
-		try {
-			fieldValueList = getNonExpandedTemplateLinks(fieldValue);
-		} catch (NoLinksFound n) {
+		if (findTemplateLinks) {
+			try {
+				fieldValueList = getNonExpandedTemplateLinks(fieldValue);
+			} catch (NoLinksFound n) {
+				fieldValueList.add(fieldValue);
+			}
+		} else {
 			fieldValueList.add(fieldValue);
 		}
 		return fieldValueList;
