@@ -97,18 +97,20 @@ public class PbbUpdate implements Update {
 			out.append("{{GNF_Protein_box"+nl);
 			Set<String> keys = updatedData.keySet();
 			for (String key: keys) {
-				if (updatedData.get(key).size() > 1 && (
-						key.equalsIgnoreCase("Function") || 
+				if (key.equalsIgnoreCase("Function") || 
 						key.equalsIgnoreCase("Process") || 
 						key.equalsIgnoreCase("Component") ||
-						key.equalsIgnoreCase("pdb"))) {
+						key.equalsIgnoreCase("pdb")) {
 					out.append(" | "+key+" = ");
 					Iterator<String> templateLinks = updatedData.get(key).iterator();
 					while (templateLinks.hasNext()) {
-						out.append("{{");
-						if (key.equalsIgnoreCase("pdb")) // pdb ids require a standard PDB2| prefix in their template tags
-							out.append("PDB2|");
-						out.append(templateLinks.next()+"}} ");
+						String next = templateLinks.next();
+						if (next.length() != 0) {
+							out.append("{{");
+							if (key.equalsIgnoreCase("pdb")) // pdb ids require a standard PDB2| prefix in their template tags
+								out.append("PDB2|");
+							out.append(next+"}} ");
+						}	
 					}
 					out.append(nl);
 				} else if (updatedData.get(key).size() > 0) {
@@ -200,7 +202,8 @@ public class PbbUpdate implements Update {
 					}
 				}
 			}
-			_editMessage.deleteCharAt(_editMessage.lastIndexOf(","));
+			if (_editMessage.lastIndexOf(", ") != -1)
+				_editMessage.deleteCharAt(_editMessage.lastIndexOf(","));
 			_editMessage.append("\n"+matches+" fields left unchanged.");
 			
 			editSummary = "Protein Box Bot 2 updated "+ (view.size() - matches) + "/" + view.size()+" fields.";
