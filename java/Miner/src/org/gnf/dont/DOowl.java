@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 
 import org.gnf.genewiki.Config;
 import org.gnf.go.GOowl;
+import org.gnf.go.GOterm;
 
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -46,18 +47,19 @@ public class DOowl {
 	static String disorder = do_root_uri+"DOID_0060035";
 	static String hereditary = do_root_uri+"DOID_630";
 	static String syndrome = do_root_uri+"DOID_225";
-	
+
 	boolean rdf_inf;
 
 	public DOowl() {
 		super();
 	}
-	
+
 	public void initFromFile(){
 		OntModel doid = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM); 
 		doid.read(Config.dordf);
 		System.out.println("read DO OWL file into Jena Model with no reasoning");
 		setDoid(doid);
+		rdf_inf = false;
 	}
 
 	public void initFromFileRDFS(){
@@ -67,25 +69,19 @@ public class DOowl {
 		setDoid(doid);
 		rdf_inf = true;
 	}
-	
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {		
-		DOowl doid = new DOowl();
-		doid.initFromFileRDFS();
-		Set<String> terms = doid.getSubs("417");
-		for(String t : terms){
-			System.out.println(t);
-		}
 	}
-	
+
 	/**
 	 * 
 	 * @param map from some thing (gene) to a set of DO accessions
 	 * @return expanded map - all the way up and one level down
 	 */
-	public Map<String, Set<DOterm>> expandDoMapUp(Map<String, Set<DOterm>> m){
+	public Map<String, Set<DOterm>> expandDoMap(Map<String, Set<DOterm>> m, boolean addchildren){
 		if(!rdf_inf){
 			initFromFileRDFS();
 		}
@@ -100,6 +96,13 @@ public class DOowl {
 					Set<DOterm> parents = getSupers(DOterm);
 					ps.put(DOterm, parents);
 				}
+				if(addchildren){
+					if(!cs.containsKey(DOterm)){
+						Set<DOterm> children = getDirectChildren(DOterm);
+						cs.put(DOterm, children);
+					}
+				}
+
 			}
 		}
 		System.out.println("expansions cached");
@@ -125,9 +128,39 @@ public class DOowl {
 		return tmp_geneid_go;
 	}
 
-	public Set<String> getSubs(String id){
-		Set<String> terms = new HashSet<String>();
-		String uri = makeDoUri(id);
+	public Set<DOterm> getDirectChildren(DOterm term){
+		Set<DOterm> terms = new HashSet<DOterm>();
+		String uri = makeDoUri(term.getAccession().substring(5));
+		OntClass start = (OntClass)doid.getOntClass(uri);
+		if(start==null){
+			return null;
+		}
+		ExtendedIterator<OntClass> stmt = start.listSubClasses(true);
+		while(stmt.hasNext()){
+			OntClass child = stmt.next();
+			String label = child.getLabel("EN");
+			String local = child.getLocalName();
+			String acc = local.replace("_",":");
+			if(!acc.equals(term.getAccession())){
+				DOterm newterm = new DOterm();
+				newterm.setEvidence(term.getEvidence());
+				newterm.setAccession(acc);
+				newterm.setTerm(label);
+				// not really 'inferred' here but heh..  
+				newterm.setInferred_child(true);
+				terms.add(newterm);
+			}
+		}
+		if(terms.size()>0){
+			return terms;
+		}else{
+			return null;
+		}
+	}
+
+	public Set<DOterm> getSubs(DOterm term){
+		Set<DOterm> terms = new HashSet<DOterm>();
+		String uri = makeDoUri(term.getAccession().substring(5));
 		String queryString = "PREFIX DOOWL: <http://www.geneontology.org/formats/oboInOwl#> "+ 	
 		"PREFIX RDFS: <http://www.w3.org/2000/01/rdf-schema#> "+
 		"SELECT ?sub ?label "+ 
@@ -145,21 +178,37 @@ public class DOowl {
 			//ResultSetFormatter.out(System.out, rs, query);
 
 			while(rs.hasNext()){
+				//				QuerySolution rb = rs.nextSolution() ;
+				//				Resource subclass = rb.get("sub").as(Resource.class) ;
+				//				Literal labelnode = rb.getLiteral("label");
+				//				String label = null;
+				//				if(labelnode!=null){
+				//					String local = subclass.getLocalName();
+				//					String acc = local.replace("_",":");
+				//					label = labelnode.getValue().toString();
+				//					terms.add(acc+"\t"+label);
 				QuerySolution rb = rs.nextSolution() ;
-				Resource subclass = rb.get("sub").as(Resource.class) ;
+				Resource superclass = rb.get("sub").as(Resource.class) ;
 				Literal labelnode = rb.getLiteral("label");
 				String label = null;
 				if(labelnode!=null){
-					String local = subclass.getLocalName();
+					String local = superclass.getLocalName();
 					String acc = local.replace("_",":");
-					label = labelnode.getValue().toString();
-					terms.add(acc+"\t"+label);
+					if(!acc.equals(term.getAccession())){
+						label = labelnode.getValue().toString();
+						DOterm newterm = new DOterm();
+						newterm.setEvidence(term.getEvidence());
+						newterm.setInferred_child(true);
+						newterm.setAccession(acc);
+						newterm.setTerm(label);
+						terms.add(newterm);
+					}
 				}
 
 			}
 
 		}finally{
-			// Important – free up resources used running the query
+			// Important ï¿½ free up resources used running the query
 			qe.close();
 		}
 		if(terms.size()>0){
@@ -168,8 +217,8 @@ public class DOowl {
 			return null;
 		}
 	}
-	
-	
+
+
 	public Set<DOterm> getSupers(DOterm term){
 		Set<DOterm> terms = new HashSet<DOterm>();
 		String uri = makeDoUri(term.getAccession().substring(5));
@@ -211,7 +260,7 @@ public class DOowl {
 			}
 
 		}finally{
-			// Important – free up resources used running the query
+			// Important ï¿½ free up resources used running the query
 			qe.close();
 		}
 		if(terms.size()>0){
@@ -220,11 +269,11 @@ public class DOowl {
 			return null;
 		}
 	}
-	
+
 	public static String makeDoUri(String do_id){
 		return do_root_uri+"DOID_"+do_id;
 	}
-	
+
 	/**
 	 * Get the xrefs for the do accession from the UMLS
 	 * @param do_acc_uri
@@ -242,7 +291,7 @@ public class DOowl {
 			"FILTER regex(?xref, \"UMLS_CUI:\")"+  // UMLS_CUI:C0016977
 			"}";
 
-	//	System.out.println(getXref);
+		//	System.out.println(getXref);
 		Query query = QueryFactory.create(getXref);
 
 		// Execute the query and obtain results
@@ -263,9 +312,9 @@ public class DOowl {
 		}
 		return xrefs;
 	}
-	
-	
-	
+
+
+
 	public OntModel getDoid() {
 		return doid;
 	}

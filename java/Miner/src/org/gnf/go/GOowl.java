@@ -202,7 +202,7 @@ public class GOowl {
 					String acc = local.replace("_",":");
 					if(!acc.equals(term.getAccession())){
 						label = labelnode.getValue().toString();
-						GOterm newterm = new GOterm(null, null, term.getRoot(), null);
+						GOterm newterm = new GOterm(null, null, term.getRoot(), null, false);
 						newterm.setEvidence(term.getEvidence());
 						newterm.setInferred_parent(true);
 						newterm.setAccession(acc);
@@ -253,7 +253,7 @@ public class GOowl {
 					String acc = local.replace("_",":");
 					if(!acc.equals(term.getAccession())){
 						label = labelnode.getValue().toString();
-						GOterm newterm = new GOterm(null, null, term.getRoot(), null);
+						GOterm newterm = new GOterm(null, null, term.getRoot(), null, false);
 						newterm.setEvidence(term.getEvidence());
 						newterm.setInferred_child(true);
 						newterm.setAccession(acc);
@@ -295,7 +295,7 @@ public class GOowl {
 			String local = child.getLocalName();
 			String acc = local.replace("_",":");
 			if(!acc.equals(term.getAccession())){
-				GOterm newterm = new GOterm(null, null, term.getRoot(), null);
+				GOterm newterm = new GOterm(null, null, term.getRoot(), null, false);
 				newterm.setEvidence(term.getEvidence());
 				newterm.setAccession(acc);
 				newterm.setTerm(label);
@@ -325,7 +325,7 @@ public class GOowl {
 	
 	
 	public GOterm makeGOterm(String go_id){
-		GOterm newterm = new GOterm(null, null, null, null);
+		GOterm newterm = new GOterm(null, null, null, null, true);
 		Property p = go.getProperty("http://www.geneontology.org/formats/oboInOwl#hasOBONamespace");
 		String guri = makeGoUri(go_id.trim());
 	
@@ -343,7 +343,7 @@ public class GOowl {
 	}
 	
 	public GOterm makeGOterm(GOterm term, OntClass t){
-		GOterm newterm = new GOterm(null, null, term.getRoot(), null);
+		GOterm newterm = new GOterm(null, null, term.getRoot(), null, true);
 		if(term.getRoot()==null||term.getRoot().length()<3){
 			Property p = go.getProperty("http://www.geneontology.org/formats/oboInOwl#hasOBONamespace");
 			String root = t.getPropertyValue(p).toString();
@@ -378,7 +378,7 @@ public class GOowl {
 
 
 	public GOterm getGOfromLabel(String label){
-		GOterm goterm = new GOterm("", "", "", label);
+		GOterm goterm = new GOterm("", "", "", label, true);
 		if(label.equals("cell surface receptor linked signal transduction")){
 			goterm.setAccession("GO:0007166");
 			return goterm;
@@ -600,7 +600,7 @@ public class GOowl {
 				Literal label = rb.get("label").as(Literal.class);
 
 				String accession = rep.as(Resource.class).getLocalName().replace("_",":");
-				GOterm newterm = new GOterm(null, accession, term.getRoot(), label.getString());
+				GOterm newterm = new GOterm(null, accession, term.getRoot(), label.getString(), true);
 				newterm.setEvidence(term.getEvidence());
 				terms.add(newterm);
 			}

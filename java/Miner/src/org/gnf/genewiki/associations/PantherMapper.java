@@ -61,7 +61,7 @@ public class PantherMapper {
 					}
 					String id = null; String acc = item[1];
 					String evidence = item[2];
-					GOterm go = new GOterm(id, acc, "", "");
+					GOterm go = new GOterm(id, acc, "", "", true);
 					go.setEvidence(evidence);
 					GOs.add(go);//the text term for the go id						
 				}
@@ -251,7 +251,7 @@ public class PantherMapper {
 					if(gos==null){
 						gos = new HashSet<GOterm>();
 					}
-					GOterm ngo = new GOterm("",acc,"","");
+					GOterm ngo = new GOterm("",acc,"","", true);
 					ngo.setEvidence("Panther:"+org);
 					gos.add(ngo);
 					gene2go.put(geneid, gos);
@@ -489,7 +489,7 @@ public class PantherMapper {
 		String[] goarray = gofield.split(";");
 		for(String go : goarray){
 			String[] gnames = go.split("#");
-			GOterm got = new GOterm("", gnames[1], root, gnames[0]);
+			GOterm got = new GOterm("", gnames[1], root, gnames[0], true);
 			gos.add(got);
 		}
 		return gos;

@@ -27,33 +27,33 @@ public class DO_OMIM {
 	 */
 	public static void main(String[] args) {
 
-		getAutoImmuneOmims();
+	//	getAutoImmuneOmims();
 
 	}
-
-	public static Set<String> getAutoImmuneOmims(){
-		Map<String, Set<String>> do_omims = loadDO_OMIM_map();
-		Set<String> autos = new HashSet<String>();
-		DOowl doid = new DOowl();
-		doid.initFromFileRDFS();
-	//	doid.initFromFile();
-		Set<String> terms = doid.getSubs("417"); // 417
-		for(String t : terms){
-			// DOID:419	scleroderma
-			String do_id = t.split("\t")[0];
-			Set<String> omims = do_omims.get(do_id);
-	//		System.out.println(t);
-			if(omims!=null){
-				System.out.println(t+"\t"+omims);
-				for(String om : omims){
-					if(!om.startsWith("MTH")){
-						autos.add(om);
-					}
-				}
-			}
-		}
-		return autos;
-	}
+//
+//	public static Set<String> getAutoImmuneOmims(){
+//		Map<String, Set<String>> do_omims = loadDO_OMIM_map();
+//		Set<String> autos = new HashSet<String>();
+//		DOowl doid = new DOowl();
+//		doid.initFromFileRDFS();
+//	//	doid.initFromFile();
+//		Set<String> terms = doid.getSubs("417"); // 417
+//		for(String t : terms){
+//			// DOID:419	scleroderma
+//			String do_id = t.split("\t")[0];
+//			Set<String> omims = do_omims.get(do_id);
+//	//		System.out.println(t);
+//			if(omims!=null){
+//				System.out.println(t+"\t"+omims);
+//				for(String om : omims){
+//					if(!om.startsWith("MTH")){
+//						autos.add(om);
+//					}
+//				}
+//			}
+//		}
+//		return autos;
+//	}
 	
 	public static void dumpAsSif(){
 		Map<String, Set<String>> omim_genes = loadMorbidMap();

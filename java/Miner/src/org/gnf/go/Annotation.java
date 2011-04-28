@@ -120,7 +120,7 @@ public class Annotation {
 						if(gos==null){
 							gos = new HashSet<GOterm>();
 						}
-						GOterm ngo = new GOterm("",acc,"","");
+						GOterm ngo = new GOterm("",acc,"","", true);
 						//ngo.setEvidence(code);
 						gos.add(ngo);
 						gene2go.put(geneid, gos);
@@ -171,7 +171,7 @@ public class Annotation {
 								root = item[7];
 							}
 						}
-						GOterm go = new GOterm(id, acc, root, term);
+						GOterm go = new GOterm(id, acc, root, term, true);
 						go.setEvidence("ncbi_"+code);
 						GOs.add(go);//the text term for the go id						
 					}
@@ -217,7 +217,7 @@ public class Annotation {
 								root = item[7];
 							}
 						}
-						GOterm go = new GOterm(id, acc, root, term);
+						GOterm go = new GOterm(id, acc, root, term, true);
 						go.setEvidence(code);
 						GOs.add(go);//the text term for the go id						
 					}

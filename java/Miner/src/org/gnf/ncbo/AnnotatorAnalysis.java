@@ -231,7 +231,7 @@ public class AnnotatorAnalysis {
 					gos = new HashSet<GOterm>();
 				}
 				String go_acc = canno.getTarget_accession();
-				GOterm go = new GOterm("",go_acc,"","");
+				GOterm go = new GOterm("",go_acc,"","", true);
 				go.setEvidence(canno.getString_matching_method());
 				gos.add(go);
 				linked_gos.put(gene, gos);

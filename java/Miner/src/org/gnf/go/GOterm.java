@@ -22,13 +22,15 @@ public class GOterm implements Comparable<GOterm>{
 	//true if this annotation was inferred through a hierarchical relationship rather than a direct assertion
 	boolean inferred_parent;
 	boolean inferred_child;
+	boolean isdirect;
 	//especially in the case of text mining, we may get many occurrences of a term
 	float numAppearances;
 	
 	
 	
-	public GOterm(String id, String accession, String root, String term) {
+	public GOterm(String id, String accession, String root, String term, boolean isdirect) {
 		super();
+		this.isdirect = isdirect;
 		this.id = id;
 		this.accession = accession;
 		this.term = term;
@@ -199,5 +201,13 @@ public boolean isInferred_child() {
 
 public void setInferred_child(boolean inferred_child) {
 	this.inferred_child = inferred_child;
+}
+
+public boolean isIsdirect() {
+	return isdirect;
+}
+
+public void setIsdirect(boolean isdirect) {
+	this.isdirect = isdirect;
 }
 }

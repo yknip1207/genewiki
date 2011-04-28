@@ -65,7 +65,7 @@ Okay, currently regenerating.  When the GeneWikiIndex_20101008.txt file reaches 
 	public static String gordf_with_parts_forGeneGo = "file:"+gwroot+"input/ontologies/3-1-2010/go_201003-termdb.owl";
 
 	//For the Disease Ontology
-	public static String dordf = 	"file:"+gwroot+"input/DO/01-6-10-DOID.owl";
+	public static String dordf = 	"file:"+gwroot+"input/DO/01-6-11-DOID.owl";
 	public static String generif2do = 	gwroot+"input/DO/do_rif.human.txt";
 	public static String omim2do = 	gwroot+"intermediate/DO_OMIM_GENE.txt";
 	

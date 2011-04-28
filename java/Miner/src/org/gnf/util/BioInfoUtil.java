@@ -97,6 +97,91 @@ public class BioInfoUtil {
 	 * @param old_ont
 	 * @return
 	 */
+	public static Map<String, Set<GOterm>> expandGoMap(Map<String, Set<GOterm>> m, GOowl gol, GOowl gol_no_infer, boolean addChildren){
+
+		//get parents for all linked terms
+		Map<GOterm, Set<GOterm>> ps = new HashMap<GOterm, Set<GOterm>>(m.size());
+		//children - one level
+		Map<GOterm, Set<GOterm>> cs = new HashMap<GOterm, Set<GOterm>>(m.size());
+		for(Entry<String, Set<GOterm>> entry : m.entrySet()){
+			for(GOterm goterm : entry.getValue()){
+				if(!ps.containsKey(goterm)){
+					Set<GOterm> parents = gol.getSupers(goterm);
+					ps.put(goterm, parents);
+				}
+				if(addChildren){
+					if(!cs.containsKey(goterm)){
+						Set<GOterm> children = gol_no_infer.getDirectChildren(goterm);
+						cs.put(goterm, children);
+					}
+				}
+			}
+		}
+		System.out.println("expansions cached");
+
+
+
+		Map<String, Set<GOterm>> tmp_geneid_go = new HashMap<String, Set<GOterm>>();
+		//add the parents and the children
+		for(Entry<String, Set<GOterm>> entry : m.entrySet()){
+			String geneid = entry.getKey();
+			int size = 0;
+
+			for(GOterm goterm : entry.getValue()){				
+				if(ps.get(goterm)!=null){
+					int psize = ps.get(goterm).size();
+//					if(psize>50){
+//						Set<GOterm> bigmama = ps.get(goterm);
+//						System.err.println("Wow.. many parents for "+geneid+" "+goterm.getTerm()+" "+psize);
+//					}
+					size+=psize;
+				}
+				if(addChildren&&cs.get(goterm)!=null){					
+					int csize = cs.get(goterm).size();
+//					if(csize>50){
+//						System.err.println("Wow.. big family for "+geneid+" "+goterm.getTerm()+" "+csize);
+//					}
+					size+=csize;
+				}
+			}
+
+			Set<GOterm> p = new HashSet<GOterm>(size);
+			for(GOterm goterm : entry.getValue()){
+				p.add(goterm);
+				Set<GOterm> parents = ps.get(goterm);
+				if(parents!=null){
+					for(GOterm parent : parents){
+						if(parent != goterm){
+							p.add(parent);
+						}
+					}
+				}
+
+				//add the children - if you can take it!
+				if(addChildren){
+					Set<GOterm> children = cs.get(goterm);
+					if(children!=null){
+						for(GOterm child : children){
+							if(child != goterm){
+								p.add(child);
+							}
+						}
+					}
+				}
+
+			}
+			tmp_geneid_go.put(geneid, p);
+		}
+
+		return tmp_geneid_go;
+	}
+
+	/**
+	 * 
+	 * @param m
+	 * @param old_ont
+	 * @return
+	 */
 	public static Map<String, Set<GOterm>> expandGoMap(Map<String, Set<GOterm>> m, String old_ont, boolean addChildren){
 		GOowl gol = new GOowl();
 		GOowl gol_no_infer = null;
@@ -401,7 +486,7 @@ public class BioInfoUtil {
 			//get rid of references to entrez gene
 			p = p.replaceAll("<ref name=\"entrez\">.*?</ref>", "");
 			//convert wikiformatting to html (e.g. put in links for [[]]				
-		//	p = ParseUtils.wikiToHtml(p);				
+			//	p = ParseUtils.wikiToHtml(p);				
 			//remove templates
 			p = p.replaceAll("\\{\\{.*?\\}\\}", "");
 			p = p.replaceAll("#_note-pmid","http://www.ncbi.nlm.nih.gov/pubmed?term=");

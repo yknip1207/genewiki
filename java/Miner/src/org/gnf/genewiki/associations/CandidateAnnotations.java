@@ -161,14 +161,14 @@ public class CandidateAnnotations {
 			while(line!=null){
 				String[] item = line.split("\t");
 				String acc = item[9];
-				if(acc.startsWith(Ontologies.HUMAN_DISEASE_ONT)){// //"44171/")
+				if(acc.startsWith(Ontologies.OLD_HUMAN_DISEASE_ONT)){// //"44171/")
 					CandidateAnnotation canno = new CandidateAnnotation(item);
 					canno.setTarget_vocabulary("Disease Ontology");
 					canno.setVocabulary_branch("disease");
 					//remove unwanted matches
 					if(!Filter.fromUnwantedWikiSection(canno)
 							&&!Filter.containsUnwantedDOTerm(canno)){
-						canno.setTarget_accession(acc.substring(Ontologies.HUMAN_DISEASE_ONT.length()+1));
+						canno.setTarget_accession(acc.substring(Ontologies.OLD_HUMAN_DISEASE_ONT.length()+1));
 						if(unique_annos.add(canno.getEntrez_gene_id()+canno.getTarget_accession())){
 							cannos.add(canno);
 						}
@@ -204,9 +204,9 @@ public class CandidateAnnotations {
 			while(line!=null){
 				String[] item = line.split("\t");
 				String acc = item[9];
-				if(acc.startsWith(Ontologies.GO_ONT)||acc.startsWith("GO:")){// //"44171/")
+				if(acc.startsWith(Ontologies.OLD_GO_ONT)||acc.startsWith("GO:")){// //"44171/")
 					CandidateAnnotation canno = new CandidateAnnotation(item);
-					String a = acc.substring(Ontologies.GO_ONT.length()+4);
+					String a = acc.substring(Ontologies.OLD_GO_ONT.length()+4);
 					if(acc.startsWith("GO:")){
 						a = acc.substring(3);
 					}
@@ -232,6 +232,7 @@ public class CandidateAnnotations {
 			e.printStackTrace();
 		}
 		gol.close();
+		gol = null;
 	}
 
 	/**

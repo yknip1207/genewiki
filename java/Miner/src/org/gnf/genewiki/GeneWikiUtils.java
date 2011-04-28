@@ -456,7 +456,7 @@ public class GeneWikiUtils {
 				String[] item = line.split("\t");
 				if(item!=null&&item.length>1){
 					String id = item[0];					
-					GOterm t = new GOterm(item[0], item[3], item[2], normalize(item[1]));
+					GOterm t = new GOterm(item[0], item[3], item[2], normalize(item[1]), true);
 					id_term.put(id, t);					
 
 				}
@@ -770,7 +770,7 @@ public class GeneWikiUtils {
 						map.put(gene_page, GOs);
 					}
 
-					GOterm go = new GOterm(null, go_acc, root, go_term);
+					GOterm go = new GOterm(null, go_acc, root, go_term, true);
 					go.setEvidence(exists);
 					if(!GOs.add(go)){
 						System.out.println("duplicate go: "+gene_page+" "+go);						
@@ -809,7 +809,7 @@ public class GeneWikiUtils {
 							}else if(root.equals("molecular_function")){
 								root = "Function";
 							}
-							GOterm go = new GOterm(id, acc, root, term);
+							GOterm go = new GOterm(id, acc, root, term, true);
 							map.put(geneid, go);
 						}else{
 							System.out.println("error reading genewiki to go file:"+file);
@@ -879,7 +879,7 @@ public class GeneWikiUtils {
 								root = item[7];
 							}
 						}
-						GOterm go = new GOterm(id, acc, root, term);
+						GOterm go = new GOterm(id, acc, root, term, true);
 						go.setEvidence("ncbi");
 						GOs.add(go);//the text term for the go id						
 					}

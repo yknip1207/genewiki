@@ -510,7 +510,7 @@ public class GOmapper {
 					String acc = item[2];
 					String root = item[3];
 					String goterm = item[4];
-					GOterm t = new GOterm(null, acc, root, goterm);
+					GOterm t = new GOterm(null, acc, root, goterm, true);
 					if(record_evidence){
 						t.setEvidence(evidence);
 					}else{

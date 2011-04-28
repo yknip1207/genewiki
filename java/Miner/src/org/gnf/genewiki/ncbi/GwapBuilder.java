@@ -27,7 +27,7 @@ public class GwapBuilder {
 	
 	public static void getWellAnnotatedHumanGenesUnderAGOroot(){
 		String rootacc = "0002376";//"0002757";//
-		GOterm t = new GOterm("", "GO_"+rootacc, "", "immune system process");
+		GOterm t = new GOterm("", "GO_"+rootacc, "", "immune system process", true);
 		//get the list of allowed terms
 		GOowl gowl = new GOowl();
 		gowl.initFromFileRDFS(false);

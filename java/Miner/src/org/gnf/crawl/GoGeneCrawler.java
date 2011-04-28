@@ -61,7 +61,7 @@ public class GoGeneCrawler {
 					}
 					String id = null; String acc = item[1];
 					String term = item[3]; String root = item[2];
-					GOterm go = new GOterm(id, acc, root, term);
+					GOterm go = new GOterm(id, acc, root, term, true);
 					go.setEvidence("gogene");
 					GOs.add(go);//the text term for the go id						
 				}

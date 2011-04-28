@@ -301,7 +301,7 @@ public class SNPediaMashup {
 		//load the disease ontology mappings for comparison
 		Map<String, Set<DOterm>> gene_dos = DOmapping.loadGeneRifs2DO();
 		DOowl dowl = new DOowl();
-		gene_dos = dowl.expandDoMapUp(gene_dos);
+		gene_dos = dowl.expandDoMap(gene_dos, false);
 
 		//load the gene wiki index to get the mappings to ncbi gene ids
 		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";
@@ -484,7 +484,7 @@ public class SNPediaMashup {
 		//load the disease ontology mappings for comparison
 		Map<String, Set<DOterm>> gene_dos = DOmapping.loadGeneRifs2DO();
 		DOowl dowl = new DOowl();
-		gene_dos = dowl.expandDoMapUp(gene_dos);
+		gene_dos = dowl.expandDoMap(gene_dos, false);
 
 		//load the gene wiki index to get the mappings to ncbi gene ids
 		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";
@@ -660,7 +660,7 @@ public class SNPediaMashup {
 		//load the disease ontology mappings for comparison
 		Map<String, Set<DOterm>> gene_dos = DOmapping.loadGeneRifs2DO();
 		DOowl dowl = new DOowl();
-		gene_dos = dowl.expandDoMapUp(gene_dos);
+		gene_dos = dowl.expandDoMap(gene_dos, false);
 
 		//load the gene wiki index to get the mappings to ncbi gene ids
 		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";

@@ -34,6 +34,8 @@ import org.gnf.search.YahooBOSS;
 import org.gnf.util.BioInfoUtil;
 import org.gnf.util.Gene;
 
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 public class CandiAnnoSorter {
@@ -42,18 +44,21 @@ public class CandiAnnoSorter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		CandidateAnnotations cannolist = new CandidateAnnotations();
-		String annos = "/Users/bgood/data/genewiki_jan_2011/output/go_eval_sample.txt";
-		cannolist.loadAndFilterCandidateGOAnnotations(annos);
-		List<CandidateAnnotation> testcannos = cannolist.getCannos();
-		System.out.println("Loaded candidate GO annotations "+testcannos.size());
-		testcannos = addAllEvidenceForGOAnnotations(testcannos);
-		cannolist.setCannos(testcannos);
-		cannolist.writeGOCandiListWithEvidence("/Users/bgood/data/genewiki_jan_2011/output/go_eval_sample_plus.txt");
-		System.out.println("Wrote output");
+		//		CandidateAnnotations cannolist = new CandidateAnnotations();
+		//		String annos = "/Users/bgood/data/genewiki_jan_2011/output/go_eval_sample.txt";
+		//		cannolist.loadAndFilterCandidateGOAnnotations(annos);
+		//		List<CandidateAnnotation> testcannos = cannolist.getCannos();
+		//		System.out.println("Loaded candidate GO annotations "+testcannos.size());
+		//		testcannos = addAllEvidenceForGOAnnotations(testcannos);
+		//		cannolist.setCannos(testcannos);
+		//		cannolist.writeGOCandiListWithEvidence("/Users/bgood/data/genewiki_jan_2011/output/go_eval_sample_plus.txt");
+		//		System.out.println("Wrote output");
+
+		//CandiAnnoSorter.rankAndSaveGOAnnotations(Config.text_mined_annos);
+		CandiAnnoSorter.rankAndSaveDOAnnotations(Config.text_mined_annos);
 	}
 
-	
+
 	/**
 	 * FMA-specific features and ranking
 	 */
@@ -62,18 +67,18 @@ public class CandiAnnoSorter {
 		cannolist.loadAndFilterCandidateFMAAnnotations(annos);
 		List<CandidateAnnotation> testcannos = cannolist.getCannos();		
 		System.out.println("Loaded candidate FMA annotations "+testcannos.size());
-		
+
 		testcannos = setYahooCoFromCache(testcannos);
 		System.out.println("Set Yahoo co-occurrence information");	
-	
+
 		testcannos = rankPredictions(testcannos);
 		System.out.println("Completed ranking");
-		
+
 		cannolist.setCannos(testcannos);
 		cannolist.writeCandiListWithEvidence(Config.merged_mined_ranked_annos_fma);
 		System.out.println("Wrote output to: "+Config.merged_mined_ranked_annos_fma);
 	}
-	
+
 	/**
 	 * DO-specific features and ranking
 	 */
@@ -82,27 +87,27 @@ public class CandiAnnoSorter {
 		cannolist.loadAndFilterCandidateDOAnnotations(annos);
 		List<CandidateAnnotation> testcannos = cannolist.getCannos();		
 		System.out.println("Loaded candidate DO annotations "+testcannos.size());
-		
+
 		testcannos = addAllEvidenceForDOAnnotations(testcannos);
-		
+
 		cannolist.setCannos(testcannos);
 		cannolist.writeCandiListWithEvidence(Config.merged_mined_ranked_annos_do);
 		System.out.println("Wrote output to: "+Config.merged_mined_ranked_annos_do);
 	}
-	
+
 	public static List<CandidateAnnotation> addAllEvidenceForDOAnnotations(List<CandidateAnnotation> testcannos){
 		testcannos = setYahooCoFromCache(testcannos);
 		System.out.println("Set Yahoo co-occurrence information");	
-		
+
 		testcannos = setKnownHumanAnnotationsDO(testcannos);
 		System.out.println("Set predicted by generifs");
-		
+
 		testcannos = rankPredictions(testcannos);
 		System.out.println("Completed ranking");
-		
+
 		return testcannos;
 	}
-	
+
 
 	/**
 	 * GO-specific annotation ranking scheme
@@ -114,36 +119,63 @@ public class CandiAnnoSorter {
 		System.out.println("Loaded candidate GO annotations "+testcannos.size());
 		testcannos = addAllEvidenceForGOAnnotations(testcannos);
 		cannolist.setCannos(testcannos);
-		cannolist.writeGOCandiListWithEvidence(Config.merged_mined_ranked_annos_go);
-		System.out.println("Wrote output to: "+Config.merged_mined_ranked_annos_go);
+		String o = Config.merged_mined_ranked_annos_go;
+		o = "/Users/bgood/data/genewiki_jan_2011/output/candidate_go_annotations.txt";
+		cannolist.writeGOCandiListWithEvidence(o);
+		System.out.println("Wrote output to: "+o);
 	}
 
 	public static List<CandidateAnnotation> addAllEvidenceForGOAnnotations(List<CandidateAnnotation> testcannos){
 
-	//	testcannos = addBackLinksAndFlagPBB(testcannos);
-	//	System.out.println("Set backlinks");
-	//	System.out.println("Checked for PBB");
-		
-		testcannos = setYahooCoFromCache(testcannos);
+		boolean usesimplified = true;
+		//get a reasoning and non reasoning version of the GO ready
+		GOowl gol = new GOowl();
+		gol.initFromFileRDFS(usesimplified);
+		GOowl gol_no_infer = new GOowl();
+		gol_no_infer.initFromFile(true);
+		System.out.println("Gene Ontology loaded");	
+
+		setFuncBaseScoreGO(testcannos, gol, gol_no_infer);
+		trytofreeMemory();
+		System.out.println("Set FuncBase score for GO terms");	
+
+		setYahooCoFromCache(testcannos);
 		System.out.println("Set Yahoo co-occurrence information");	
-		//the true adds ontology depth information
-		testcannos = setObsoleteGO(testcannos, true);
+
+		setObsoleteGO(testcannos, true, gol_no_infer);
 		System.out.println("Set Obsolete GO terms");
-		testcannos = setPriorConfidenceGO(testcannos);
-		System.out.println("Set prior probility for GO terms");	
-		testcannos = setGeneGOPredictions(testcannos);
-		System.out.println("Set GeneGo predictions for GO terms");	
-		testcannos = setFuncBaseScoreGO(testcannos);
-		System.out.println("Set FuncBase score for GO terms");		
-		testcannos = setPantherOrthoSupportGO(testcannos);
+		//
+		//		setPriorConfidenceGO(testcannos, gol);
+		//		trytofreeMemory();
+		//		System.out.println("Set prior probility for GO terms");		
+
+		setGeneGOPredictions(testcannos, gol, gol_no_infer);
+		trytofreeMemory();
+		System.out.println("Set GeneGo predictions for GO terms");		
+
+		setPantherOrthoSupportGO(testcannos, gol, gol_no_infer);
+		trytofreeMemory();
 		System.out.println("Set panther family support");
-		testcannos = setKnownHumanAnnotationsGO(testcannos, false);
+
+		setKnownHumanAnnotationsGO(testcannos, false, gol, gol_no_infer);
+		trytofreeMemory();
 		System.out.println("Set known human");
-		testcannos = rankPredictions(testcannos);
+
+		rankPredictions(testcannos);
 		System.out.println("Completed ranking");
 		return testcannos;
 	}
-	
+
+	public static void trytofreeMemory(){
+		Runtime runtime = Runtime.getRuntime();
+		long m = runtime.totalMemory() - runtime.freeMemory();
+		System.out.println("Available before gc mb "+m/1000000);		
+		m = runtime.totalMemory() - runtime.freeMemory();
+		System.gc();
+		m = runtime.totalMemory() - runtime.freeMemory();
+		System.out.println("Available after gc mb "+m/1000000);		
+	}
+
 	public static void getRealCandidateAnnotations(){
 		CandidateAnnotations c = new CandidateAnnotations();
 		c.loadAndFilterCandidateGOAnnotations(Config.merged_mined_ranked_annos_go);
@@ -156,8 +188,8 @@ public class CandiAnnoSorter {
 		System.out.println("Existing matches removed "+c.cannos.size());
 		c.writeGOCandiListWithEvidence(Config.merged_mined_ranked_filtered_annos_go);
 	}
-	
-	
+
+
 	/**
 	 * Check to see if the candidates that emerged from link mining have links coming back to them from the pages that they link to
 	 * @param cannos
@@ -172,10 +204,10 @@ public class CandiAnnoSorter {
 				GeneWikiPage p = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+canno.getEntrez_gene_id());
 				pages.put(canno.getEntrez_gene_id(), p);
 			}
-//			if(hasBackLink(pages.get(canno.getEntrez_gene_id()), canno)){
-//				canno.setHasBackLink(true);
-//				c++;
-//			}
+			//			if(hasBackLink(pages.get(canno.getEntrez_gene_id()), canno)){
+			//				canno.setHasBackLink(true);
+			//				c++;
+			//			}
 			if(f.isProteinBoxBotSummary(pages.get(canno.getEntrez_gene_id()),canno)){
 				canno.setPBB(true);
 				pb++;
@@ -200,26 +232,26 @@ public class CandiAnnoSorter {
 	 * @param canno
 	 * @return
 	 */
-//	public static boolean hasBackLink(GeneWikiPage page, CandidateAnnotation canno){
-//		if(!page.getNcbi_gene_id().equals(canno.getEntrez_gene_id())||
-//				!((canno.getString_matching_method().contains("redirect"))||(canno.getString_matching_method().contains("title")))){
-//			return false;
-//		}
-//		for(GeneWikiLink glink : page.getInglinks()){
-//			GeneWikiPage linked = glink.getTarget_page();
-//			String title = linked.getTitle();
-//			if(title.trim().equalsIgnoreCase(canno.getTarget_preferred_term())){
-//				return true;				
-//			}
-//		}
-//		return false;
-//	}
-	
-/**
- * Check to see if the candidates came from a PBB summary template	
- * @param cannos
- * @return
- */
+	//	public static boolean hasBackLink(GeneWikiPage page, CandidateAnnotation canno){
+	//		if(!page.getNcbi_gene_id().equals(canno.getEntrez_gene_id())||
+	//				!((canno.getString_matching_method().contains("redirect"))||(canno.getString_matching_method().contains("title")))){
+	//			return false;
+	//		}
+	//		for(GeneWikiLink glink : page.getInglinks()){
+	//			GeneWikiPage linked = glink.getTarget_page();
+	//			String title = linked.getTitle();
+	//			if(title.trim().equalsIgnoreCase(canno.getTarget_preferred_term())){
+	//				return true;				
+	//			}
+	//		}
+	//		return false;
+	//	}
+
+	/**
+	 * Check to see if the candidates came from a PBB summary template	
+	 * @param cannos
+	 * @return
+	 */
 	public static List<CandidateAnnotation> flagPBBsummary(List<CandidateAnnotation> cannos){
 		Filter f = new Filter();
 		int c = 0; int p = 0;
@@ -247,7 +279,7 @@ public class CandiAnnoSorter {
 		System.out.println("flagged "+c+" from PBB summary");
 		return cannos;
 	}
-	
+
 	/**
 	 * Push novel ones with support to the top, weight panther more heavily	
 	 * @param cannos
@@ -260,9 +292,9 @@ public class CandiAnnoSorter {
 			if(canno.getEvidence().isMatches_existing_annotation_directly()||canno.getEvidence().isMatches_parent_of_existing_annotation()){
 				c = c - 500;
 			}
-//			if(canno.getEvidence().isMatches_child_of_existing_annotation()){
-//				c+=20;
-//			}
+			//			if(canno.getEvidence().isMatches_child_of_existing_annotation()){
+			//				c+=20;
+			//			}
 			//comparison to Panther 
 			if(canno.getEvidence().isMatches_panther_go_directly()||
 					canno.getEvidence().isMatches_child_of_panther_go()){
@@ -300,12 +332,12 @@ public class CandiAnnoSorter {
 			if(canno.getString_matching_method().contains("title")){
 				c+=10;
 			}
-//			if(canno.getString_matching_method().contains("redirect")){
-//				c -= 5;
-//			}
-//			if(canno.getString_matching_method().contains("text")){
-//				c -= 10;
-//			}
+			//			if(canno.getString_matching_method().contains("redirect")){
+			//				c -= 5;
+			//			}
+			//			if(canno.getString_matching_method().contains("text")){
+			//				c -= 10;
+			//			}
 			//whether term is obsolete
 			if(canno.getEvidence().isGoObsolete()){
 				c -= 20;
@@ -320,95 +352,218 @@ public class CandiAnnoSorter {
 		return cannos;
 	}
 
-/**
- * Indicate whether a DO annotation matches one from before (where these are drawn from the geneRIF-DO study)
- * @param cannos
- * @return
- */
+	/**
+	 * Indicate whether a DO annotation matches one from before (where these are drawn from the geneRIF-DO study)
+	 * @param cannos
+	 * @return
+	 */
 	public static List<CandidateAnnotation> setKnownHumanAnnotationsDO(List<CandidateAnnotation> cannos){
 		Map<String, Set<DOterm>> genedo = DOmapping.loadGeneRifs2DO();
 		//Map<String, Set<DOterm>> genedo = DOmapping.merge();
-		
-		//adds parents
-		System.out.println("Predicted DO loaded");	
+
+		//adds parents and children
+		System.out.println("generif Predicted DO loaded");	
 		DOowl dowl = new DOowl();
-		genedo = dowl.expandDoMapUp(genedo);
-		System.out.println("Predicted DO expanded");
+		dowl.initFromFileRDFS();
+		DOowl do_dumb = new DOowl();
+		do_dumb.initFromFile();
+
+		System.out.println("Known human loaded, checking for matches ");		
 		for(CandidateAnnotation canno : cannos){			
 			Set<DOterm> dos = genedo.get(canno.getEntrez_gene_id());
 			if(dos!=null){
-				for(DOterm dot : dos){
-					if(dot.getAccession().equals(canno.getTarget_accession())){
-						if(dot.isInferred_parent()){
-							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
-						}else if(dot.isInferred_child()){
-							canno.getEvidence().setMatches_child_of_existing_annotation(true);
-						}else{
-							canno.getEvidence().setMatches_existing_annotation_directly(true);
+				//first check for exact matches
+				for(DOterm da : dos){
+					if(da.getAccession().equals(canno.getTarget_accession())){
+						canno.getEvidence().setMatches_existing_annotation_directly(true);
+						//match found
+						break;
+					}
+				}
+				if(canno.getEvidence().isMatches_existing_annotation_directly()){
+					//go to the next candidate annotation
+					continue;
+				}
+				//no match found so check if it matches the parent of a reference annotation
+				//check parents
+				for(DOterm da : dos){
+					boolean stop = false;
+					Set<DOterm> more = dowl.getSupers(da);
+					if(more!=null){
+						for(DOterm parent : more){
+							if(parent.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+								//match found, go to the next candidate annotation
+								stop = true;
+								break;
+							}
 						}
-						
+						if(stop){
+							break;
+						}
+					}
+				}
+				if(canno.getEvidence().isMatches_parent_of_existing_annotation()){
+					//go to the next candidate annotation
+					continue;
+				}
+
+				//still no match found so
+				//check children
+				for(DOterm da : dos){
+					boolean stop = false;
+					Set<DOterm> more = do_dumb.getDirectChildren(da);
+					if(more!=null){
+						for(DOterm child : more){
+							if(child.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_child_of_existing_annotation(true);
+								//match found
+								stop = true;
+								break;
+							}
+						}
+					}
+					if(stop){
+						break;
 					}
 				}
 			}
 		}
+		
+//		System.out.println("generif Predicted DO expanded");
+//		for(CandidateAnnotation canno : cannos){			
+//			Set<DOterm> doroot = genedo.get(canno.getEntrez_gene_id());
+//			if(doroot!=null){
+//				Set<DOterm> dos = new HashSet<DOterm>(doroot);
+//				//expand
+//				for(DOterm dt : doroot){
+//					Set<DOterm> fam = dowl.getSupers(dt);
+//					if(fam!=null){
+//						dos.addAll(fam);
+//					}
+//					fam = do_dumb.getSubs(dt);
+//					if(fam!=null){
+//						dos.addAll(fam);
+//					}
+//				}
+//
+//				if(dos!=null){
+//					for(DOterm dot : dos){
+//						if(dot.getAccession().equals(canno.getTarget_accession())){
+//							if(dot.isInferred_parent()){
+//								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+//							}else if(dot.isInferred_child()){
+//								canno.getEvidence().setMatches_child_of_existing_annotation(true);
+//							}else{
+//								canno.getEvidence().setMatches_existing_annotation_directly(true);
+//							}
+//
+//						}
+//					}
+//				}
+//			}
+//		}
 		return cannos;
 	}
 
-	public static List<CandidateAnnotation> setKnownHumanAnnotationsGO(List<CandidateAnnotation> cannos, boolean skipIEA){
+	public static List<CandidateAnnotation> setKnownHumanAnnotationsGO(List<CandidateAnnotation> cannos, boolean skipIEA, GOowl gol, GOowl gol_no_infer){
 		//	Map<String, Set<GOterm>> genego = GeneWikiUtils.readGene2GO(Config.gene_go_file, "\t", "#");
-			Map<String, Set<GOterm>> genego = Annotation.readGene2GO(Config.gene_go_file, skipIEA);
-			//adds parents
-			System.out.println("Known human loaded");		
-			genego = BioInfoUtil.expandGoMap(genego, null, true);
-			System.out.println("Known human expanded");
-			for(CandidateAnnotation canno : cannos){			
-				Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
-				if(gos!=null){
-					for(GOterm go : gos){
-						if(go.getAccession().equals(canno.getTarget_accession())){
-							if(go.isInferred_parent()){
-								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
-							}else if(go.isInferred_child()){
-								canno.getEvidence().setMatches_child_of_existing_annotation(true);
-							}else{
-								canno.getEvidence().setMatches_existing_annotation_directly(true);
-							}							
-						}
-					}
-				}
-			}
-
-			return cannos;
-		}
-	
-	public static List<CandidateAnnotation> setKnownHumanAnnotationsGO(List<CandidateAnnotation> cannos){
-	//	Map<String, Set<GOterm>> genego = GeneWikiUtils.readGene2GO(Config.gene_go_file, "\t", "#");
-		Map<String, Set<GOterm>> genego = Annotation.readGene2GOtrackEvidence(Config.gene_go_file);
+		Map<String, Set<GOterm>> genego = Annotation.readGene2GO(Config.gene_go_file, skipIEA);
 		//adds parents
-		System.out.println("Known human loaded");		
-		genego = BioInfoUtil.expandGoMap(genego, null, true);
-		System.out.println("Known human expanded");
+		System.out.println("Known human loaded, checking for matches ");		
 		for(CandidateAnnotation canno : cannos){			
 			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
 			if(gos!=null){
+				//first check for exact matches
 				for(GOterm go : gos){
 					if(go.getAccession().equals(canno.getTarget_accession())){
-						canno.getEvidence().setGo_evidence_type(go.getEvidence());
-						if(go.isInferred_parent()){
-							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
-						}else if(go.isInferred_child()){
-							canno.getEvidence().setMatches_child_of_existing_annotation(true);
-						}else{
-							canno.getEvidence().setMatches_existing_annotation_directly(true);
+						canno.getEvidence().setMatches_existing_annotation_directly(true);
+						//match found
+						break;
+					}
+				}
+				if(canno.getEvidence().isMatches_existing_annotation_directly()){
+					//go to the next candidate annotation
+					continue;
+				}
+				//no match found so check if it matches the parent of a reference annotation
+				//check parents
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol.getSupers(go);
+					if(more!=null){
+						for(GOterm parent : more){
+							if(parent.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+								//match found, go to the next candidate annotation
+								stop = true;
+								break;
+							}
 						}
-						
+						if(stop){
+							break;
+						}
+					}
+				}
+				if(canno.getEvidence().isMatches_parent_of_existing_annotation()){
+					//go to the next candidate annotation
+					continue;
+				}
+
+				//still no match found so
+				//check children
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol_no_infer.getDirectChildren(go);
+					if(more!=null){
+						for(GOterm child : more){
+							if(child.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_child_of_existing_annotation(true);
+								//match found
+								stop = true;
+								break;
+							}
+						}
+					}
+					if(stop){
+						break;
 					}
 				}
 			}
 		}
 
+
 		return cannos;
 	}
+
+	//	public static List<CandidateAnnotation> setKnownHumanAnnotationsGO(List<CandidateAnnotation> cannos){
+	//		//	Map<String, Set<GOterm>> genego = GeneWikiUtils.readGene2GO(Config.gene_go_file, "\t", "#");
+	//		Map<String, Set<GOterm>> genego = Annotation.readGene2GOtrackEvidence(Config.gene_go_file);
+	//		//adds parents
+	//		System.out.println("Known human loaded");		
+	//		genego = BioInfoUtil.expandGoMap(genego, null, true);
+	//		System.out.println("Known human expanded");
+	//		for(CandidateAnnotation canno : cannos){			
+	//			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
+	//			if(gos!=null){
+	//				for(GOterm go : gos){
+	//					if(go.getAccession().equals(canno.getTarget_accession())){
+	//						canno.getEvidence().setGo_evidence_type(go.getEvidence());
+	//						if(go.isInferred_parent()){
+	//							canno.getEvidence().setMatches_parent_of_existing_annotation(true);
+	//						}else if(go.isInferred_child()){
+	//							canno.getEvidence().setMatches_child_of_existing_annotation(true);
+	//						}else{
+	//							canno.getEvidence().setMatches_existing_annotation_directly(true);
+	//						}
+	//
+	//					}
+	//				}
+	//			}
+	//		}
+	//
+	//		return cannos;
+	//	}
 
 	public static List<CandidateAnnotation> setYahooCoFromCache(List<CandidateAnnotation> cannos){
 		cannos = YahooBOSS.setIntersects(cannos);
@@ -417,9 +572,9 @@ public class CandiAnnoSorter {
 
 
 	//set prior probability for each GO term (independent of gene)
-	public static List<CandidateAnnotation> setPriorConfidenceGO(List<CandidateAnnotation> cannos){
+	public static List<CandidateAnnotation> setPriorConfidenceGO(List<CandidateAnnotation> cannos, GOowl gol){
 		boolean addParents = true;
-		GObayes bay = new GObayes(addParents);
+		GObayes bay = new GObayes(addParents, gol);
 		for(CandidateAnnotation canno : cannos){
 			canno.getEvidence().setPriorGO(
 					bay.priorForGO(
@@ -427,7 +582,8 @@ public class CandiAnnoSorter {
 									canno.getTarget_accession().substring(3), 
 									canno.getTarget_preferred_term())));
 		}
-
+		bay.cleanup();
+		bay = null;
 		return cannos;
 	}
 
@@ -436,9 +592,7 @@ public class CandiAnnoSorter {
 	 * @param cannos
 	 * @return
 	 */
-	public static List<CandidateAnnotation> setObsoleteGO(List<CandidateAnnotation> cannos, boolean tagDepth){
-		GOowl gol = new GOowl();
-		gol.initFromFile(false);
+	public static List<CandidateAnnotation> setObsoleteGO(List<CandidateAnnotation> cannos, boolean tagDepth, GOowl gol){
 		for(CandidateAnnotation canno : cannos){
 			if(gol.isGoTermObsolete(canno.getTarget_accession())){
 				canno.getEvidence().setGoObsolete(true);
@@ -459,8 +613,8 @@ public class CandiAnnoSorter {
 	 * @param cannos
 	 * @return
 	 */
-	public static List<CandidateAnnotation> removeObsoleteGO(List<CandidateAnnotation> cannos){
-		cannos = setObsoleteGO(cannos, false);
+	public static List<CandidateAnnotation> removeObsoleteGO(List<CandidateAnnotation> cannos, GOowl gol){
+		cannos = setObsoleteGO(cannos, false, gol);
 		List<CandidateAnnotation> cleancannos = new ArrayList<CandidateAnnotation>();
 		for(CandidateAnnotation canno : cannos){
 			if(!canno.getEvidence().isGoObsolete()){
@@ -473,30 +627,105 @@ public class CandiAnnoSorter {
 	/**
 	 * Add support from panther family orthologs
 	 * @param cannos
+	 * @param gol_no_infer 
+	 * @param gol 
 	 * @return
 	 */
-	public static List<CandidateAnnotation> setPantherOrthoSupportGO(List<CandidateAnnotation> cannos){
+	public static List<CandidateAnnotation> setPantherOrthoSupportGO(List<CandidateAnnotation> cannos, GOowl gol, GOowl gol_no_infer){
 		Map<String, Set<GOterm>> genego = PantherMapper.getPantherData();
-		//adds parents
-		System.out.println("Panther map loaded");		
-		genego = BioInfoUtil.expandGoMap(genego, null, true);
-		System.out.println("Panther map expanded");
-		for(CandidateAnnotation canno : cannos){			
+		System.out.println("Panther loaded, checking for matches");
+		for(CandidateAnnotation canno : cannos){
 			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
 			if(gos!=null){
+				//first check for exact matches
 				for(GOterm go : gos){
 					if(go.getAccession().equals(canno.getTarget_accession())){
-						if(go.isInferred_parent()){
-							canno.getEvidence().setMatches_parent_of_panther_go(true);
-						}else if(go.isInferred_child()){
-							canno.getEvidence().setMatches_child_of_panther_go(true);
-						}else{
-							canno.getEvidence().setMatches_panther_go_directly(true);
+						canno.getEvidence().setMatches_panther_go_directly(true);
+						//match found
+						break;
+					}
+				}
+				if(canno.getEvidence().isMatches_panther_go_directly()){
+					//go to the next candidate annotation
+					continue;
+				}
+				//no match found so check if it matches the parent of a reference annotation
+				//check parents
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol.getSupers(go);
+					if(more!=null){
+						for(GOterm parent : more){
+							if(parent.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_parent_of_panther_go(true);
+								//match found, go to the next candidate annotation
+								stop = true;
+								break;
+							}
 						}
+						if(stop){
+							break;
+						}
+					}
+				}
+				if(canno.getEvidence().isMatches_parent_of_panther_go()){
+					//go to the next candidate annotation
+					continue;
+				}
+
+				//still no match found so
+				//check children
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol_no_infer.getDirectChildren(go);
+					if(more!=null){
+						for(GOterm child : more){
+							if(child.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_child_of_panther_go(true);
+								//match found
+								stop = true;
+								break;
+							}
+						}
+					}
+					if(stop){
+						break;
 					}
 				}
 			}
 		}
+
+		//		for(CandidateAnnotation canno : cannos){			
+		//			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
+		//			Set<GOterm> gosfamily = new HashSet<GOterm>();
+		//			//add parents
+		//			if(gos!=null){
+		//				for(GOterm go : gos){
+		//					gosfamily.add(go);
+		//					Set<GOterm> more = gol.getSupers(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//					more = gol_no_infer.getDirectChildren(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//				}
+		//				if(gosfamily!=null){
+		//					for(GOterm go : gosfamily){
+		//						if(go.getAccession().equals(canno.getTarget_accession())){
+		//							if(go.isInferred_parent()){
+		//								canno.getEvidence().setMatches_parent_of_panther_go(true);
+		//							}else if(go.isInferred_child()){
+		//								canno.getEvidence().setMatches_child_of_panther_go(true);
+		//							}else{
+		//								canno.getEvidence().setMatches_panther_go_directly(true);
+		//							}
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
 
 		return cannos;
 	}
@@ -504,48 +733,129 @@ public class CandiAnnoSorter {
 	/**
 	 * Add support from cached GoGenes for candidates
 	 * @param cannos
+	 * @param gol_no_infer 
+	 * @param gol 
 	 * @return
 	 */
-	public static List<CandidateAnnotation> setGeneGOPredictions(List<CandidateAnnotation> cannos){
+	public static List<CandidateAnnotation> setGeneGOPredictions(List<CandidateAnnotation> cannos, GOowl gol, GOowl gol_no_infer){
 		Map<String, Set<GOterm>> genego = GoGeneCrawler.getGoGeneData();
-		//adds parents
-		genego = BioInfoUtil.expandGoMap(genego, null, true);
-		System.out.println("gogenes expanded");
-		for(CandidateAnnotation canno : cannos){			
+
+		System.out.println("GOgenes loaded, checking for matches");
+		for(CandidateAnnotation canno : cannos){
 			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
 			if(gos!=null){
+				//first check for exact matches
 				for(GOterm go : gos){
 					if(go.getAccession().equals(canno.getTarget_accession())){
-						if(go.isInferred_parent()){
-							canno.getEvidence().setMatches_parent_of_genego(true);
-						}else if(go.isInferred_child()){
-							canno.getEvidence().setMatches_child_of_genego(true);
-						}else{
-							canno.getEvidence().setMatches_genego_directly(true);
+						canno.getEvidence().setMatches_genego_directly(true);
+						//match found
+						break;
+					}
+				}
+				if(canno.getEvidence().isMatches_genego_directly()){
+					//go to the next candidate annotation
+					continue;
+				}
+				//no match found so check if it matches the parent of a reference annotation
+				//check parents
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol.getSupers(go);
+					if(more!=null){
+						for(GOterm parent : more){
+							if(parent.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_parent_of_genego(true);
+								//match found, go to the next candidate annotation
+								stop = true;
+								break;
+							}
 						}
+						if(stop){
+							break;
+						}
+					}
+				}
+				if(canno.getEvidence().isMatches_parent_of_genego()){
+					//go to the next candidate annotation
+					continue;
+				}
+
+				//still no match found so
+				//check children
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol_no_infer.getDirectChildren(go);
+					if(more!=null){
+						for(GOterm child : more){
+							if(child.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_child_of_genego(true);
+								//match found
+								stop = true;
+								break;
+							}
+						}
+					}
+					if(stop){
+						break;
 					}
 				}
 			}
 		}
 
+
+		//		for(CandidateAnnotation canno : cannos){			
+		//			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
+		//			Set<GOterm> gosfamily = new HashSet<GOterm>();
+		//			//add parents
+		//			if(gos!=null){
+		//				for(GOterm go : gos){
+		//					gosfamily.add(go);
+		//					Set<GOterm> more = gol.getSupers(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//					more = gol_no_infer.getDirectChildren(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//				}
+		//				if(gosfamily!=null){
+		//					for(GOterm go : gosfamily){
+		//						if(go.getAccession().equals(canno.getTarget_accession())){
+		//							if(go.isInferred_parent()){
+		//								canno.getEvidence().setMatches_parent_of_genego(true);
+		//							}else if(go.isInferred_child()){
+		//								canno.getEvidence().setMatches_child_of_genego(true);
+		//							}else{
+		//								canno.getEvidence().setMatches_genego_directly(true);
+		//							}
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
+		genego.clear();
+		genego = null;
 		return cannos;
 	}
 
 	/**
 	 * Add support from FuncBase
 	 * @param cannos
+	 * @param gol_no_infer 
+	 * @param gol 
 	 * @return
 	 */
-	public static List<CandidateAnnotation> setFuncBaseScoreGO(List<CandidateAnnotation> cannos){
+	public static List<CandidateAnnotation> setFuncBaseScoreGO(List<CandidateAnnotation> cannos, GOowl gol, GOowl gol_no_infer){
 		//load funcbase
 		//only load genes we care about
 		Set<String> genes = new HashSet<String>();
 		for(CandidateAnnotation canno : cannos){
 			genes.add(canno.getEntrez_gene_id());
 		}
-		
+
 		Map<String, Double> genego_score = new HashMap<String, Double>();
-		Map<String, Set<GOterm>> genego_terms = new HashMap<String, Set<GOterm>>();
+		Map<String, Set<GOterm>> genego = new HashMap<String, Set<GOterm>>();
 		BufferedReader f;
 		try {
 			f = new BufferedReader(new FileReader(Config.funcbase));
@@ -561,14 +871,14 @@ public class CandiAnnoSorter {
 				if(!item[2].equals("None")){
 					double score = Double.parseDouble(item[2]);
 					genego_score.put(geneid+goacc, score);
-					GOterm term = new GOterm("",goacc,"","");
+					GOterm term = new GOterm("",goacc,"","", true);
 
-					Set<GOterm> terms = genego_terms.get(geneid);
+					Set<GOterm> terms = genego.get(geneid);
 					if(terms==null){
 						terms = new HashSet<GOterm>();
 					}
 					terms.add(term);
-					genego_terms.put(geneid, terms);
+					genego.put(geneid, terms);
 				}
 				line = f.readLine();
 			}
@@ -580,32 +890,108 @@ public class CandiAnnoSorter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
-		int c = 0;
-		System.out.println("funcbase matches loaded");
-		genego_terms = BioInfoUtil.expandGoMap(genego_terms, null, true);
 
-		System.out.println("funcbase matches expanded");
-		for(CandidateAnnotation canno : cannos){
+		System.out.println("funcbase hits loaded, checking for matches");
+		for(CandidateAnnotation canno : cannos){			
 			Double score = genego_score.get(canno.getEntrez_gene_id()+canno.getTarget_accession());
-			if(score!=null){
-				canno.getEvidence().setFuncbase_score(score);
-				Set<GOterm> gos = genego_terms.get(canno.getEntrez_gene_id());
+
+			Set<GOterm> gos = genego.get(canno.getEntrez_gene_id());
+			if(gos!=null){
+				//first check for exact matches
 				for(GOterm go : gos){
 					if(go.getAccession().equals(canno.getTarget_accession())){
-						if(go.isInferred_parent()){
-							canno.getEvidence().setMatches_parent_of_funcbase(true);
-						}else if(go.isInferred_child()){
-							canno.getEvidence().setMatches_child_of_funcbase(true);
-						}else{
-							canno.getEvidence().setMatches_funcbase_directly(true);
+						canno.getEvidence().setMatches_funcbase_directly(true);
+						if(score!=null){
+							canno.getEvidence().setFuncbase_score(score);
+						}
+						//match found
+						break;
+					}
+				}
+				if(canno.getEvidence().isMatches_funcbase_directly()){
+					//go to the next candidate annotation
+					continue;
+				}
+				//no match found so check if it matches the parent of a reference annotation
+				//check parents
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol.getSupers(go);
+					if(more!=null){
+						for(GOterm parent : more){
+							if(parent.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_parent_of_funcbase(true);
+								//match found, go to the next candidate annotation
+								stop = true;
+								break;
+							}
+						}
+						if(stop){
+							break;
 						}
 					}
 				}
-			}else{
-				canno.getEvidence().setFuncbase_score(0);
-				c++;
+				if(canno.getEvidence().isMatches_parent_of_funcbase()){
+					//go to the next candidate annotation
+					continue;
+				}
+
+				//still no match found so
+				//check children
+				for(GOterm go : gos){
+					boolean stop = false;
+					Set<GOterm> more = gol_no_infer.getDirectChildren(go);
+					if(more!=null){
+						for(GOterm child : more){
+							if(child.getAccession().equals(canno.getTarget_accession())){
+								canno.getEvidence().setMatches_child_of_funcbase(true);
+								//match found
+								stop = true;
+								break;
+							}
+						}
+					}
+					if(stop){
+						break;
+					}
+				}
 			}
+
 		}
+		//		for(CandidateAnnotation canno : cannos){
+		//			Double score = genego_score.get(canno.getEntrez_gene_id()+canno.getTarget_accession());
+		//			if(score!=null){
+		//				canno.getEvidence().setFuncbase_score(score);
+		//				Set<GOterm> gos = genego_terms.get(canno.getEntrez_gene_id());
+		//				Set<GOterm> gosfamily = new HashSet<GOterm>();
+		//				//add parents
+		//				for(GOterm go : gos){
+		//					gosfamily.add(go);
+		//					Set<GOterm> more = gol.getSupers(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//					more = gol_no_infer.getDirectChildren(go);
+		//					if(more!=null){
+		//						gosfamily.addAll(more);
+		//					}
+		//				}
+		//				for(GOterm go : gosfamily){
+		//					if(go.getAccession().equals(canno.getTarget_accession())){
+		//						if(go.isInferred_parent()){
+		//							canno.getEvidence().setMatches_parent_of_funcbase(true);
+		//						}else if(go.isInferred_child()){
+		//							canno.getEvidence().setMatches_child_of_funcbase(true);
+		//						}else{
+		//							canno.getEvidence().setMatches_funcbase_directly(true);
+		//						}
+		//					}
+		//				}
+		//			}else{
+		//				canno.getEvidence().setFuncbase_score(0);
+		//				c++;
+		//			}
+		//		}
 		return cannos;
 	} 
 

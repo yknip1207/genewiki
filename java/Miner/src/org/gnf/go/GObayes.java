@@ -4,11 +4,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import org.gnf.genewiki.Config;
 import org.gnf.genewiki.GeneWikiUtils;
+import org.gnf.util.BioInfoUtil;
 
 public class GObayes {
 
@@ -25,7 +27,34 @@ public class GObayes {
 		total_gos = go_genes.size();
 		System.out.println("total genes: "+total_genes+" total_gos: "+total_gos);
 	}
+	
+	public GObayes(boolean addParents, GOowl gol){
+		//get goa
+		gene_gos = Annotation.readGene2GOtrackEvidence(Config.gene_go_file);
+		gene_gos = (HashMap<String, Set<GOterm>>) BioInfoUtil.expandGoMap(gene_gos, gol, null, false);
+		total_genes = gene_gos.size();
+		go_genes = flipGeneGoMap(gene_gos);
+		total_gos = go_genes.size();
+		System.out.println("total genes: "+total_genes+" total_gos: "+total_gos);
+	}
 
+	public void cleanup(){
+		gene_gos.clear();
+	    gene_gos = null;
+	    go_genes.clear();
+	    go_genes = null;
+	    try {
+			finalize();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	protected void finalize () throws Throwable {
+		super.finalize();
+	}
+	
 	/**
 	 * @param args
 	 */
@@ -219,7 +248,7 @@ public class GObayes {
 	}
 
 	public GOterm getGObyAccN(String acc, String term){
-		GOterm d = new GOterm(null, "GO:"+acc, "Function", term);
+		GOterm d = new GOterm(null, "GO:"+acc, "Function", term, true);
 		d.setEvidence("ncbi");
 		return d;
 	}

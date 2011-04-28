@@ -283,11 +283,11 @@ public class GOsurpriseEval {
 				String go_uri = GOowl.makeGoUri(go_id);				
 				OntClass gotit = gol.go.getOntClass(go_uri);
 				if(gotit!=null&&gotit.hasRDFType(OWL.Class)){
-					GOterm term = new GOterm(null, null, null, null);
+					GOterm term = new GOterm(null, null, null, null, true);
 					terms[i] = gol.makeGOterm(term, gotit);
 					//System.out.println("found "+terms[i]);
 				}else{
-					terms[i] = new GOterm(null, go_id, null, go_uri);
+					terms[i] = new GOterm(null, go_id, null, go_uri, true);
 					System.out.println("coudn't find "+terms[i]);
 				}
 				i++;
