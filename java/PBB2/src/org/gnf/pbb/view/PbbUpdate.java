@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.WordUtils;
 
+import org.gnf.pbb.controller.ExternalSystemInterface;
 import org.gnf.pbb.exceptions.ValidationException;
 
 public class PbbUpdate implements Update {
@@ -222,12 +223,12 @@ public class PbbUpdate implements Update {
 	}
 
 	@Override
-	public void updateView(ViewController viewControl, boolean DRY_RUN) {
+	public void updateView(ExternalSystemInterface viewControl, boolean DRY_RUN) {
 		
 		try {
 			logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
 			logger.fine("Summary: "+getEditSummary());
-			viewControl.update(formattedContent, getId(), getEditSummary(), DRY_RUN);
+			viewControl.putContent(formattedContent, getId(), getEditSummary(), DRY_RUN);
 			
 		} catch (Exception e) {
 			logger.severe(e.getCause().getMessage());

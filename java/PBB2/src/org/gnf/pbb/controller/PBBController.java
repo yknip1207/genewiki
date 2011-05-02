@@ -28,7 +28,7 @@ import org.gnf.pbb.view.WpController;
 public class PBBController implements Controller {
 	private final static Logger logger = Logger.getLogger(PBBController.class.getName());
 	private WpController viewController;
-	private LinkedHashMap<String, List<String>> modelData, viewData = new LinkedHashMap<String, List<String>>();
+	private LinkedHashMap<String, List<String>> geneInfoData, wikipediaData = new LinkedHashMap<String, List<String>>();
 	private final LinkedHashMap<String, Boolean> configs = new LinkedHashMap<String, Boolean>();
 	
 	public PBBController() {
@@ -48,14 +48,19 @@ public class PBBController implements Controller {
 	}
 	
 	public void runFullUpdateForId(String identifier) {
-		importModelData(identifier);
-		importViewData(identifier);
-		Update up = updateValues(modelData, viewData, true);
+		importSourceData(identifier);
+		getExternalData(identifier);
+		Update up = updateValues(geneInfoData, wikipediaData, true);
 		updateRemoteView(up, configs.get("DRYRUN"));
 	}
 	
 	@Override
-	public GeneObject importModelData(String identifier) {
+	public void getExternalData(String identifier) {
+		importSourceData(identifier);
+		importTargetData(identifier);
+	}
+	
+	public GeneObject importSourceData(String identifier) {
 		JsonParser jsonParser = new JsonParser();
 		GeneObject gene = null;
 		
@@ -75,18 +80,17 @@ public class PBBController implements Controller {
 			e.printStackTrace();
 		}
 		// We're going to use hash maps as the internal representation of our data
-		modelData = gene.getGeneDataAsMap();
+		geneInfoData = gene.getGeneDataAsMap();
 		return gene;
 	}
 
 	/**
 	 * Imports view data from external source and uses cache by default.
 	 */
-	@Override
-	public LinkedHashMap<String, List<String>> importViewData(String displayIdentifier) {
+	public LinkedHashMap<String, List<String>> importTargetData(String displayIdentifier) {
 		WikitextParser parser = new WikitextParser("GNF_Protein_box", this.configs);
 		
-		return viewData = parser.getViewDataAsMap(viewController, displayIdentifier, true);
+		return wikipediaData = parser.getViewDataAsMap(viewController, displayIdentifier, true);
 		
 	}
 	
@@ -100,7 +104,7 @@ public class PBBController implements Controller {
 	public LinkedHashMap<String, List<String>> importViewData(
 			String displayIdentifier, boolean useCache) throws NoBotsException {
 		WikitextParser parser = new WikitextParser("GNF_Protein_box", this.configs);
-		return viewData = parser.getViewDataAsMap(viewController, displayIdentifier, this.configs.get("CACHE"));
+		return wikipediaData = parser.getViewDataAsMap(viewController, displayIdentifier, this.configs.get("CACHE"));
 	}
 
 
@@ -121,6 +125,18 @@ public class PBBController implements Controller {
 	@Override
 	public void updateRemoteView(Update update, boolean DRY_RUN) {
 		update.updateView(this.viewController, DRY_RUN);
+	}
+
+	@Override
+	public void verifyInternalData() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Update updateTargetFromSource(Object target, Object source) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

@@ -8,28 +8,20 @@ import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.view.Update;
 
 public interface Controller {
-	
-	/**
-	 * Imports data from an external API or data source and builds an
-	 * object representation of the data. Ideally serializable for efficient
-	 * storage in case of controller restart.
-	 *  
-	 * @param objectIdentifier
-	 * 			some unique identifier for the object
-	 * @return the object
-	 */
-	Object importModelData(String objectIdentifier);
-	
-	/**
-	 * Converts a "display" format (for instance, a Wikipedia info box) with 
-	 * fields and values into a linked hash map where the fields are the keys.
-	 * @param displayIdentifier
-	 * @return
-	 * @throws NoBotsException 
-	 */
-	LinkedHashMap<String, List<String>> importViewData(String displayIdentifier) throws NoBotsException;
-	
 
+	
+	/**
+	 * Imports data from an external API or source.
+	 * On a primary (top-level) controller, it usually calls two methods on sub-controllers that manage the source and 
+	 * target data sources, and sets internal variables based on those calls.
+	 * @param uniqueIdentifier
+	 */
+	void getExternalData(String uniqueIdentifier);
+	
+	void verifyInternalData();
+	
+	Update updateTargetFromSource(Object target, Object source);
+	
 	/**
 	 * Returns a string from an object encapsulating the display data.
 	 * @param display

@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.gnf.pbb.controller.ExternalSystemInterface;
 import org.gnf.pbb.util.DiffUtils;
 import org.gnf.pbb.util.DiffUtils.Diff;
 /**
@@ -34,7 +35,7 @@ import org.gnf.pbb.util.DiffUtils.Diff;
  * @author eclarke
  *
  */
-public class WpController implements ViewController {
+public class WpController implements ExternalSystemInterface {
 	
 	private final boolean USE_SANDBOX = true; // no live updates yet... stick to the sandbox.
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
@@ -98,7 +99,7 @@ public class WpController implements ViewController {
 	 * @param useCache: search the cache directory for title to reduce calls to wikipedia.
 	 * @return raw text of article as string
 	 */
-	public String retrieveContent(String title, boolean useCache) {
+	public String getContent(String title, boolean useCache) {
 		String content = ""; // This is eventually where the article content will end up
 		String cacheFileRelPath = "";
 		try {
@@ -221,7 +222,7 @@ public class WpController implements ViewController {
 	}
 
 	@Override
-	public synchronized String update(String content, String title, String changes, boolean dryRun) throws Exception {
+	public synchronized String putContent(String content, String title, String changes, boolean dryRun) throws Exception {
 		String status = "";
 		String live_title = "";
 		if (dryRun) {

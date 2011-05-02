@@ -12,8 +12,8 @@ public class Launcher {
 
 	public static void main(String[] args) {
 		
-		final boolean DRY_RUN = false;
-		final boolean USECACHE = false;
+		final boolean DRY_RUN = true;
+		final boolean USECACHE = true;
 		final boolean STRICT_CHECKING = true;
 		final boolean VERBOSE = true;
 		

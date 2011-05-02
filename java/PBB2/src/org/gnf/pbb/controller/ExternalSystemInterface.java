@@ -1,21 +1,21 @@
 
-package org.gnf.pbb.view;
+package org.gnf.pbb.controller;
 
 /**
  * Manages authentication, view representation (including view retrieval and updating), cache system, and 
  * logging.
  * @author eclarke
  */
-public interface ViewController {
+public interface ExternalSystemInterface {
 
 	/**
-	 * Retrieves the specified content from the view source (or, if available,
+	 * Retrieves the specified content from the target (or, if available,
 	 * the cached version of the content).
 	 * @param contentId
 	 * @param useCache
 	 * @return string representation of the content
 	 */
-	String retrieveContent(String contentId, boolean useCache);
+	String getContent(String contentId, boolean useCache);
 	
 	/**
 	 * Tests authentication state of the ViewController.
@@ -31,7 +31,7 @@ public interface ViewController {
 	void authenticate(String credentials) throws Exception;
 	
 	/**
-	 * Updates view source with the content. Should run verification checks on content format.
+	 * Updates target with the specified content. Should run verification checks on content format.
 	 * Should obey the dry run flag to write output to cache directory for testing.
 	 * @param content as appropriate object representation of the data (with verification abilities).
 	 * @param dryRun flag.
@@ -39,7 +39,7 @@ public interface ViewController {
 	 * @throws Exception 
 	 */
 
-	String update(String content, String title, String changes, boolean dryRun)
+	String putContent(String content, String title, String changes, boolean dryRun)
 			throws Exception;
 	
 	

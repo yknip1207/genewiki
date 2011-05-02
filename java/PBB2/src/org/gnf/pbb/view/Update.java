@@ -3,6 +3,8 @@ package org.gnf.pbb.view;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.gnf.pbb.controller.ExternalSystemInterface;
+
 
 
 /**
@@ -55,7 +57,7 @@ public interface Update {
 	 * @param view controller
 	 * @param DRY_RUN
 	 */
-	public void updateView(ViewController viewControl, boolean DRY_RUN);
+	public void updateView(ExternalSystemInterface viewControl, boolean DRY_RUN);
 
 	/**
 	 * Returns the unique identifier for this update (title, gene ID, etc)
