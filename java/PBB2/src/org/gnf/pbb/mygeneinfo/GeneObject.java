@@ -1,7 +1,7 @@
 /**
  * The model in the model-view-controller configuration for PBB.
  */
-package org.gnf.pbb.model;
+package org.gnf.pbb.mygeneinfo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ public class GeneObject implements Serializable{
 	private String[] HsRefSeqProtein,MmRefSeqProtein = {};
 	private String[] HsRefSeqmRNA, MmRefSeqmRNA = {};
 	private String HsGenLocDb, MmGenLocDb = "";
-	private int HsGenLocChr, MmGenLocChr = 0;
+	private String HsGenLocChr, MmGenLocChr = "";
 	private int HsGenLocStart, MmGenLocStart = 0;
 	private int HsGenLocEnd, MmGenLocEnd = 0;
 	private String HsUniprot, MmUniprot = "";
@@ -391,12 +391,12 @@ public class GeneObject implements Serializable{
 	public String getHsGenLocDb() {return HsGenLocDb; }
 	
 
-	public void setHsGenLocChr(int hsGenLocChr) {
+	public void setHsGenLocChr(String hsGenLocChr) {
 		HsGenLocChr = hsGenLocChr;
-		geneData.put("Hs_GenLoc_chr", toList(Integer.toString(hsGenLocChr)));
+		geneData.put("Hs_GenLoc_chr", toList(hsGenLocChr));
 	}
 
-	public int getHsGenLocChr() {
+	public String getHsGenLocChr() {
 		return HsGenLocChr;
 	}
 
@@ -499,14 +499,14 @@ public class GeneObject implements Serializable{
 	}
 	
 
-	public void setMmGenLocChr(int mmGenLocChr) {
+	public void setMmGenLocChr(String mmGenLocChr) {
 		MmGenLocChr = mmGenLocChr;
-		geneData.put("Mm_GenLoc_chr", toList(Integer.toString(mmGenLocChr)));
+		geneData.put("Mm_GenLoc_chr", toList(mmGenLocChr));
 	}
 
 
 
-	public int getMmGenLocChr() {
+	public String getMmGenLocChr() {
 		return MmGenLocChr;
 	}
 

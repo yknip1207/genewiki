@@ -2,7 +2,7 @@
  * Methods relating to pulling data from mygene.info
  * Dependent on mygene.info API as of April 2011
  */
-package org.gnf.pbb.model;
+package org.gnf.pbb.mygeneinfo;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -18,7 +18,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.gnf.pbb.exceptions.InvalidValueException;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
@@ -30,10 +29,20 @@ public class JsonParser {
 	public static JsonNode metadata = null;
 	
 	public static JsonNode getJsonForId(int id) throws JsonParseException, JsonMappingException, IOException {
+		String strId = Integer.toString(id);
+		return getJsonForId(strId);
+	}
+	
+	public static JsonNode getJsonForId(String id) throws JsonParseException, JsonMappingException, IOException {
+		try {
+			Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			logger.warning(id + "is not a number; Entrez gene ids are exclusively in number form.");
+		}
 		URL geneURL;
 		URLConnection connection;
 		JsonNode node = null;
-		geneURL = new URL(baseGeneURL + Integer.toString(id)); // would look like "http://mygene.info/gene/410"
+		geneURL = new URL(baseGeneURL + id); // would look like "http://mygene.info/gene/410"
 		URL mdURL = new URL(metadataLoc);
 		URLConnection mdConnection;
 		try {
@@ -63,7 +72,7 @@ public class JsonParser {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public GeneObject newGeneFromId(int id) throws JsonParseException, JsonMappingException, IOException {
+	public GeneObject newGeneFromId(String id) throws JsonParseException, JsonMappingException, IOException {
 		GeneObject gene = new GeneObject();
 		JsonNode rootNode = getJsonForId(id);
 		final int MOUSE_TAXON_ID = 10090;
@@ -96,7 +105,7 @@ public class JsonParser {
 			gene.setHsEnsemble(rootNode.path("ensembl").get("gene").getTextValue());
 			gene.setHsRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein"))); 
 			gene.setHsRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-			gene.setHsGenLocChr(Integer.parseInt(rootNode.path("genomic_pos").get("chr").getTextValue())); // mygene.info returns this as a string, its not
+			gene.setHsGenLocChr(rootNode.path("genomic_pos").get("chr").getTextValue()); // mygene.info returns this as a string, its not
 			gene.setHsGenLocStart(rootNode.path("genomic_pos").get("start").getIntValue());
 			gene.setHsGenLocEnd(rootNode.path("genomic_pos").get("end").getIntValue());
 			
@@ -121,7 +130,7 @@ public class JsonParser {
 				gene.setMmEnsemble(rootNode.path("ensembl").get("gene").getTextValue());
 				gene.setMmRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein")));
 				gene.setMmRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-				gene.setMmGenLocChr(Integer.parseInt(rootNode.path("genomic_pos").get("chr").getTextValue())); // mygene.info returns this as a string, its not
+				gene.setMmGenLocChr(rootNode.path("genomic_pos").get("chr").getTextValue()); // mygene.info returns this as a string, its not
 				gene.setMmGenLocStart(rootNode.path("genomic_pos").get("start").getIntValue());
 				gene.setMmGenLocEnd(rootNode.path("genomic_pos").get("end").getIntValue());
 				gene.setMmUniprot(findReviewedUniprotEntry(rootNode.path("uniprot")));

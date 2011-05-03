@@ -1,12 +1,12 @@
 
-package org.gnf.pbb.controller;
+package org.gnf.pbb.wikipedia;
 
 /**
  * Manages authentication, view representation (including view retrieval and updating), cache system, and 
  * logging.
  * @author eclarke
  */
-public interface ExternalSystemInterface {
+public interface IWikipediaController {
 
 	/**
 	 * Retrieves the specified content from the target (or, if available,
@@ -15,7 +15,7 @@ public interface ExternalSystemInterface {
 	 * @param useCache
 	 * @return string representation of the content
 	 */
-	String getContent(String contentId, boolean useCache);
+	String getContent(String contentId);
 	
 	/**
 	 * Tests authentication state of the ViewController.
@@ -34,12 +34,11 @@ public interface ExternalSystemInterface {
 	 * Updates target with the specified content. Should run verification checks on content format.
 	 * Should obey the dry run flag to write output to cache directory for testing.
 	 * @param content as appropriate object representation of the data (with verification abilities).
-	 * @param dryRun flag.
 	 * @return any response codes from view source indicating update success or status.
 	 * @throws Exception 
 	 */
 
-	String putContent(String content, String title, String changes, boolean dryRun)
+	String putContent(String content, String title, String changes)
 			throws Exception;
 	
 	

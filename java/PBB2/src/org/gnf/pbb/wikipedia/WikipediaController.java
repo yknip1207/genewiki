@@ -1,4 +1,4 @@
-package org.gnf.pbb.view;
+package org.gnf.pbb.wikipedia;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,17 +15,14 @@ import java.util.logging.Logger;
 
 import net.sourceforge.jwbf.core.actions.util.ActionException;
 import net.sourceforge.jwbf.core.actions.util.ProcessException;
-import net.sourceforge.jwbf.core.bots.util.CacheHandler;
-import net.sourceforge.jwbf.core.bots.util.SimpleCache;
 import net.sourceforge.jwbf.core.contentRep.Article;
 import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
 import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.gnf.pbb.controller.ExternalSystemInterface;
+import org.gnf.pbb.Config;
 import org.gnf.pbb.util.DiffUtils;
 import org.gnf.pbb.util.DiffUtils.Diff;
 /**
@@ -35,12 +32,13 @@ import org.gnf.pbb.util.DiffUtils.Diff;
  * @author eclarke
  *
  */
-public class WpController implements ExternalSystemInterface {
+public class WikipediaController implements IWikipediaController {
 	
-	private final boolean USE_SANDBOX = true; // no live updates yet... stick to the sandbox.
+	private final boolean USE_SANDBOX = true;
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
-	private final static Logger logger = Logger.getLogger(WpController.class.getName());
+	private final static Config configs = Config.getConfigs();
+	private final static Logger logger = Logger.getLogger(WikipediaController.class.getName());
 	static MediaWikiBot wpBot;
 	static String[] credentials;
 	static String cacheDirectory;
@@ -49,7 +47,7 @@ public class WpController implements ExternalSystemInterface {
 	 * Creates a new interface with Wikipedia, initializing a MediaWikiBot
 	 * and parsing a credentials file.
 	 */
-	public WpController() {
+	public WikipediaController() {
 		URL wikipediaUrl = null;
 		try {
 			wikipediaUrl = new URL("http://en.wikipedia.org/w/");
@@ -99,7 +97,7 @@ public class WpController implements ExternalSystemInterface {
 	 * @param useCache: search the cache directory for title to reduce calls to wikipedia.
 	 * @return raw text of article as string
 	 */
-	public String getContent(String title, boolean useCache) {
+	public String getContent(String title) {
 		String content = ""; // This is eventually where the article content will end up
 		String cacheFileRelPath = "";
 		try {
@@ -109,7 +107,7 @@ public class WpController implements ExternalSystemInterface {
 			e.getMessage();
 			e.printStackTrace();
 		}
-		if (useCache) {
+		if (configs.usecache()) {
 			if (cachedFileExists(cacheFileRelPath)) {
 				logger.fine("Cached version exists & useCache flag specified; using cached version");
 				content = retrieveFileFromCache(cacheFileRelPath);
@@ -128,6 +126,11 @@ public class WpController implements ExternalSystemInterface {
 		}
 		return content;
 	}
+	
+	public String getContentForId(String id) {
+		String realTitle = configs.templatePrefix()+id;
+		return getContent(realTitle);
+	}
 
 	private String retrieveFileFromCache(String filename) {
 		String content;
@@ -137,7 +140,6 @@ public class WpController implements ExternalSystemInterface {
 		try {
 			scanner = new Scanner(new FileInputStream(cacheDirectory+filename));
 		} catch (FileNotFoundException e) {
-			logger.severe("Even though we validated that the path exists, we got a FileNotFound error: " + e.getMessage());
 			e.printStackTrace();
 		}
 		try {
@@ -154,7 +156,6 @@ public class WpController implements ExternalSystemInterface {
 	private String retrieveArticleFromWikipedia(String title, String filename) {
 		String content = "";
 		if (!isAuthenticated()) {
-			//XXX This should not be class: severe in production
 			logger.info("Bot is logging in...");
 			try {
 				authenticate("credentials.json");
@@ -167,9 +168,9 @@ public class WpController implements ExternalSystemInterface {
 		try {
 			Article article = wpBot.readContent(title);
 			String articleContent = article.getText();
+			// TODO: We write the content to the cache and pull it back out to ensure that line endings and encoding is 
+			// correct; this is probably not optimal.
 			writeContentToCache(articleContent, filename);
-			// I pull the information back out from the cachefile because I want to make sure the encoding and line
-			// breaks remain constant. If this had to be optimized for speed, this is certainly something to change.
 			content = retrieveFileFromCache(filename);
 		} catch (ActionException e) {
 			logger.severe(e.getMessage());
@@ -201,6 +202,11 @@ public class WpController implements ExternalSystemInterface {
 		return wpBot.isLoggedIn();
 	}
 
+	/**
+	 * Parses a JSON file for credentials information. File should be in the form <br />
+	 * <code>{ "user":"your_username", "password":"your_password" } </code> <br />
+	 * See the included credentials_example.json in the top folder of the bot's directory.
+	 */
 	public void authenticate(String credentials) throws Exception {
 		JsonFactory jf = new JsonFactory();
 		JsonParser jp = jf.createJsonParser(new File(credentials));
@@ -222,10 +228,10 @@ public class WpController implements ExternalSystemInterface {
 	}
 
 	@Override
-	public synchronized String putContent(String content, String title, String changes, boolean dryRun) throws Exception {
+	public String putContent(String content, String title, String changes) throws Exception {
 		String status = "";
 		String live_title = "";
-		if (dryRun) {
+		if (configs.dryrun() || !configs.canUpdate()) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
 			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);
@@ -233,7 +239,7 @@ public class WpController implements ExternalSystemInterface {
 		} else if (USE_SANDBOX) {
 			live_title = SANDBOX_URL;
 		} else {
-			live_title = "Template:PBB/" + title;
+			live_title = configs.templatePrefix() + title;
 		}
 		
 		if(!isAuthenticated())

@@ -1,9 +1,9 @@
-package org.gnf.pbb.view;
+package org.gnf.pbb;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.gnf.pbb.controller.ExternalSystemInterface;
+import org.gnf.pbb.wikipedia.IWikipediaController;
 
 
 
@@ -52,12 +52,11 @@ public interface Update {
 	public LinkedHashMap<String, List<String>> toMap();
 	
 	/**
-	 * Updates remote view with updated data map given a specified view controller
+	 * Updates wikipedia (or writes to the cache, if this is a dry run).
 	 * @param updates
 	 * @param view controller
-	 * @param DRY_RUN
 	 */
-	public void updateView(ExternalSystemInterface viewControl, boolean DRY_RUN);
+	public void update(IWikipediaController viewControl);
 
 	/**
 	 * Returns the unique identifier for this update (title, gene ID, etc)

@@ -1,4 +1,4 @@
-package org.gnf.pbb.view;
+package org.gnf.pbb.controller;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,12 +9,14 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang.WordUtils;
 
-import org.gnf.pbb.controller.ExternalSystemInterface;
+import org.gnf.pbb.Config;
+import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.ValidationException;
+import org.gnf.pbb.wikipedia.IWikipediaController;
 
 public class PbbUpdate implements Update {
 	private final static Logger logger = Logger.getLogger(Update.class.getName());
-	private final LinkedHashMap<String, Boolean> configs;
+	private Config configs;
 	private LinkedHashMap<String, List<String>> updatedData;
 	private String status;
 	private String id;
@@ -24,8 +26,8 @@ public class PbbUpdate implements Update {
 	private boolean isValidated;
 	
 
-	private PbbUpdate(LinkedHashMap<String, Boolean> configs) {
-		this.configs = configs;
+	private PbbUpdate() {
+		configs = Config.getConfigs();
 	}
 	
 	/**
@@ -35,8 +37,8 @@ public class PbbUpdate implements Update {
 	 * @param forceUpdate
 	 */
 	public static PbbUpdate PbbUpdateFactory(LinkedHashMap<String, List<String>> model,
-			LinkedHashMap<String, List<String>> view, LinkedHashMap<String, Boolean> configs) {
-		PbbUpdate update = new PbbUpdate(configs);
+			LinkedHashMap<String, List<String>> view) {
+		PbbUpdate update = new PbbUpdate();
 		update.updateData(model, view);
 		try {
 			update.formattedContent = update.asFormattedString();
@@ -56,9 +58,9 @@ public class PbbUpdate implements Update {
 	 * @param skipValidation
 	 */
 	public static PbbUpdate PbbUpdateFactory(LinkedHashMap<String, List<String>> model, 
-			LinkedHashMap<String, List<String>> view, LinkedHashMap<String, Boolean> configs, boolean skipValidation) {
+			LinkedHashMap<String, List<String>> view, boolean skipValidation) {
 		
-		PbbUpdate update = PbbUpdateFactory(model, view, configs);
+		PbbUpdate update = PbbUpdateFactory(model, view);
 		
 		// Passing the skipValidation flag as true overrides any validation checks (not recommended)
 		update.isValidated = skipValidation;
@@ -157,19 +159,24 @@ public class PbbUpdate implements Update {
 		StringBuffer _status = new StringBuffer();
 		this.isValidated = true; // an optimistic beginning
 		
-		if (update.size() < 10) {
-			_status.append("ERROR: update size is less than 10 fields. \n");
-			this.isValidated = false;
-		} 
-		if (view.size() > update.size()) {
-			_status.append("WARNING: update size is smaller than view size, data may have been lost. Verification recommended. \n");
-		} 
-		if (update.get("Name").equals("") || update.get("Name").equals(" ") || update.get("Name").equals(null)) {
-			_status.append("ERROR: updated name field is empty; parse error? \n");
-			this.isValidated = false;
+		try {
+			if (update.size() < 10) {
+				_status.append("ERROR: update size is less than 10 fields. \n");
+				this.isValidated = false;
+			} 
+			if (view.size() > update.size()) {
+				_status.append("WARNING: update size is smaller than view size, data may have been lost. Verification recommended. \n");
+			} 
+			if (update.get("Name").equals("") || update.get("Name").equals(" ") || update.get("Name").equals(null)) {
+				_status.append("ERROR: updated name field is empty; parse error? \n");
+				this.isValidated = false;
+			}
+			if (_status.length() > 0)
+				logger.warning(_status.toString());
+		} catch (Exception e) {
+			configs.setUpdateAbilityAs(false);
+			e.printStackTrace();
 		}
-		if (_status.length() > 0)
-			logger.warning(_status.toString());
 		
 		this.status = _status.toString();
 	}
@@ -223,15 +230,16 @@ public class PbbUpdate implements Update {
 	}
 
 	@Override
-	public void updateView(ExternalSystemInterface viewControl, boolean DRY_RUN) {
+	public void update(IWikipediaController viewControl) {
 		
 		try {
-			logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
+			if (configs.verbose())
+				logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
 			logger.fine("Summary: "+getEditSummary());
-			viewControl.putContent(formattedContent, getId(), getEditSummary(), DRY_RUN);
+			viewControl.putContent(formattedContent, getId(), getEditSummary());
 			
 		} catch (Exception e) {
-			logger.severe(e.getCause().getMessage());
+			logger.severe(e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -240,10 +248,6 @@ public class PbbUpdate implements Update {
 	@Override
 	public String getId() {
 		return this.id;
-	}
-
-	public LinkedHashMap<String, Boolean> getConfigs() {
-		return configs;
 	}
 
 }
