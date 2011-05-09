@@ -22,7 +22,7 @@ import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.gnf.pbb.Config;
+import org.gnf.pbb.Global;
 import org.gnf.pbb.util.DiffUtils;
 import org.gnf.pbb.util.DiffUtils.Diff;
 /**
@@ -37,7 +37,7 @@ public class WikipediaController implements IWikipediaController {
 	private final boolean USE_SANDBOX = true;
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
-	private final static Config configs = Config.getConfigs();
+	private final static Global configs = Global.getInstance();
 	private final static Logger logger = Logger.getLogger(WikipediaController.class.getName());
 	static MediaWikiBot wpBot;
 	static String[] credentials;

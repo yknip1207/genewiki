@@ -3,8 +3,8 @@ package org.gnf.pbb.controller;
 import java.io.IOException;
 
 import org.codehaus.jackson.JsonParseException;
+
 import org.codehaus.jackson.map.JsonMappingException;
-import org.gnf.pbb.Update;
 import org.gnf.pbb.mygeneinfo.GeneObject;
 import org.gnf.pbb.mygeneinfo.JsonParser;
 
@@ -17,8 +17,13 @@ import org.gnf.pbb.mygeneinfo.JsonParser;
  */
 public class PBBController extends AbstractBotController {
 	
-	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose) {
-		super(verbose, usecache, strictchecking, dryrun, "Template:PBB/", "GNF_Protein_box");
+	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose, boolean debug) {
+		super(verbose, usecache, strictchecking, dryrun, debug, "Template:PBB/", "GNF_Protein_box");
+		
+		// Play in the sandbox
+		if (debug) {
+			global.setPrefix("User:Pleiotrope/sandbox/TestGene:/");
+		}
 	}
 	
 
@@ -33,21 +38,20 @@ public class PBBController extends AbstractBotController {
 		
 		try {
 			gene = jsonParser.newGeneFromId(identifier);
+			sourceData = gene.getGeneDataAsMap();
 		} catch (JsonParseException e) {
 			logger.severe("Fatal error parsing json file.");
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
 		} catch (JsonMappingException e) {
 			logger.severe("Fatal error mapping json values.");
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
 		} catch (NumberFormatException e) {
 			logger.severe("Error parsing object identifier. Identifier must be Entrez id, consisting only of numbers.");
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
 		} catch (IOException e) {
 			logger.severe("Fatal input/output error.");
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
 		}
-		// We're going to use hash maps as the internal representation of our data
-		sourceData = gene.getGeneDataAsMap();
 	}
 
 	/**

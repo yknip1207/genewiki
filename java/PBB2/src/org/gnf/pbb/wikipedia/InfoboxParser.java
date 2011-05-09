@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.gnf.pbb.Config;
+import org.gnf.pbb.Global;
 import org.gnf.pbb.Custom;
 import org.gnf.pbb.exceptions.MalformedWikitextException;
 import org.gnf.pbb.exceptions.NoBotsException;
@@ -25,7 +25,7 @@ import org.gnf.pbb.exceptions.ValidationException;
  *
  */
 public class InfoboxParser extends AbstractParser {
-	private Config configs = Config.getConfigs();
+	private Global configs = Global.getInstance();
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
 	
@@ -63,7 +63,7 @@ public class InfoboxParser extends AbstractParser {
 		Matcher matcher = templateName.matcher(rawText);
 		if (matcher.find()) {
 			String foundName = matcher.group();
-			if (!(foundName.equals(configs.templateName())))
+			if (!(foundName.contains(configs.templateName())))
 				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+configs.templateName()+"\".");
 		}
 		return false;

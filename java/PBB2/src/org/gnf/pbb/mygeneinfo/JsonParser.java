@@ -5,6 +5,7 @@
 package org.gnf.pbb.mygeneinfo;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,10 +19,11 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.gnf.pbb.Global;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
-
+	private static Global global = Global.getInstance();
 	public static final String baseGeneURL = "http://mygene.info/gene/";
 	public static final String metadataLoc = "http://mygene.info/metadata";
 	public static final String uniprotURL = "http://www.uniprot.org/uniprot/";
@@ -37,7 +39,9 @@ public class JsonParser {
 		try {
 			Integer.parseInt(id);
 		} catch (NumberFormatException e) {
-			logger.warning(id + "is not a number; Entrez gene ids are exclusively in number form.");
+			logger.warning(id + " is not a number; Entrez gene ids are exclusively in number form.");
+			global.stopExecution(e.getMessage());
+			return null;
 		}
 		URL geneURL;
 		URLConnection connection;
@@ -51,11 +55,24 @@ public class JsonParser {
 			ObjectMapper mapper = new ObjectMapper();
 			node = mapper.readValue(connection.getInputStream(),JsonNode.class);
 			metadata = mapper.readValue(mdConnection.getInputStream(), JsonNode.class);
-		
+			
 		} catch (IOException e) {
-			System.err.println("There was an error opening connection to " + geneURL.toString());
+			logger.severe("There was an error opening connection to " + geneURL.toString());
+			global.stopExecution(e.getMessage());
+			return null;
 		}
 		return node;
+	}
+	
+	public static JsonNode getJsonFromFile(String filename) {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			return mapper.readValue(new FileInputStream(filename), JsonNode.class);
+		} catch (IOException e) {
+			logger.severe("There was an error opening file "+ filename+ ".");
+			global.stopExecution(e.getMessage()+e.getCause());
+		}
+		return null;
 	}
 	
 	/**
@@ -141,14 +158,13 @@ public class JsonParser {
 			gene.setMmGenLocDb(metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
 		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
+			return null;
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
+			return null;
 		} catch (NullPointerException e) {
-			logger.severe("Error retrieving value for field; non-fatal. \n"+
-					"Gene ID: "+id+"; error message: " +e.getMessage());
+			logger.info("Some fields were unavailable or missing from gene: "+id);
 		}
 		
 		return gene;
@@ -210,5 +226,4 @@ public class JsonParser {
 		}
 		return uniprot;
 	}
-	
 }

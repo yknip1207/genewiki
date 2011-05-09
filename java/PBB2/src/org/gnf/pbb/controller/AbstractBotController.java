@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.gnf.pbb.Config;
+import org.gnf.pbb.Global;
 import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.ValidationException;
@@ -14,7 +14,7 @@ import org.gnf.pbb.wikipedia.WikipediaController;
 public abstract class AbstractBotController {
 	// Initializing the singleton logger and config objects
 	protected final static Logger logger = Logger.getLogger(AbstractBotController.class.getName());
-	protected final static Config configs = Config.getConfigs();
+	protected static Global global = Global.getInstance();
 	protected Update updatedData;
 	protected WikipediaController wpControl;
 	protected LinkedHashMap<String, List<String>> sourceData;
@@ -40,9 +40,19 @@ public abstract class AbstractBotController {
 	 * @param templateName
 	 * 			The general name for the template (not necessarily the URL prefix) that appears in the opening; i.e. {{template_name 
 	 */
-	public AbstractBotController(boolean verbose, boolean usecache, boolean strict, boolean dryrun, String templateURLPrefix, String templateName) {
-		configs.setConfigs(this.getClass(), verbose, usecache, strict, dryrun, templateURLPrefix, templateName);
+	public AbstractBotController(boolean verbose, boolean usecache, boolean strict, 
+			boolean dryrun, boolean debug, String templateURLPrefix, String templateName) {
+		global.setConfigs(verbose, usecache, strict, dryrun, debug, templateURLPrefix, templateName);
 		wpControl = new WikipediaController();
+		sourceData = new LinkedHashMap<String,List<String>>();
+		wikipediaData = new LinkedHashMap<String,List<String>>();
+	}
+	
+	public void reset() {
+		global.canCreate(true);
+		global.canExecute(true);
+		global.canUpdate(true);
+		logger.info("Bot reset.");
 	}
 	
 	/**
@@ -53,11 +63,13 @@ public abstract class AbstractBotController {
 		try {
 			importSourceData(identifier);
 			importWikipediaData(identifier);
+			updatedData = PbbUpdate.PbbUpdateFactory(sourceData, wikipediaData);
 		} catch (NoBotsException e) {
 			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
-			configs.setUpdateAbilityAs(false);
+			global.setUpdateAbilityAs(false);
 		} catch (Exception e) {
-			e.printStackTrace();
+			global.stopExecution(e.getMessage());
+			return;
 		}
 	}
 	
@@ -67,10 +79,15 @@ public abstract class AbstractBotController {
 	 * @param identifier
 	 */
 	public void executeUpdateForId(String identifier) {
+		reset();
 		if (sourceData.isEmpty() || wikipediaData.isEmpty()) {
 			prepareUpdateForId(identifier);
 		}
-		update();
+		if (global.canExecute()) {
+			update();
+		} else {
+			return;
+		}
 	}
 	
 	/**
@@ -100,10 +117,14 @@ public abstract class AbstractBotController {
 	 * to false, it will not send the update to Wikipedia. That bit is often flipped by detecting a {{nobots}} flag.
 	 */
 	public void update() {
-		if (configs.canUpdate() || configs.dryrun()) {
-			updatedData.update(wpControl);
+		if (global.canExecute()) {
+			if (global.canUpdate() || global.dryrun()) {
+				updatedData.update(wpControl);
+			} else {
+				logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
+			}
 		} else {
-			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
+			return;
 		}
 	}
 	
