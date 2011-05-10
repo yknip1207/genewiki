@@ -1,5 +1,7 @@
 package org.gnf.pbb.controller;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -133,24 +135,29 @@ public class PbbUpdate implements Update {
 		return this.updatedData;
 	}
 	
-	// Probably could use some more validation checks, this is all I could think of at the moment.
-	private boolean validateUpdate(LinkedHashMap<String,List<String>> view, LinkedHashMap<String,List<String>> update) {
+	/**
+	 * 
+	 * @param oldInfobox
+	 * @param newInfobox
+	 * @return
+	 */
+	private boolean validateUpdate(LinkedHashMap<String,List<String>> oldInfobox, LinkedHashMap<String,List<String>> newInfobox) {
 		StringBuffer _status = new StringBuffer();
 		this.isValidated = true; // an optimistic beginning
 		
 		try {
-			if (update == null) {
+			if (newInfobox == null) {
 				throw new Exception("Update object is null.");
 			}
-			if (update.size() < 10) {
+			if (newInfobox.size() < 10) {
 				_status.append("Validation warning: update size is less than 10 fields. \n");
 				this.isValidated = false;
 			} 
-			if (view.size() > update.size()) {
+			if (oldInfobox.size() > newInfobox.size()) {
 				_status.append("Validation warning: update size is smaller than view size, data may have been lost. " +
 						"Verification recommended. \n");
 			} 
-			if (update.get("Name").equals("") || update.get("Name").equals(" ") || update.get("Name").equals(null)) {
+			if (newInfobox.get("Name").equals("") || newInfobox.get("Name").equals(" ") || newInfobox.get("Name").equals(null)) {
 				_status.append("Validation warning: updated name field is empty; parse error? \n");
 				this.isValidated = false;
 			}
@@ -194,7 +201,31 @@ public class PbbUpdate implements Update {
 				if (infoboxValues != null) {
 					if (infoboxValues.equals(sourceValues))
 						update = false;
+					if (infoboxValues.containsAll(sourceValues))
+						update = false;
+					
 				}
+				if (sourceValues.isEmpty() || sourceValues == null) {
+					update = false;
+				}
+				
+				if (sourceValues != null && infoboxValues != null) {
+					int matches = 0;
+					Set<String> srcSet = new HashSet<String>(sourceValues);
+					Set<String> infoSet = new HashSet<String>(infoboxValues);
+					for (String src : srcSet) {
+						if (infoSet.contains(src))
+							matches++;
+					}
+					if (matches == srcSet.size())
+						update = false;
+					Collections.sort(infoboxValues);
+					Collections.sort(sourceValues);
+					if (infoboxValues.containsAll(sourceValues)) 
+						update = false;
+				}
+				
+				
 				if (update) {
 					logger.fine("Values for "+key+" updated.");
 					if (global.verbose())
@@ -247,7 +278,7 @@ public class PbbUpdate implements Update {
 			try {
 				if (global.verbose())
 					logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
-				logger.fine("Summary: "+getEditSummary());
+				logger.info("Summary: "+getEditSummary());
 				viewControl.putContent(formattedContent, getId(), getEditSummary());
 				
 			} catch (Exception e) {

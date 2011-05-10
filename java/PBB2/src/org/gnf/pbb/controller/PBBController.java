@@ -19,11 +19,6 @@ public class PBBController extends AbstractBotController {
 	
 	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose, boolean debug) {
 		super(verbose, usecache, strictchecking, dryrun, debug, "Template:PBB/", "GNF_Protein_box");
-		
-		// Play in the sandbox
-		if (debug) {
-			global.setPrefix("User:Pleiotrope/sandbox/TestGene:/");
-		}
 	}
 	
 
@@ -57,8 +52,13 @@ public class PBBController extends AbstractBotController {
 	/**
 	 * Sets the internal Update object, updatedData, from a call to the PbbUpdateFactory.
 	 */
-	public void createUpdate () {
-		updatedData = PbbUpdate.PbbUpdateFactory(sourceData, wikipediaData);
+	public boolean createUpdate () {
+		if (global.canExecute()) {
+			updatedData = PbbUpdate.PbbUpdateFactory(sourceData, wikipediaData);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 

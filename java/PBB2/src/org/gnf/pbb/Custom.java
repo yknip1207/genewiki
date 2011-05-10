@@ -16,6 +16,7 @@ public class Custom {
 		List<String> list = new ArrayList<String>();
 		for (String value : _list) {
 			value = value.replaceAll("PDB2\\|", "");
+			value = value.trim();
 			list.add(value);
 		}
 		return list;

@@ -96,14 +96,14 @@ public class JsonParser {
 		
 		// Parsing the returned JSON tree, in order of GNF_Protein_box format	
 		try {
-			gene.setPDB(getTextualValues(rootNode.path("pdb")));
-			gene.setName(rootNode.get("name").getTextValue());
-			gene.setHGNCid(rootNode.get("HGNC").getTextValue());
-			gene.setSymbol(rootNode.get("symbol").getTextValue());
-			gene.setAltSymbols(rootNode.get("alias").getTextValue()); //TODO ensure setAltSymbols converts this to String[]
-			gene.setOMIM(rootNode.get("MIM").getTextValue());
-			gene.setECnumber(rootNode.get("ec").getTextValue());
-			gene.setHomologene(rootNode.path("homologene").path("id").getIntValue()); // have to traverse down the tree a bit
+			gene.setPDB(getTextualValues(safePath(rootNode, "pdb")));
+			gene.setName(safeGet(rootNode, "name").getTextValue());
+			gene.setHGNCid(safeGet(rootNode, "HGNC").getTextValue());
+			gene.setSymbol(safeGet(rootNode, "symbol").getTextValue());
+			gene.setAltSymbols(rootNode.path("alias").getTextValue()); //TODO ensure setAltSymbols converts this to String[]
+			gene.setOMIM(rootNode.path("MIM").getTextValue());
+			gene.setECnumber(rootNode.path("ec").getTextValue());
+			gene.setHomologene(safeGet(safeGet(rootNode, "homologene"), "id").getIntValue()); // have to traverse down the tree a bit
 			// setMGIid(null); // can't find this on downloaded json file
 			// setGeneAtlas_image(null); // can't find this either
 			gene.geneOntologies.setGeneOntologies(
@@ -119,12 +119,12 @@ public class JsonParser {
 					rootNode.path("go").path("BP").findValuesAsText("id"),
 					"Biological Process");
 			gene.setHsEntrezGene(rootNode.get("entrezgene").getIntValue());
-			gene.setHsEnsemble(rootNode.path("ensembl").get("gene").getTextValue());
+			gene.setHsEnsemble(rootNode.path("ensembl").path("gene").getTextValue());
 			gene.setHsRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein"))); 
 			gene.setHsRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-			gene.setHsGenLocChr(rootNode.path("genomic_pos").get("chr").getTextValue()); // mygene.info returns this as a string, its not
-			gene.setHsGenLocStart(rootNode.path("genomic_pos").get("start").getIntValue());
-			gene.setHsGenLocEnd(rootNode.path("genomic_pos").get("end").getIntValue());
+			gene.setHsGenLocChr(rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
+			gene.setHsGenLocStart(rootNode.path("genomic_pos").path("start").getIntValue());
+			gene.setHsGenLocEnd(rootNode.path("genomic_pos").path("end").getIntValue());
 			
 			//TODO: Detect which uniprot id reviewed
 			gene.setHsUniprot(findReviewedUniprotEntry(rootNode.path("uniprot")));
@@ -136,20 +136,20 @@ public class JsonParser {
 			Iterator<JsonNode> homologArray = rootNode.path("homologene").path("genes").getElements();
 			for (int i =0; homologArray.hasNext(); i++) {
 				JsonNode node = homologArray.next();
-				if (node.get(0).getIntValue() == MOUSE_TAXON_ID) {
-					gene.setMmEntrezGene(node.get(1).getIntValue()); // success!
+				if (node.path(0).getIntValue() == MOUSE_TAXON_ID) {
+					gene.setMmEntrezGene(node.path(1).getIntValue()); // success!
 					break;
 				}
 			}
 			if (gene.getMmEntrezGene() != 0) {
 				// Switching rootNode to the equivalent mouse gene information
 				rootNode = getJsonForId(gene.getMmEntrezGene());
-				gene.setMmEnsemble(rootNode.path("ensembl").get("gene").getTextValue());
+				gene.setMmEnsemble(rootNode.path("ensembl").path("gene").getTextValue());
 				gene.setMmRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein")));
 				gene.setMmRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-				gene.setMmGenLocChr(rootNode.path("genomic_pos").get("chr").getTextValue()); // mygene.info returns this as a string, its not
-				gene.setMmGenLocStart(rootNode.path("genomic_pos").get("start").getIntValue());
-				gene.setMmGenLocEnd(rootNode.path("genomic_pos").get("end").getIntValue());
+				gene.setMmGenLocChr(rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
+				gene.setMmGenLocStart(rootNode.path("genomic_pos").path("start").getIntValue());
+				gene.setMmGenLocEnd(rootNode.path("genomic_pos").path("end").getIntValue());
 				gene.setMmUniprot(findReviewedUniprotEntry(rootNode.path("uniprot")));
 			}
 			
@@ -163,12 +163,51 @@ public class JsonParser {
 		} catch (IllegalArgumentException e) {
 			global.stopExecution(e.getMessage());
 			return null;
-		} catch (NullPointerException e) {
+		} /*catch (NullPointerException e) {
 			logger.info("Some fields were unavailable or missing from gene: "+id);
-		}
+		} */
 		
 		return gene;
 		
+	}
+	
+	
+	private JsonNode safePath(JsonNode root, String path) {
+		try {
+			return root.path(path);
+		} catch (NullPointerException e) {
+			logger.info("The field at "+path+" is not available.");
+			return null;
+		}
+	}
+	
+	private JsonNode safeGet(JsonNode root, String get) {
+		try {
+			return root.get(get);
+		} catch (NullPointerException e) {
+			logger.info("The field at "+get+" is not available.");
+			return null;
+		}
+		
+	}
+	
+	private JsonNode safePathGet(JsonNode root, String path, String get) {
+		JsonNode node = safePath(root, path);
+		try {
+			return node.get(get);
+		} catch (NullPointerException e) {
+			logger.info(String.format("The field at %s.%s is not available.", path, get));
+			return null;
+		}
+	}
+	
+	private JsonNode safePathPath(JsonNode root, String path1, String path2) {
+		try {
+			return root.path(path1).path(path2);
+		} catch (NullPointerException e) {
+			logger.info(String.format("The field at %s.%s is not available.", path1, path2));
+			return null;
+		}
 	}
 	
 	/**
@@ -177,13 +216,18 @@ public class JsonParser {
 	 * @return
 	 */
 	private static String[] getTextualValues(JsonNode rootNode) {
-		Iterator<JsonNode> iter = rootNode.getElements();
-		String[] values = new String[rootNode.size()];
-		for (int i = 0; iter.hasNext(); i++) {
-			values[i] = iter.next().getTextValue();
+		try {
+			Iterator<JsonNode> iter = rootNode.getElements();
+			String[] values = new String[rootNode.size()];
+			for (int i = 0; iter.hasNext(); i++) {
+				values[i] = iter.next().getTextValue();
+			}
+			return values;
+		} catch (NullPointerException e) {
+			logger.warning("Getting textual values from provided node failed because node is null.");
+			return null;
 		}
-		//System.out.println(Arrays.toString(values));
-		return values;
+		
 	}
 	
 	/**

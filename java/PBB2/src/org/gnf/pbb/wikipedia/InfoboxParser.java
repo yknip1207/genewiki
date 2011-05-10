@@ -25,7 +25,7 @@ import org.gnf.pbb.exceptions.ValidationException;
  *
  */
 public class InfoboxParser extends AbstractParser {
-	private Global configs = Global.getInstance();
+	private Global global = Global.getInstance();
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
 	
@@ -42,12 +42,12 @@ public class InfoboxParser extends AbstractParser {
 	 */
 	public LinkedHashMap<String,List<String>> parse() throws NoBotsException, ValidationException {
 		try {
-			if (configs.strict()) {
+			if (global.strict()) {
 				findNoBotsFlag();
 				validateTemplateName();
 			}
 			LinkedHashMap<String, List<String>> fields = parseFieldValues(parseFields(returnContentOfTemplate()));
-			if (fields.isEmpty()) {
+			if (fields.isEmpty() && !global.canCreate()) {
 				throw new ValidationException("Infobox fields map is empty, probably due to a parsing error. Bot cannot continue.");
 			} else {
 				return fields;
@@ -63,8 +63,8 @@ public class InfoboxParser extends AbstractParser {
 		Matcher matcher = templateName.matcher(rawText);
 		if (matcher.find()) {
 			String foundName = matcher.group();
-			if (!(foundName.contains(configs.templateName())))
-				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+configs.templateName()+"\".");
+			if (!(foundName.contains(global.templateName())))
+				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+global.templateName()+"\".");
 		}
 		return false;
 	}
@@ -169,7 +169,7 @@ public class InfoboxParser extends AbstractParser {
 								// Return the substring after the "=" (which is two steps away from the fNameEnd position?)
 								fieldValue = strSource.substring(fNameEnd+1, fEnd);
 								fieldValue = fieldValue.substring(0, fieldValue.indexOf("\n")).trim();
-								if (configs.verbose()) 
+								if (global.verbose()) 
 									logger.fine(String.format("Field found: %s : %s", fieldName, fieldValue));
 								fields.put(fieldName, fieldValue);
 							}

@@ -14,7 +14,7 @@ import org.gnf.pbb.wikipedia.WikipediaController;
 public abstract class AbstractBotController {
 	// Initializing the singleton logger and config objects
 	protected final static Logger logger = Logger.getLogger(AbstractBotController.class.getName());
-	protected static Global global = Global.getInstance();
+	public Global global = Global.getInstance();
 	protected Update updatedData;
 	protected WikipediaController wpControl;
 	protected LinkedHashMap<String, List<String>> sourceData;
@@ -49,6 +49,8 @@ public abstract class AbstractBotController {
 	}
 	
 	public void reset() {
+		sourceData = new LinkedHashMap<String, List<String>>();
+		wikipediaData = new LinkedHashMap<String, List<String>>();
 		global.canCreate(true);
 		global.canExecute(true);
 		global.canUpdate(true);
@@ -63,12 +65,12 @@ public abstract class AbstractBotController {
 		try {
 			importSourceData(identifier);
 			importWikipediaData(identifier);
-			updatedData = PbbUpdate.PbbUpdateFactory(sourceData, wikipediaData);
+			createUpdate();
 		} catch (NoBotsException e) {
 			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
 			global.setUpdateAbilityAs(false);
 		} catch (Exception e) {
-			global.stopExecution(e.getMessage());
+			global.stopExecution("Failure during update. " + e.getMessage());
 			return;
 		}
 	}
@@ -80,9 +82,8 @@ public abstract class AbstractBotController {
 	 */
 	public void executeUpdateForId(String identifier) {
 		reset();
-		if (sourceData.isEmpty() || wikipediaData.isEmpty()) {
-			prepareUpdateForId(identifier);
-		}
+		logger.info("Executing new update for "+identifier);
+		prepareUpdateForId(identifier);
 		if (global.canExecute()) {
 			update();
 		} else {
@@ -116,17 +117,19 @@ public abstract class AbstractBotController {
 	 * it is not a dry run, and something happened along the way that flipped the bot's internal canUpdate bit
 	 * to false, it will not send the update to Wikipedia. That bit is often flipped by detecting a {{nobots}} flag.
 	 */
-	public void update() {
+	public boolean update() {
 		if (global.canExecute()) {
 			if (global.canUpdate() || global.dryrun()) {
 				updatedData.update(wpControl);
+				return true;
 			} else {
 				logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
+				return false;
 			}
 		} else {
-			return;
+			return false;
 		}
 	}
 	
-	abstract protected void createUpdate();
+	abstract protected boolean createUpdate();
 }

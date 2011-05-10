@@ -17,6 +17,7 @@ import net.sourceforge.jwbf.core.actions.util.ActionException;
 import net.sourceforge.jwbf.core.actions.util.ProcessException;
 import net.sourceforge.jwbf.core.contentRep.Article;
 import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
+import net.sourceforge.jwbf.mediawiki.actions.MediaWiki.Version;
 import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 
 import org.codehaus.jackson.JsonFactory;
@@ -34,10 +35,10 @@ import org.gnf.pbb.util.DiffUtils.Diff;
  */
 public class WikipediaController implements IWikipediaController {
 	
-	private final boolean USE_SANDBOX = true;
+	private final boolean USE_SANDBOX = false;
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
-	private final static Global configs = Global.getInstance();
+	private final static Global global = Global.getInstance();
 	private final static Logger logger = Logger.getLogger(WikipediaController.class.getName());
 	static MediaWikiBot wpBot;
 	static String[] credentials;
@@ -56,12 +57,6 @@ public class WikipediaController implements IWikipediaController {
 			e.printStackTrace();
 		}
 		wpBot = new MediaWikiBot(wikipediaUrl);
-//		try {
-//			authenticate("credentials.json");
-//		} catch (Exception e) {
-//			e.getMessage();
-//			e.printStackTrace();
-//		} 
 		try {
 			cacheDirectory = createCacheDirectory();
 		} catch (Exception e) {
@@ -107,7 +102,7 @@ public class WikipediaController implements IWikipediaController {
 			e.getMessage();
 			e.printStackTrace();
 		}
-		if (configs.usecache()) {
+		if (global.usecache()) {
 			if (cachedFileExists(cacheFileRelPath)) {
 				logger.fine("Cached version exists & useCache flag specified; using cached version");
 				content = retrieveFileFromCache(cacheFileRelPath);
@@ -128,7 +123,7 @@ public class WikipediaController implements IWikipediaController {
 	}
 	
 	public String getContentForId(String id) {
-		String realTitle = configs.templatePrefix()+id;
+		String realTitle = global.templatePrefix()+id;
 		return getContent(realTitle);
 	}
 
@@ -231,7 +226,7 @@ public class WikipediaController implements IWikipediaController {
 	public String putContent(String content, String title, String changes) throws Exception {
 		String status = "";
 		String live_title = "";
-		if (configs.dryrun() || !configs.canUpdate()) {
+		if (global.dryrun() || !global.canUpdate()) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
 			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);
@@ -239,7 +234,7 @@ public class WikipediaController implements IWikipediaController {
 		} else if (USE_SANDBOX) {
 			live_title = SANDBOX_URL;
 		} else {
-			live_title = configs.templatePrefix() + title;
+			live_title = global.templatePrefix() + title;
 		}
 		
 		if(!isAuthenticated())
@@ -251,20 +246,20 @@ public class WikipediaController implements IWikipediaController {
 			page.setEditSummary(changes);
 			page.setEditor("Protein Box Bot");
 			SimpleArticle article = page.getSimpleArticle();
+			
+			// NOTE: This is where the bot core actually uploads the information 
+			// to wikipedia.
 			wpBot.writeContent(article);
-			if (content.equals(prevContent)) {	
-				status = "No difference in outputted content was detected, and so \n" +
-						"no new revision state may have been logged for the page " + live_title;
-				logger.warning(status);
-			} else {
-				DiffUtils diff = new DiffUtils();
-				LinkedList<Diff> diffs = diff.diff_main(prevContent, content);
-				diff.diff_cleanupSemantic(diffs);
-				String htmlDiff = diff.diff_prettyHtml(diffs);
-				writeContentToCache(htmlDiff, "DIFFS_"+title+".html");
-				status = "Success writing new content to page " + live_title;
-				logger.info(status);
-			}
+			
+			// Create a pretty HTML output of the differences
+			DiffUtils diff = new DiffUtils();
+			LinkedList<Diff> diffs = diff.diff_main(prevContent, content);
+			diff.diff_cleanupSemantic(diffs);
+			String htmlDiff = diff.diff_prettyHtml(diffs);
+			writeContentToCache(htmlDiff, "DIFFS_"+title+".html");
+			status = "Success writing new content to page " + live_title;
+			logger.info(status);
+			
 		} catch (ActionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

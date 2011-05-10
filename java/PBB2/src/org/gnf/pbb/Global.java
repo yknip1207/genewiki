@@ -34,11 +34,17 @@ public class Global {
 		configs.put("firstCall",   true);
 		configs.put("debug",       true);
 		
+		
 		// This sits in place of thread.stop() and should be checked routinely to ensure
 		// the bot is in a consistent state. If it is anything but false, something has 
 		// gone wrong but an error was not thrown (i.e. a null object was returned from
 		// something that shouldn't have a null object thrown, etc.
 		stopExecution = "false";
+		
+		// Setting the sandbox flag as true allows us to specify a custom prefix for testing, such
+		// as a user sandbox page, etc, using the setPrefix method.
+		configs.put("sandbox", false);
+		
 	}
 	
 	/**
@@ -127,7 +133,7 @@ public class Global {
 	 * @param prefix
 	 */
 	public void setPrefix(String prefix) {
-		if (debug() || !initialized()) {
+		if (debug() || !initialized() || configs.get("sandbox")) {
 			templatePrefix = prefix;
 		} else {
 			logger.warning("Error: cannot set individual fields unless debug mode is specified.");
@@ -153,6 +159,7 @@ public class Global {
 	 * @param error for logging purposes
 	 */
 	public void stopExecution(String error) {
+		if (error == null) error = "Unspecified execution stop. "; 
 		if (stopExecution.equals("false")) {
 			stopExecution = error;
 		} else {
