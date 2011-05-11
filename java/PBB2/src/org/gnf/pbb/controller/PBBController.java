@@ -1,6 +1,7 @@
 package org.gnf.pbb.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 
@@ -17,11 +18,10 @@ import org.gnf.pbb.mygeneinfo.JsonParser;
  */
 public class PBBController extends AbstractBotController {
 	
-	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose, boolean debug) {
-		super(verbose, usecache, strictchecking, dryrun, debug, "Template:PBB/", "GNF_Protein_box");
+	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose, boolean debug, List<String> ids) {
+		super(verbose, usecache, strictchecking, dryrun, debug, "Template:PBB/", "GNF_Protein_box", ids);
 	}
 	
-
 	/**
 	 * Calls the appropriate classes to pull info from mygene.info and parse it; sets the internal linked hash map
 	 * sourceData from the result. Does not currently do anything with the gene object; object is only used internally for
@@ -61,6 +61,25 @@ public class PBBController extends AbstractBotController {
 		}
 	}
 
-
+	public String prepareReport() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(				"| Completion report: \n");
+		sb.append(				"|------------------------------- \n");
+		sb.append(String.format("|  Completed updates: %d/%d \n", this.completed.size(), this.identifiers.size()));
+		sb.append(String.format("|  Failed updates:    %d/%d \n", this.failed.size(), this.identifiers.size()));
+		sb.append(				"|  \n");
+		sb.append(				"|  Protein boxes updated: \n");
+		for (String str : completed) {
+			sb.append(			"|   "+str+"\n");
+		}
+		sb.append(				"|  Failed to update: \n");
+		for (String str : failed) {
+			sb.append(			"|   "+str+"\n");
+		}
+		String report = sb.toString();
+		System.out.println(report);
+		wpControl.writeReport(report);
+		return report;
+	}
 
 }

@@ -1,5 +1,6 @@
 package org.gnf.pbb.controller;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -11,7 +12,7 @@ import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
-public abstract class AbstractBotController {
+public abstract class AbstractBotController implements Runnable {
 	// Initializing the singleton logger and config objects
 	protected final static Logger logger = Logger.getLogger(AbstractBotController.class.getName());
 	public Global global = Global.getInstance();
@@ -19,10 +20,16 @@ public abstract class AbstractBotController {
 	protected WikipediaController wpControl;
 	protected LinkedHashMap<String, List<String>> sourceData;
 	protected LinkedHashMap<String, List<String>> wikipediaData;
+	public final List<String> identifiers;
+	protected List<String> completed = new ArrayList<String>();
+	protected List<String> failed = new ArrayList<String>();
 
+	/**
+	 * This constructor should not be used.
+	 */
 	@SuppressWarnings("unused")
 	private AbstractBotController() {
-		// XXX: Do not use this; configuration needs to be set first.
+		this.identifiers = null;
 	}
 	
 	/**
@@ -41,11 +48,44 @@ public abstract class AbstractBotController {
 	 * 			The general name for the template (not necessarily the URL prefix) that appears in the opening; i.e. {{template_name 
 	 */
 	public AbstractBotController(boolean verbose, boolean usecache, boolean strict, 
-			boolean dryrun, boolean debug, String templateURLPrefix, String templateName) {
+			boolean dryrun, boolean debug, String templateURLPrefix, String templateName, List<String> identifiers) {
 		global.setConfigs(verbose, usecache, strict, dryrun, debug, templateURLPrefix, templateName);
 		wpControl = new WikipediaController();
 		sourceData = new LinkedHashMap<String,List<String>>();
 		wikipediaData = new LinkedHashMap<String,List<String>>();
+		this.identifiers = identifiers;
+	}
+	
+	public void run() {
+		int delay = 6; // Seconds to delay between updates
+		for (String id : identifiers) {
+			try {
+				System.out.print(String.format("Executing update for id: "+id+" in %d...\n", delay));
+				for (int i = delay; i > 0; i--) {
+					System.out.print(String.format("%d...\n", i));
+					Thread.sleep(1000);
+					if (Thread.interrupted()) {
+						prepareReport();
+						return;
+					}
+				}
+				boolean success = this.resetAndExecuteUpdateForId(id);
+				if (success) {
+					completed.add(id);
+				} else {
+					failed.add(id);
+				}
+			} catch (InterruptedException e) {
+				prepareReport();
+				return;
+			}
+			if (Thread.interrupted()) {
+				prepareReport();
+				return;
+			}
+		}
+		prepareReport();
+		return;
 	}
 	
 	public void reset() {
@@ -80,14 +120,15 @@ public abstract class AbstractBotController {
 	 * it runs prepareUpdateForId, though this does not help if a parsing error is returning empty maps.
 	 * @param identifier
 	 */
-	public void executeUpdateForId(String identifier) {
+	public boolean resetAndExecuteUpdateForId(String identifier) {
 		reset();
 		logger.info("Executing new update for "+identifier);
 		prepareUpdateForId(identifier);
 		if (global.canExecute()) {
 			update();
+			return true;
 		} else {
-			return;
+			return false;
 		}
 	}
 	
@@ -132,4 +173,8 @@ public abstract class AbstractBotController {
 	}
 	
 	abstract protected boolean createUpdate();
+	
+	abstract public String prepareReport();
+
+	
 }

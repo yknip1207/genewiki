@@ -226,6 +226,10 @@ public class WikipediaController implements IWikipediaController {
 	public String putContent(String content, String title, String changes) throws Exception {
 		String status = "";
 		String live_title = "";
+		
+		// If the dryrun flag is true or the bot is unable for some reason
+		// to validate its update content, it will write it to the cache 
+		// instead of posting to wikipedia.
 		if (global.dryrun() || !global.canUpdate()) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
@@ -246,12 +250,17 @@ public class WikipediaController implements IWikipediaController {
 			page.setEditSummary(changes);
 			page.setEditor("Protein Box Bot");
 			SimpleArticle article = page.getSimpleArticle();
-			article.setMinorEdit(false);
+			
+			// If the update is not set as a minor edit, it runs the risk
+			// of being aborted by an mediawiki extension (additionally,
+			// our updates do not qualify as minor in the first place).
+			article.setMinorEdit(true);
+			
 			// NOTE: This is where the bot core actually uploads the information 
 			// to wikipedia.
 			wpBot.writeContent(article);
 			
-			// Create a pretty HTML output of the differences
+			// Create a diff file to cache
 			DiffUtils diff = new DiffUtils();
 			LinkedList<Diff> diffs = diff.diff_main(prevContent, content);
 			diff.diff_cleanupSemantic(diffs);
@@ -269,6 +278,11 @@ public class WikipediaController implements IWikipediaController {
 		}
 		
 		return status;
+	}
+
+	public void writeReport(String report) {
+		Calendar cal = Calendar.getInstance();
+		this.writeContentToCache(report, "BotExecutionReport_"+cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR));
 	}
 
 }
