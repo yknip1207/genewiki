@@ -246,7 +246,7 @@ public class WikipediaController implements IWikipediaController {
 			page.setEditSummary(changes);
 			page.setEditor("Protein Box Bot");
 			SimpleArticle article = page.getSimpleArticle();
-			
+			article.setMinorEdit(false);
 			// NOTE: This is where the bot core actually uploads the information 
 			// to wikipedia.
 			wpBot.writeContent(article);
