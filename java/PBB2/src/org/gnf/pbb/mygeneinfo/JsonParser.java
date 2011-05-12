@@ -40,7 +40,7 @@ public class JsonParser {
 			Integer.parseInt(id);
 		} catch (NumberFormatException e) {
 			logger.warning(id + " is not a number; Entrez gene ids are exclusively in number form.");
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 			return null;
 		}
 		URL geneURL;
@@ -58,7 +58,7 @@ public class JsonParser {
 			
 		} catch (IOException e) {
 			logger.severe("There was an error opening connection to " + geneURL.toString());
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 			return null;
 		}
 		return node;
@@ -70,7 +70,7 @@ public class JsonParser {
 			return mapper.readValue(new FileInputStream(filename), JsonNode.class);
 		} catch (IOException e) {
 			logger.severe("There was an error opening file "+ filename+ ".");
-			global.stopExecution(e.getMessage()+e.getCause());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		}
 		return null;
 	}
@@ -96,14 +96,14 @@ public class JsonParser {
 		
 		// Parsing the returned JSON tree, in order of GNF_Protein_box format	
 		try {
-			gene.setPDB(getTextualValues(safePath(rootNode, "pdb")));
-			gene.setName(safeGet(rootNode, "name").getTextValue());
-			gene.setHGNCid(safeGet(rootNode, "HGNC").getTextValue());
-			gene.setSymbol(safeGet(rootNode, "symbol").getTextValue());
+			gene.setPDB(getTextualValues(rootNode.path("pdb")));
+			gene.setName(rootNode.path("name").getTextValue());
+			gene.setHGNCid(rootNode.path("HGNC").getTextValue());
+			gene.setSymbol(rootNode.path("symbol").getTextValue());
 			gene.setAltSymbols(rootNode.path("alias").getTextValue()); //TODO ensure setAltSymbols converts this to String[]
 			gene.setOMIM(rootNode.path("MIM").getTextValue());
 			gene.setECnumber(rootNode.path("ec").getTextValue());
-			gene.setHomologene(safeGet(safeGet(rootNode, "homologene"), "id").getIntValue()); // have to traverse down the tree a bit
+			gene.setHomologene(rootNode.path("homologene").path("id").getIntValue()); // have to traverse down the tree a bit
 			// setMGIid(null); // can't find this on downloaded json file
 			// setGeneAtlas_image(null); // can't find this either
 			gene.geneOntologies.setGeneOntologies(
@@ -158,10 +158,10 @@ public class JsonParser {
 			gene.setMmGenLocDb(metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
 		} catch (NumberFormatException e) {
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 			return null;
 		} catch (IllegalArgumentException e) {
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 			return null;
 		} /*catch (NullPointerException e) {
 			logger.info("Some fields were unavailable or missing from gene: "+id);
@@ -171,44 +171,6 @@ public class JsonParser {
 		
 	}
 	
-	
-	private JsonNode safePath(JsonNode root, String path) {
-		try {
-			return root.path(path);
-		} catch (NullPointerException e) {
-			logger.info("The field at "+path+" is not available.");
-			return null;
-		}
-	}
-	
-	private JsonNode safeGet(JsonNode root, String get) {
-		try {
-			return root.get(get);
-		} catch (NullPointerException e) {
-			logger.info("The field at "+get+" is not available.");
-			return null;
-		}
-		
-	}
-	
-	private JsonNode safePathGet(JsonNode root, String path, String get) {
-		JsonNode node = safePath(root, path);
-		try {
-			return node.get(get);
-		} catch (NullPointerException e) {
-			logger.info(String.format("The field at %s.%s is not available.", path, get));
-			return null;
-		}
-	}
-	
-	private JsonNode safePathPath(JsonNode root, String path1, String path2) {
-		try {
-			return root.path(path1).path(path2);
-		} catch (NullPointerException e) {
-			logger.info(String.format("The field at %s.%s is not available.", path1, path2));
-			return null;
-		}
-	}
 	
 	/**
 	 * iterates over a node and returns all the values 

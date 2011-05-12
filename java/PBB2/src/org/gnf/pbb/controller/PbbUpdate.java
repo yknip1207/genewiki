@@ -8,13 +8,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.swing.event.ListSelectionEvent;
+
 import org.gnf.pbb.Global;
 import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.ValidationException;
+import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.util.ListUtils;
 import org.gnf.pbb.wikipedia.IWikipediaController;
 
 public class PbbUpdate implements Update {
 	private final static Logger logger = Logger.getLogger(Update.class.getName());
+	private final static DatabaseManager db = DatabaseManager.getInstance();
 	private static Global global;
 	private LinkedHashMap<String, List<String>> updatedData;
 	private String status;
@@ -113,7 +118,7 @@ public class PbbUpdate implements Update {
 		} catch (Exception e) {
 			// If this method is called without checking canUpdate flag, 
 			// it will likely throw an exception and fail.
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		}
 		
 		return _update;
@@ -163,7 +168,7 @@ public class PbbUpdate implements Update {
 			}
 		} catch (Exception e) {
 			logger.severe("Validation failed with exception: "+e.getMessage());
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		}
 		
 		this.status = _status.toString();
@@ -171,7 +176,7 @@ public class PbbUpdate implements Update {
 			logger.warning(status);
 		}
 		if (global.strict() && !this.isValidated) {
-			global.stopExecution(status);
+			global.canExecute(false);
 		}
 		return this.isValidated;
 	}
@@ -228,6 +233,7 @@ public class PbbUpdate implements Update {
 				
 				if (update) {
 					logger.fine("Values for "+key+" updated.");
+					db.addChange(global.getId(), key, ListUtils.toString(infoboxValues), ListUtils.toString(sourceValues));
 					if (global.verbose())
 						logger.fine("DIFF: original = "+infoboxValues+"; new = "+sourceValues);
 					newInfoboxData.put(key, sourceValues);
@@ -245,10 +251,10 @@ public class PbbUpdate implements Update {
 			editSummary = "ProteinBoxBot2 updated "+updated+" fields.";
 		} catch(NullPointerException npe) {
 			logger.severe("The source or infobox data fields were null when conducting update!");
-			global.stopExecution(npe.getMessage());
+			global.stopExecution(npe.getMessage(), npe.getStackTrace());
 			return;
 		} catch (Exception e) {
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 			return;
 		}
 		

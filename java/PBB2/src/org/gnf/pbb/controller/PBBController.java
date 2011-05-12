@@ -36,16 +36,15 @@ public class PBBController extends AbstractBotController {
 			sourceData = gene.getGeneDataAsMap();
 		} catch (JsonParseException e) {
 			logger.severe("Fatal error parsing json file.");
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		} catch (JsonMappingException e) {
 			logger.severe("Fatal error mapping json values.");
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		} catch (NumberFormatException e) {
 			logger.severe("Error parsing object identifier. Identifier must be Entrez id, consisting only of numbers.");
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		} catch (IOException e) {
-			logger.severe("Fatal input/output error.");
-			global.stopExecution(e.getMessage());
+			global.stopExecution(e.getMessage(), e.getStackTrace());
 		}
 	}
 

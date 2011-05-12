@@ -1,5 +1,6 @@
 package org.gnf.pbb.controller;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.gnf.pbb.Global;
 import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.ValidationException;
+import org.gnf.pbb.util.ConfigParser;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
@@ -49,7 +51,7 @@ public abstract class AbstractBotController implements Runnable {
 	 */
 	public AbstractBotController(boolean verbose, boolean usecache, boolean strict, 
 			boolean dryrun, boolean debug, String templateURLPrefix, String templateName, List<String> identifiers) {
-		global.setConfigs(verbose, usecache, strict, dryrun, debug, templateURLPrefix, templateName);
+		ConfigParser.setGlobalConfigsFromFile(new File("BotConfigs.json"), global);
 		wpControl = new WikipediaController();
 		sourceData = new LinkedHashMap<String,List<String>>();
 		wikipediaData = new LinkedHashMap<String,List<String>>();
@@ -84,8 +86,10 @@ public abstract class AbstractBotController implements Runnable {
 				return;
 			}
 		}
-		prepareReport();
-		return;
+		if (Thread.interrupted()) {
+			prepareReport();
+			return;
+		}
 	}
 	
 	public void reset() {
@@ -110,7 +114,7 @@ public abstract class AbstractBotController implements Runnable {
 			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
 			global.setUpdateAbilityAs(false);
 		} catch (Exception e) {
-			global.stopExecution("Failure during update. " + e.getMessage());
+			global.stopExecution("Failure during update. ", e.getStackTrace());
 			return;
 		}
 	}
@@ -122,6 +126,7 @@ public abstract class AbstractBotController implements Runnable {
 	 */
 	public boolean resetAndExecuteUpdateForId(String identifier) {
 		reset();
+		global.setId(identifier);
 		logger.info("Executing new update for "+identifier);
 		prepareUpdateForId(identifier);
 		if (global.canExecute()) {

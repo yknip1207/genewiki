@@ -17,9 +17,11 @@ import org.gnf.pbb.controller.PBBController;
 public class Launcher {
 
 	public static void main(String[] args) throws InterruptedException {
+		Global global = Global.getInstance();
+		global.set("firstCall", true);
 		Logger logger = Logger.getLogger(Launcher.class.getName());
 		logger.setLevel(Level.FINE);
-		final boolean DRY_RUN = true;
+		final boolean DRY_RUN = false;
 		final boolean USECACHE = false;
 		final boolean STRICT_CHECKING = true;
 		final boolean VERBOSE = true;
@@ -36,24 +38,41 @@ public class Launcher {
 		}
 		
 		Thread controller = new Thread(new PBBController(DRY_RUN, USECACHE, STRICT_CHECKING, VERBOSE, DEBUG, inputs));
+		Thread detectKeyEntry = new Thread(new DetectKey());
 		System.out.println("Starting bot controller now with supplied arguments. \n" +
-				"Press any key + enter to end bot operation and see completed report.");
+				"Press q+enter to end bot operation and see completion report.");
 		controller.start();
+		detectKeyEntry.start();
 		while (controller.isAlive()) {
-			try {
-				int ch = System.in.read();
-				Character.toString((Character.toChars(ch))[0]);
+			if (global.botHasFailed()) {
 				controller.interrupt();
-				logger.warning("\n * Bot execution interrupted, waiting for termination... *\n");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ArrayIndexOutOfBoundsException e) {
-				controller.interrupt();
-				logger.warning("\n *Bot execution interrupted, waiting for termination... *\n");
+				controller.join();
+				logger.severe("Bot failure.");
 			}
-			controller.join();
+			if (!detectKeyEntry.isAlive()) {
+				controller.interrupt();
+				controller.join();
+				logger.warning("Interrupt detected.");
+			}
+			
+		}
+	}
+}
+
+class DetectKey implements Runnable {
+	char[] chars = new char['0'];
+	
+	@Override
+	public void run() {
+		try {
+			chars = Character.toChars(System.in.read());
+			if (chars[0] == 'q')
+				return;
+		} catch (IOException e) {
+			return;
 		}
 		
+		
 	}
+	
 }
