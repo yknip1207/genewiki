@@ -6,6 +6,8 @@ import java.util.List;
 import org.codehaus.jackson.JsonParseException;
 
 import org.codehaus.jackson.map.JsonMappingException;
+import org.gnf.pbb.Update;
+import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.mygeneinfo.GeneObject;
 import org.gnf.pbb.mygeneinfo.JsonParser;
 
@@ -18,8 +20,8 @@ import org.gnf.pbb.mygeneinfo.JsonParser;
  */
 public class PBBController extends AbstractBotController {
 	
-	public PBBController(boolean dryrun, boolean usecache, boolean strictchecking, boolean verbose, boolean debug, List<String> ids) {
-		super(verbose, usecache, strictchecking, dryrun, debug, "Template:PBB/", "GNF_Protein_box", ids);
+	public PBBController(List<String> ids) {
+		super(ids);
 	}
 	
 	/**
@@ -35,25 +37,25 @@ public class PBBController extends AbstractBotController {
 			gene = jsonParser.newGeneFromId(identifier);
 			sourceData = gene.getGeneDataAsMap();
 		} catch (JsonParseException e) {
-			logger.severe("Fatal error parsing json file.");
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			logger.severe("Error parsing json file.");
+			botState.recoverable(e);
 		} catch (JsonMappingException e) {
-			logger.severe("Fatal error mapping json values.");
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			logger.severe("Error mapping json values.");
+			botState.recoverable(e);
 		} catch (NumberFormatException e) {
 			logger.severe("Error parsing object identifier. Identifier must be Entrez id, consisting only of numbers.");
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 		} catch (IOException e) {
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 		}
 	}
 
 	/**
 	 * Sets the internal Update object, updatedData, from a call to the PbbUpdateFactory.
 	 */
-	public boolean createUpdate () {
-		if (global.canExecute()) {
-			updatedData = PbbUpdate.PbbUpdateFactory(sourceData, wikipediaData);
+	public boolean createUpdate (String id, Update update) {
+		if (botState.checkState().compareTo(Severity.RECOVERABLE) < 0) {
+			update = PbbUpdate.PbbUpdateFactory(id, sourceData, wikipediaData);
 			return true;
 		} else {
 			return false;

@@ -5,37 +5,45 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.logging.Logger;
 
-import org.gnf.pbb.Global;
+import org.gnf.pbb.Configs;
+import org.gnf.pbb.exceptions.ConfigException;
+import org.gnf.pbb.exceptions.ExceptionHandler;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.exceptions.ValidationException;
 
 public class DatabaseManager {
-	private static Logger logger = Logger.getLogger(DatabaseManager.class.getName());
-	public static Global global = Global.getInstance();
-	public static boolean locked;
+	private Logger logger = Logger.getLogger(DatabaseManager.class.getName());
+	public ExceptionHandler exHandler;
+	public boolean locked;
+	public String dbName;
 	
-	// This class is a singleton
-	private static final DatabaseManager instance = new DatabaseManager();
-	private DatabaseManager() {
-		locked = false;
+	public DatabaseManager() {
+		exHandler = PbbExceptionHandler.INSTANCE;
 		try {
-			init();
-		} catch (ValidationException e) {
-			// This is thrown if the database already exists,
-			// so we don't need to do anything.
+			dbName = Configs.GET.str("dbName");
+		} catch (ConfigException e) {
+			exHandler.pass(e, Severity.FATAL);
 		}
 	}
-	public static DatabaseManager getInstance() {
-		return instance;
+	
+	public DatabaseManager DatabaseManagerFactory(ExceptionHandler _exHandler) {
+		DatabaseManager dbmanager = new DatabaseManager(); 
+		dbmanager.exHandler = _exHandler;
+		locked = false;
+		return dbmanager;
 	}
+	
+	
 	
 	
 	/**
 	 * Creates the database and table we're using for cataloging PBB's work.
-	 * @throws ValidationException 
+	 * @throws ValidationException when database is already found
 	 */
-	public static void init() throws ValidationException {
-		if ((new File(global.dbName())).exists()) {
-			logger.info("Database found at "+global.dbName());
+	public void init() throws ValidationException {
+		if ((new File(dbName).exists())) {
+			logger.info("Database found at "+dbName);
 			throw new ValidationException();
 		}
 		try {
@@ -46,9 +54,9 @@ public class DatabaseManager {
 			stat.executeUpdate("create table changes (gene, fields, oldvalues, newvalues, time);");
 			conn.close();
 		} catch (SQLException e) {
-			global.fail(e);
+			exHandler.pass(e, Severity.FATAL);
 		} catch (ClassNotFoundException e) {
-			global.fail(e);
+			exHandler.pass(e, Severity.FATAL);
 		}
 	}
 	
@@ -59,7 +67,7 @@ public class DatabaseManager {
 	 * @return connection to pbb.db
 	 * @throws SQLException
 	 */
-	public static Connection connect() throws SQLException {
+	public Connection connect() throws SQLException {
 		if (locked) {
 			throw new SQLException("Cannot open connection to database: database locked.");
 		} else {
@@ -74,7 +82,7 @@ public class DatabaseManager {
 	 * Closes the connection and unlocks it so another connection can be made.
 	 * @param conn
 	 */
-	public static void close(Connection conn) {
+	public void close(Connection conn) {
 		try {
 			conn.close();
 			locked = false;
@@ -111,4 +119,23 @@ public class DatabaseManager {
 		
 	}
 	
+	public void printDb() throws SQLException {
+		Connection dbconnect = connect();
+		Statement stat = dbconnect.createStatement();
+		ResultSet results = stat.executeQuery("select * from changes;");
+		while (results.next()) {
+			String geneId = results.getString("gene");
+			String field = results.getString("fields");
+			String oldvalue = results.getString("oldvalues");
+			String newvalue = results.getString("newvalues");
+			long timeStamp = results.getLong("time");
+			Calendar cal = Calendar.getInstance();
+			cal.setTimeInMillis(timeStamp);
+			String time = cal.getTime().toString();
+			System.out.format("Protein \t Field \t Old -> New \t Time\n");
+			System.out.format("%s \t %s \t %s -> %s \t %s \n", geneId, field, oldvalue, newvalue, time);
+		}
+		results.close();
+		close(dbconnect);
+	}
 }

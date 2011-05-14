@@ -1,30 +1,31 @@
 package org.gnf.pbb.controller;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.gnf.pbb.Global;
+import org.gnf.pbb.Configs;
 import org.gnf.pbb.Update;
+import org.gnf.pbb.exceptions.ConfigException;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.NoBotsException;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
-import org.gnf.pbb.util.ConfigParser;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
 public abstract class AbstractBotController implements Runnable {
 	// Initializing the singleton logger and config objects
 	protected final static Logger logger = Logger.getLogger(AbstractBotController.class.getName());
-	public Global global = Global.getInstance();
+	protected ExceptionHandler botState;
 	protected Update updatedData;
 	protected WikipediaController wpControl;
 	protected LinkedHashMap<String, List<String>> sourceData;
 	protected LinkedHashMap<String, List<String>> wikipediaData;
 	public final List<String> identifiers;
-	protected List<String> completed = new ArrayList<String>();
-	protected List<String> failed = new ArrayList<String>();
+	protected List<String> completed;
+	protected List<String> failed;
 
 	/**
 	 * This constructor should not be used.
@@ -35,34 +36,34 @@ public abstract class AbstractBotController implements Runnable {
 	}
 	
 	/**
-	 * Create a new BotController.
-	 * @param verbose
-	 * 			output lots of logger info
-	 * @param usecache
-	 * 			use cache files (see WikipediaController for cache implementation)
-	 * @param strict
-	 * 			check that the template name matches what's specified, and that there are no {{nobots}} flags
-	 * @param dryrun
-	 * 			output final run to the cache folder (this works regardless of nobots flag detection)
-	 * @param templateURLPrefix
-	 * 			The text forms the URL between http://en.wikipedia.org/w/ and the unique id of this particular template
-	 * @param templateName
-	 * 			The general name for the template (not necessarily the URL prefix) that appears in the opening; i.e. {{template_name 
+	 * Create a new AbstractBotController with a list of identifiers and a specified ExceptionHandler
+	 * @param identifiers
+	 * @param exhandler
 	 */
-	public AbstractBotController(boolean verbose, boolean usecache, boolean strict, 
-			boolean dryrun, boolean debug, String templateURLPrefix, String templateName, List<String> identifiers) {
-		ConfigParser.setGlobalConfigsFromFile(new File("BotConfigs.json"), global);
-		wpControl = new WikipediaController();
+	public AbstractBotController(List<String> identifiers, ExceptionHandler exhandler) {
+		this.botState = exhandler;
+		wpControl = new WikipediaController(botState, Configs.GET);
 		sourceData = new LinkedHashMap<String,List<String>>();
 		wikipediaData = new LinkedHashMap<String,List<String>>();
 		this.identifiers = identifiers;
+		this.completed = new ArrayList<String>(0);
+		this.failed = new ArrayList<String>(0);
 	}
 	
+	/**
+	 * Create a new AbstractBotController with a list of identifiers. Uses the singleton instance of 
+	 * PbbExceptionHandler.
+	 * @param identifiers
+	 */
+	public AbstractBotController(List<String> identifiers) {
+		this(identifiers, PbbExceptionHandler.INSTANCE);
+	}
+
 	public void run() {
-		int delay = 6; // Seconds to delay between updates
+		int delay = 3; // Seconds to delay between updates
 		for (String id : identifiers) {
 			try {
-				System.out.print(String.format("Executing update for id: "+id+" in %d...\n", delay));
+				System.out.print(String.format("Executing update for id: "+id+" in %d...\n", delay+1));
 				for (int i = delay; i > 0; i--) {
 					System.out.print(String.format("%d...\n", i));
 					Thread.sleep(1000);
@@ -95,9 +96,7 @@ public abstract class AbstractBotController implements Runnable {
 	public void reset() {
 		sourceData = new LinkedHashMap<String, List<String>>();
 		wikipediaData = new LinkedHashMap<String, List<String>>();
-		global.canCreate(true);
-		global.canExecute(true);
-		global.canUpdate(true);
+		botState.reset();
 		logger.info("Bot reset.");
 	}
 	
@@ -109,12 +108,12 @@ public abstract class AbstractBotController implements Runnable {
 		try {
 			importSourceData(identifier);
 			importWikipediaData(identifier);
-			createUpdate();
+			createUpdate(identifier, updatedData);
 		} catch (NoBotsException e) {
 			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
-			global.setUpdateAbilityAs(false);
+			botState.minor(e);
 		} catch (Exception e) {
-			global.stopExecution("Failure during update. ", e.getStackTrace());
+			botState.recoverable(e);
 			return;
 		}
 	}
@@ -126,11 +125,15 @@ public abstract class AbstractBotController implements Runnable {
 	 */
 	public boolean resetAndExecuteUpdateForId(String identifier) {
 		reset();
-		global.setId(identifier);
 		logger.info("Executing new update for "+identifier);
 		prepareUpdateForId(identifier);
-		if (global.canExecute()) {
-			update();
+		if (botState.canExecute()){
+			try {
+				update();
+			} catch (ConfigException e) {
+				botState.fatal(e);
+				return false;
+			}
 			return true;
 		} else {
 			return false;
@@ -150,7 +153,7 @@ public abstract class AbstractBotController implements Runnable {
 	 * @throws ValidationException
 	 */
 	public void importWikipediaData (String id) throws NoBotsException, ValidationException {
-		InfoboxParser parser = new InfoboxParser(wpControl.getContentForId(id));
+		InfoboxParser parser = InfoboxParser.factory(wpControl.getContentForId(id));
 		this.wikipediaData = parser.parse();
 	}
 	
@@ -162,22 +165,19 @@ public abstract class AbstractBotController implements Runnable {
 	 * Attempts to call the update object's internal methods to push its data to Wikipedia (or the cache). If 
 	 * it is not a dry run, and something happened along the way that flipped the bot's internal canUpdate bit
 	 * to false, it will not send the update to Wikipedia. That bit is often flipped by detecting a {{nobots}} flag.
+	 * @throws ConfigException 
 	 */
-	public boolean update() {
-		if (global.canExecute()) {
-			if (global.canUpdate() || global.dryrun()) {
-				updatedData.update(wpControl);
-				return true;
-			} else {
-				logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
-				return false;
-			}
+	public boolean update() throws ConfigException {
+		if (botState.canUpdate() || Configs.GET.flag("dryrun")) {
+			updatedData.update(wpControl);
+			return true;
 		} else {
+			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
 			return false;
-		}
+			}
 	}
 	
-	abstract protected boolean createUpdate();
+	abstract protected boolean createUpdate(String id, Update update);
 	
 	abstract public String prepareReport();
 

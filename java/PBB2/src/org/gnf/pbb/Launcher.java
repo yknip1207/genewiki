@@ -1,12 +1,14 @@
 package org.gnf.pbb;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.gnf.pbb.controller.PBBController;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.Severity;
 
 
 /**
@@ -16,16 +18,11 @@ import org.gnf.pbb.controller.PBBController;
  */
 public class Launcher {
 
-	public static void main(String[] args) throws InterruptedException {
-		Global global = Global.getInstance();
-		global.set("firstCall", true);
+	public static void main(String[] args) throws InterruptedException, IOException, SQLException {
 		Logger logger = Logger.getLogger(Launcher.class.getName());
-		logger.setLevel(Level.FINE);
-		final boolean DRY_RUN = false;
-		final boolean USECACHE = false;
-		final boolean STRICT_CHECKING = true;
-		final boolean VERBOSE = true;
-		final boolean DEBUG = true;
+		Configs.GET.setConfigsFromFile("BotConfigs.json");
+		PbbExceptionHandler exHandler = PbbExceptionHandler.INSTANCE;
+		
 		List<String> inputs = new ArrayList<String>(0);
 		
 		for (String geneId : args) {
@@ -37,42 +34,27 @@ public class Launcher {
 			}
 		}
 		
-		Thread controller = new Thread(new PBBController(DRY_RUN, USECACHE, STRICT_CHECKING, VERBOSE, DEBUG, inputs));
-		Thread detectKeyEntry = new Thread(new DetectKey());
+		Thread controller = new Thread(new PBBController(inputs));
 		System.out.println("Starting bot controller now with supplied arguments. \n" +
 				"Press q+enter to end bot operation and see completion report.");
 		controller.start();
-		detectKeyEntry.start();
-		while (controller.isAlive()) {
-			if (global.botHasFailed()) {
-				controller.interrupt();
-				controller.join();
-				logger.severe("Bot failure.");
-			}
-			if (!detectKeyEntry.isAlive()) {
-				controller.interrupt();
-				controller.join();
-				logger.warning("Interrupt detected.");
-			}
-			
-		}
-	}
-}
 
-class DetectKey implements Runnable {
-	char[] chars = new char['0'];
-	
-	@Override
-	public void run() {
-		try {
-			chars = Character.toChars(System.in.read());
-			if (chars[0] == 'q')
-				return;
-		} catch (IOException e) {
-			return;
+		while (controller.isAlive()) {
+//			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+//			if (br.readLine().equalsIgnoreCase("q")) {
+//				controller.interrupt();
+//				controller.join();
+//				logger.info("Keyboard interrupt detected.");
+//			}
+			if (exHandler.checkState().compareTo(Severity.FATAL) < 0) {
+				logger.severe("Bot failure.");
+				logger.severe(exHandler.printExceptionStackTraces(exHandler.getExceptionsOfSeverity(Severity.FATAL)));
+				controller.interrupt();
+				Thread.sleep(10000);
+				controller.join(10000);
+				
+			}
+			controller.join();
 		}
-		
-		
 	}
-	
 }

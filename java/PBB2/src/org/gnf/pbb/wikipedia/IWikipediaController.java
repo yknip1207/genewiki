@@ -28,7 +28,7 @@ public interface IWikipediaController {
 	 * @param credentials file path
 	 * @throws Exception 
 	 */
-	void authenticate(String credentials) throws Exception;
+	void authenticate() throws Exception;
 	
 	/**
 	 * Updates target with the specified content. Should run verification checks on content format.

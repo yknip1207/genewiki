@@ -19,11 +19,11 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.gnf.pbb.Global;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
-	private static Global global = Global.getInstance();
+	static PbbExceptionHandler botState = PbbExceptionHandler.INSTANCE;
 	public static final String baseGeneURL = "http://mygene.info/gene/";
 	public static final String metadataLoc = "http://mygene.info/metadata";
 	public static final String uniprotURL = "http://www.uniprot.org/uniprot/";
@@ -40,7 +40,7 @@ public class JsonParser {
 			Integer.parseInt(id);
 		} catch (NumberFormatException e) {
 			logger.warning(id + " is not a number; Entrez gene ids are exclusively in number form.");
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 			return null;
 		}
 		URL geneURL;
@@ -58,7 +58,7 @@ public class JsonParser {
 			
 		} catch (IOException e) {
 			logger.severe("There was an error opening connection to " + geneURL.toString());
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 			return null;
 		}
 		return node;
@@ -70,7 +70,7 @@ public class JsonParser {
 			return mapper.readValue(new FileInputStream(filename), JsonNode.class);
 		} catch (IOException e) {
 			logger.severe("There was an error opening file "+ filename+ ".");
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 		}
 		return null;
 	}
@@ -158,10 +158,10 @@ public class JsonParser {
 			gene.setMmGenLocDb(metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
 		} catch (NumberFormatException e) {
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 			return null;
 		} catch (IllegalArgumentException e) {
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 			return null;
 		} /*catch (NullPointerException e) {
 			logger.info("Some fields were unavailable or missing from gene: "+id);

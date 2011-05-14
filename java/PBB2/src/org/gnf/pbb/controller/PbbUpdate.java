@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.swing.event.ListSelectionEvent;
-
-import org.gnf.pbb.Global;
+import org.gnf.pbb.Configs;
 import org.gnf.pbb.Update;
+import org.gnf.pbb.exceptions.ConfigException;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.util.ListUtils;
@@ -19,39 +19,55 @@ import org.gnf.pbb.wikipedia.IWikipediaController;
 
 public class PbbUpdate implements Update {
 	private final static Logger logger = Logger.getLogger(Update.class.getName());
-	private final static DatabaseManager db = DatabaseManager.getInstance();
-	private static Global global;
+	private DatabaseManager db;
+	private static PbbExceptionHandler botState;
 	private LinkedHashMap<String, List<String>> updatedData;
 	private String status;
 	private String id;
 	private String editMessage;
 	private String editSummary;
 	private String formattedContent;
+	private boolean strict;
+	private boolean verbose;
 	private boolean isValidated;
 	
-
-	private PbbUpdate() {
-		global = Global.getInstance();
+	
+	private PbbUpdate(PbbExceptionHandler exh) {
+		botState = exh;
+		try {
+			strict = Configs.GET.flag("strict");
+			verbose = Configs.GET.flag("verbose");
+		} catch (ConfigException e) {
+			botState.fatal(e);
+		}
 	}
 	
 	/**
-	 * Constructs a new PbbUpdate that self-checks its validity.
+	 * Constructs a new PbbUpdate
 	 * @param sourceData
 	 * @param wikipediaData
 	 */
-	public static PbbUpdate PbbUpdateFactory(LinkedHashMap<String, List<String>> sourceData,
-			LinkedHashMap<String, List<String>> wikipediaData) {
-		PbbUpdate update = new PbbUpdate();
+	public static PbbUpdate PbbUpdateFactory(String id, LinkedHashMap<String, List<String>> sourceData,
+			LinkedHashMap<String, List<String>> wikipediaData, PbbExceptionHandler _exhandler) {
+		PbbUpdate update = new PbbUpdate(_exhandler);
+		update.db = new DatabaseManager();
+		update.id = id;
 		update.updateData(sourceData, wikipediaData);
-		if (global.canUpdate()) {
+		if (botState.canUpdate()) {
 			update.formattedContent = update.asFormattedString();
 			logger.fine("Created new PbbUpdate object");
-		} else if (global.canExecute()) {
+		} else if (botState.canExecute()) {
 			update.formattedContent = update.asFormattedString();
 			logger.warning("Created new PbbUpdate object but validation failed...");
 		}
 		logger.fine("Created new PbbUpdate object.");
 		return update;
+	}
+
+	public static Update PbbUpdateFactory(String id,
+			LinkedHashMap<String, List<String>> sourceData,
+			LinkedHashMap<String, List<String>> wikipediaData) {
+		return PbbUpdateFactory(id, sourceData, wikipediaData, PbbExceptionHandler.INSTANCE);
 	}
 
 	
@@ -118,7 +134,7 @@ public class PbbUpdate implements Update {
 		} catch (Exception e) {
 			// If this method is called without checking canUpdate flag, 
 			// it will likely throw an exception and fail.
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 		}
 		
 		return _update;
@@ -168,15 +184,15 @@ public class PbbUpdate implements Update {
 			}
 		} catch (Exception e) {
 			logger.severe("Validation failed with exception: "+e.getMessage());
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 		}
 		
 		this.status = _status.toString();
 		if (this.status.length() > 0 ) {
 			logger.warning(status);
 		}
-		if (global.strict() && !this.isValidated) {
-			global.canExecute(false);
+		if (strict && !this.isValidated) {
+			botState.recoverable(new Exception("Failed validation with strict checking enabled."));
 		}
 		return this.isValidated;
 	}
@@ -233,8 +249,8 @@ public class PbbUpdate implements Update {
 				
 				if (update) {
 					logger.fine("Values for "+key+" updated.");
-					db.addChange(global.getId(), key, ListUtils.toString(infoboxValues), ListUtils.toString(sourceValues));
-					if (global.verbose())
+					db.addChange(id, key, ListUtils.toString(infoboxValues), ListUtils.toString(sourceValues));
+					if (verbose)
 						logger.fine("DIFF: original = "+infoboxValues+"; new = "+sourceValues);
 					newInfoboxData.put(key, sourceValues);
 					_editMessage.append(key+", ");
@@ -250,11 +266,10 @@ public class PbbUpdate implements Update {
 			
 			editSummary = "ProteinBoxBot2 updated "+updated+" fields.";
 		} catch(NullPointerException npe) {
-			logger.severe("The source or infobox data fields were null when conducting update!");
-			global.stopExecution(npe.getMessage(), npe.getStackTrace());
+			botState.recoverable(npe);
 			return;
 		} catch (Exception e) {
-			global.stopExecution(e.getMessage(), e.getStackTrace());
+			botState.recoverable(e);
 			return;
 		}
 		
@@ -271,7 +286,7 @@ public class PbbUpdate implements Update {
 			// Less severe failure case; an exception during validation would set the stopExecute flag anyway.
 			// Since none of the appropriate fields are set, anything that might call them will fail and so
 			// should check
-			global.canUpdate(false);
+			botState.minor(new Exception("Failed validation, but not fatally. Bot will be unable to update to WP."));
 			return; 
 		}
 		
@@ -280,9 +295,9 @@ public class PbbUpdate implements Update {
 
 	@Override
 	public void update(IWikipediaController viewControl) {
-		if (global.canExecute()) {
+		if (botState.canUpdate()) {
 			try {
-				if (global.verbose())
+				if (verbose)
 					logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
 				logger.info("Summary: "+getEditSummary());
 				viewControl.putContent(formattedContent, getId(), getEditSummary());

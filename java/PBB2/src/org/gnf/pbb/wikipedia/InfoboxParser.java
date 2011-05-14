@@ -11,10 +11,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.gnf.pbb.Global;
+import org.gnf.pbb.Configs;
 import org.gnf.pbb.Custom;
+import org.gnf.pbb.exceptions.ConfigException;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.MalformedWikitextException;
 import org.gnf.pbb.exceptions.NoBotsException;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 
 /**
@@ -25,13 +28,36 @@ import org.gnf.pbb.exceptions.ValidationException;
  *
  */
 public class InfoboxParser extends AbstractParser {
-	private Global global = Global.getInstance();
+	private static ExceptionHandler botState;
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
+	private boolean strict;
+	private boolean canCreate;
+	private boolean verbose;
+	private String templateName;
 	
-	public InfoboxParser(String rawText) {
+	public InfoboxParser(String rawText, boolean strict, boolean canCreate, boolean verbose, String templateName, ExceptionHandler exh) {
 		super(rawText);
+		botState = exh;
 		this.rawText = rawText;
+		this.strict = strict;
+		this.canCreate = canCreate;
+		this.verbose = verbose;
+		this.templateName = templateName;
+	}
+	
+	public static InfoboxParser factory(String rawText) {
+		try {
+			return new InfoboxParser(rawText, Configs.GET.flag("strict"), 
+					Configs.GET.flag("canCreate"), 
+					Configs.GET.flag("verbose"),
+					Configs.GET.str("templateName"),
+					PbbExceptionHandler.INSTANCE);		
+		} catch (ConfigException e) {
+			PbbExceptionHandler.INSTANCE.fatal(e);
+			return null;
+		}
+
 	}
 	
 	/**
@@ -42,12 +68,12 @@ public class InfoboxParser extends AbstractParser {
 	 */
 	public LinkedHashMap<String,List<String>> parse() throws NoBotsException, ValidationException {
 		try {
-			if (global.strict()) {
+			if (strict) {
 				findNoBotsFlag();
 				validateTemplateName();
 			}
 			LinkedHashMap<String, List<String>> fields = parseFieldValues(parseFields(returnContentOfTemplate()));
-			if (fields.isEmpty() && !global.canCreate()) {
+			if (fields.isEmpty() && !canCreate) {
 				throw new ValidationException("Infobox fields map is empty, probably due to a parsing error. Bot cannot continue.");
 			} else {
 				return fields;
@@ -59,12 +85,12 @@ public class InfoboxParser extends AbstractParser {
 	}
 
 	private boolean validateTemplateName() throws ValidationException {
-		Pattern templateName = Pattern.compile("(?<=^\\{\\{)(.*)");
-		Matcher matcher = templateName.matcher(rawText);
+		Pattern templateNamePattern = Pattern.compile("(?<=^\\{\\{)(.*)");
+		Matcher matcher = templateNamePattern.matcher(rawText);
 		if (matcher.find()) {
 			String foundName = matcher.group();
-			if (!(foundName.contains(global.templateName())))
-				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+global.templateName()+"\".");
+			if (!(foundName.contains(templateName)))
+				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+templateName+"\".");
 		}
 		return false;
 	}
@@ -169,7 +195,7 @@ public class InfoboxParser extends AbstractParser {
 								// Return the substring after the "=" (which is two steps away from the fNameEnd position?)
 								fieldValue = strSource.substring(fNameEnd+1, fEnd);
 								fieldValue = fieldValue.substring(0, fieldValue.indexOf("\n")).trim();
-								if (global.verbose()) 
+								if (verbose) 
 									logger.fine(String.format("Field found: %s : %s", fieldName, fieldValue));
 								fields.put(fieldName, fieldValue);
 							}

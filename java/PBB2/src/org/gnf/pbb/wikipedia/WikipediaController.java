@@ -23,7 +23,12 @@ import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.gnf.pbb.Global;
+import org.gnf.pbb.Configs;
+import org.gnf.pbb.Configuration;
+import org.gnf.pbb.exceptions.ConfigException;
+import org.gnf.pbb.exceptions.ExceptionHandler;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.util.DiffUtils;
 import org.gnf.pbb.util.DiffUtils.Diff;
 /**
@@ -38,30 +43,34 @@ public class WikipediaController implements IWikipediaController {
 	private final boolean USE_SANDBOX = false;
 	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
-	private final static Global global = Global.getInstance();
 	private final static Logger logger = Logger.getLogger(WikipediaController.class.getName());
-	static MediaWikiBot wpBot;
-	static String[] credentials;
-	static String cacheDirectory;
+	ExceptionHandler botState;
+	private MediaWikiBot wpBot;
+	private String username;
+	private String password;
+	private String cacheDirectory;
+	private String apiLocation;
+	private String templatePrefix;
+	private boolean usecache;
+	private boolean verbose;
 
 	/**
 	 * Creates a new interface with Wikipedia, initializing a MediaWikiBot
 	 * and parsing a credentials file.
 	 */
-	public WikipediaController() {
-		URL wikipediaUrl = null;
+	public WikipediaController(ExceptionHandler exHandler, Configs configs) {
+		botState = exHandler;
 		try {
-			wikipediaUrl = new URL("http://en.wikipedia.org/w/");
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		wpBot = new MediaWikiBot(wikipediaUrl);
-		try {
-			cacheDirectory = createCacheDirectory();
+			this.apiLocation = configs.str("apiLocation");
+			wpBot = new MediaWikiBot(new URL(apiLocation));
+			cacheDirectory = configs.str("cacheLocation");
+			usecache = configs.flag("usecache");
+			verbose = configs.flag("verbose");
+			username = configs.str("username");
+			password = configs.str("password");
+			templatePrefix = configs.str("templatePrefix");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			botState.fatal(e);
 		}
 	}
 	
@@ -102,7 +111,7 @@ public class WikipediaController implements IWikipediaController {
 			e.getMessage();
 			e.printStackTrace();
 		}
-		if (global.usecache()) {
+		if (usecache) {
 			if (cachedFileExists(cacheFileRelPath)) {
 				logger.fine("Cached version exists & useCache flag specified; using cached version");
 				content = retrieveFileFromCache(cacheFileRelPath);
@@ -123,7 +132,7 @@ public class WikipediaController implements IWikipediaController {
 	}
 	
 	public String getContentForId(String id) {
-		String realTitle = global.templatePrefix()+id;
+		String realTitle = templatePrefix+id;
 		return getContent(realTitle);
 	}
 
@@ -153,7 +162,7 @@ public class WikipediaController implements IWikipediaController {
 		if (!isAuthenticated()) {
 			logger.info("Bot is logging in...");
 			try {
-				authenticate("credentials.json");
+				authenticate();
 			} catch (Exception e) {
 				logger.severe(e.getMessage());
 				e.printStackTrace();
@@ -202,24 +211,8 @@ public class WikipediaController implements IWikipediaController {
 	 * <code>{ "user":"your_username", "password":"your_password" } </code> <br />
 	 * See the included credentials_example.json in the top folder of the bot's directory.
 	 */
-	public void authenticate(String credentials) throws Exception {
-		JsonFactory jf = new JsonFactory();
-		JsonParser jp = jf.createJsonParser(new File(credentials));
-		String user = "";
-		String password = "";
-		if (jp.nextToken() != JsonToken.START_OBJECT){
-			throw new IOException("Invalid JSON format in " + credentials);
-		}
-		while (jp.nextToken() != JsonToken.END_OBJECT) {
-			String fieldName = jp.getCurrentName();
-			jp.nextToken();
-			if (fieldName.equals("user")) {
-				user = jp.getText();
-			} else if (fieldName.equals("password")) {
-				password = jp.getText();
-			}
-		}
-		wpBot.login(user, password);
+	public void authenticate() throws Exception {
+		wpBot.login(username, password);
 	}
 
 	@Override
@@ -230,7 +223,7 @@ public class WikipediaController implements IWikipediaController {
 		// If the dryrun flag is true or the bot is unable for some reason
 		// to validate its update content, it will write it to the cache 
 		// instead of posting to wikipedia.
-		if (global.dryrun() || !global.canUpdate()) {
+		if (botState.checkState().compareTo(Severity.MINOR) <= 0) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
 			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);
@@ -238,11 +231,11 @@ public class WikipediaController implements IWikipediaController {
 		} else if (USE_SANDBOX) {
 			live_title = SANDBOX_URL;
 		} else {
-			live_title = global.templatePrefix() + title;
+			live_title = templatePrefix + title;
 		}
 		
 		if(!isAuthenticated())
-			authenticate("credentials.json");
+			authenticate();
 		try {
 			Article page = wpBot.readContent(live_title);
 			String prevContent = page.getText();
