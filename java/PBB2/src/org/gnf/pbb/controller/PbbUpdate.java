@@ -53,7 +53,7 @@ public class PbbUpdate implements Update {
 		update.db = new DatabaseManager();
 		update.id = id;
 		update.updateData(sourceData, wikipediaData);
-		if (botState.canUpdate()) {
+		if (botState.isFine()) {
 			update.formattedContent = update.asFormattedString();
 			logger.fine("Created new PbbUpdate object");
 		} else if (botState.canExecute()) {
@@ -295,7 +295,7 @@ public class PbbUpdate implements Update {
 
 	@Override
 	public void update(IWikipediaController viewControl) {
-		if (botState.canUpdate()) {
+		if (botState.isFine()) {
 			try {
 				if (verbose)
 					logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");

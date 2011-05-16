@@ -53,6 +53,7 @@ public class WikipediaController implements IWikipediaController {
 	private String templatePrefix;
 	private boolean usecache;
 	private boolean verbose;
+	private boolean dryrun;
 
 	/**
 	 * Creates a new interface with Wikipedia, initializing a MediaWikiBot
@@ -66,6 +67,7 @@ public class WikipediaController implements IWikipediaController {
 			cacheDirectory = configs.str("cacheLocation");
 			usecache = configs.flag("usecache");
 			verbose = configs.flag("verbose");
+			dryrun = configs.flag("dryrun");
 			username = configs.str("username");
 			password = configs.str("password");
 			templatePrefix = configs.str("templatePrefix");
@@ -223,7 +225,7 @@ public class WikipediaController implements IWikipediaController {
 		// If the dryrun flag is true or the bot is unable for some reason
 		// to validate its update content, it will write it to the cache 
 		// instead of posting to wikipedia.
-		if (botState.checkState().compareTo(Severity.MINOR) <= 0) {
+		if (!botState.isFine() || dryrun) {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
 			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);

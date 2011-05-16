@@ -18,12 +18,20 @@ public enum PbbExceptionHandler implements ExceptionHandler {
 
 	@Override
 	public void pass(Exception e, Severity s) {
+		try {
+			throw e;
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 		if (s == Severity.FATAL) {
 			System.out.println("Fatal error encountered.");
 			System.out.println(printExceptionStackTraces(getExceptionsOfSeverity(Severity.FATAL)));
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {}
 		}
-		setSeverity(s);
 		exceptions.put(s, e);
+		setSeverity(s);
 	}
 	@Override
 	public void fatal(Exception e){
@@ -44,7 +52,7 @@ public enum PbbExceptionHandler implements ExceptionHandler {
 	}
 	
 	@Override
-	public boolean canUpdate() {
+	public boolean isFine() {
 		if (this.severity == Severity.NONE)
 			return true;
 		return false;

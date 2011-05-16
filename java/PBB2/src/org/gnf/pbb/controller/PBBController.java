@@ -53,12 +53,12 @@ public class PBBController extends AbstractBotController {
 	/**
 	 * Sets the internal Update object, updatedData, from a call to the PbbUpdateFactory.
 	 */
-	public boolean createUpdate (String id, Update update) {
+	public PbbUpdate createUpdate (String id, Update update) {
 		if (botState.checkState().compareTo(Severity.RECOVERABLE) < 0) {
 			update = PbbUpdate.PbbUpdateFactory(id, sourceData, wikipediaData);
-			return true;
+			return (PbbUpdate) update;
 		} else {
-			return false;
+			return null;
 		}
 	}
 

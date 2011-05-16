@@ -46,7 +46,7 @@ public class Launcher {
 //				controller.join();
 //				logger.info("Keyboard interrupt detected.");
 //			}
-			if (exHandler.checkState().compareTo(Severity.FATAL) < 0) {
+			if (exHandler.checkState().compareTo(Severity.FATAL) > 0) {
 				logger.severe("Bot failure.");
 				logger.severe(exHandler.printExceptionStackTraces(exHandler.getExceptionsOfSeverity(Severity.FATAL)));
 				controller.interrupt();

@@ -87,10 +87,8 @@ public abstract class AbstractBotController implements Runnable {
 				return;
 			}
 		}
-		if (Thread.interrupted()) {
-			prepareReport();
-			return;
-		}
+		prepareReport();
+		return;
 	}
 	
 	public void reset() {
@@ -108,7 +106,7 @@ public abstract class AbstractBotController implements Runnable {
 		try {
 			importSourceData(identifier);
 			importWikipediaData(identifier);
-			createUpdate(identifier, updatedData);
+			updatedData = createUpdate(identifier, updatedData);
 		} catch (NoBotsException e) {
 			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
 			botState.minor(e);
@@ -168,7 +166,7 @@ public abstract class AbstractBotController implements Runnable {
 	 * @throws ConfigException 
 	 */
 	public boolean update() throws ConfigException {
-		if (botState.canUpdate() || Configs.GET.flag("dryrun")) {
+		if (botState.isFine() || Configs.GET.flag("dryrun")) {
 			updatedData.update(wpControl);
 			return true;
 		} else {
@@ -177,7 +175,7 @@ public abstract class AbstractBotController implements Runnable {
 			}
 	}
 	
-	abstract protected boolean createUpdate(String id, Update update);
+	abstract protected Update createUpdate(String id, Update update);
 	
 	abstract public String prepareReport();
 

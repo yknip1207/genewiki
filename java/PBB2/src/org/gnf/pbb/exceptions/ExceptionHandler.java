@@ -27,7 +27,7 @@ public interface ExceptionHandler {
 	public void reset();
 
 
-	boolean canUpdate();
+	boolean isFine();
 
 
 	boolean canExecute();
