@@ -49,7 +49,7 @@ public class Tweetables {
 		}
 		summaryForRSS = " The article on <a href=\"http://en.wikipedia.org/wiki/"+base.getHashtag().substring(1)+"\">"+base.getHashtag().substring(1)+"</a> ";
 		//reference tweet
-		if(base.references>0){
+		if(base.references>0&&p_t0.getRefs()!=null&&p_t0.getRefs().size()>0){
 			String summary = "";
 			if(base.references==1){
 				Reference ref = p_t0.getRefs().get(0);
