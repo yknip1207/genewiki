@@ -42,7 +42,7 @@ public class ConfigParser {
 				strings.put("password", root.path("credentials").path("password").getTextValue());
 				strings.put("templatePrefix", root.path("TemplatePrefix").getTextValue());
 				strings.put("templateName", root.path("TemplateName").getTextValue());
-				strings.put("apiLocation", root.path("ApiLocation").getTextValue());
+				strings.put("hostLocation", root.path("HostLocation").getTextValue());
 				strings.put("dbName", root.path("DatabaseName").getTextValue());
 				strings.put("loggerLevel", root.path("LoggerLevel").getTextValue());
 				

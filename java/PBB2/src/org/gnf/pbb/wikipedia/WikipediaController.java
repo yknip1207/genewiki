@@ -5,30 +5,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.jwbf.core.actions.util.ActionException;
 import net.sourceforge.jwbf.core.actions.util.ProcessException;
 import net.sourceforge.jwbf.core.contentRep.Article;
 import net.sourceforge.jwbf.core.contentRep.SimpleArticle;
-import net.sourceforge.jwbf.mediawiki.actions.MediaWiki.Version;
 import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
 import org.gnf.pbb.Configs;
-import org.gnf.pbb.Configuration;
-import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
-import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.util.DiffUtils;
 import org.gnf.pbb.util.DiffUtils.Diff;
 /**
@@ -38,10 +29,10 @@ import org.gnf.pbb.util.DiffUtils.Diff;
  * @author eclarke
  *
  */
-public class WikipediaController implements IWikipediaController {
+public class WikipediaController {
 	
-	private final boolean USE_SANDBOX = false;
-	private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
+	// private final boolean USE_SANDBOX = false;
+	// private final String SANDBOX_URL = "User:Pleiotrope/sandbox/test_gene_sandbox";
 	
 	private final static Logger logger = Logger.getLogger(WikipediaController.class.getName());
 	ExceptionHandler botState;
@@ -49,7 +40,7 @@ public class WikipediaController implements IWikipediaController {
 	private String username;
 	private String password;
 	private String cacheDirectory;
-	private String apiLocation;
+	private String hostLocation;
 	private String templatePrefix;
 	private boolean usecache;
 	private boolean verbose;
@@ -62,8 +53,8 @@ public class WikipediaController implements IWikipediaController {
 	public WikipediaController(ExceptionHandler exHandler, Configs configs) {
 		botState = exHandler;
 		try {
-			this.apiLocation = configs.str("apiLocation");
-			wpBot = new MediaWikiBot(new URL(apiLocation));
+			this.hostLocation = configs.str("hostLocation");
+			wpBot = new MediaWikiBot(new URL(hostLocation));
 			cacheDirectory = configs.str("cacheLocation");
 			usecache = configs.flag("usecache");
 			verbose = configs.flag("verbose");
@@ -74,6 +65,9 @@ public class WikipediaController implements IWikipediaController {
 		} catch (Exception e) {
 			botState.fatal(e);
 		}
+		if(verbose){
+			logger.setLevel(Level.FINE);
+		}
 	}
 	
 	/**
@@ -81,7 +75,6 @@ public class WikipediaController implements IWikipediaController {
 	 * @return cache directory name on successful directory creation
 	 * @throws Exception 
 	 */
-
 	public String createCacheDirectory() throws Exception {
 		boolean success = false;
 		Calendar cal = Calendar.getInstance();
@@ -98,34 +91,33 @@ public class WikipediaController implements IWikipediaController {
 	}
 
 	/**
-	 * Pulls raw article text from wikipedia.
+	 * Pulls raw article text from wikipedia and stores it in the cache.
 	 * @param title of article
-	 * @param useCache: search the cache directory for title to reduce calls to wikipedia.
 	 * @return raw text of article as string
 	 */
 	public String getContent(String title) {
 		String content = ""; // This is eventually where the article content will end up
-		String cacheFileRelPath = "";
+		String cachedFilename = "";
 		try {
-			cacheFileRelPath = Integer.toString(title.hashCode());
-			logger.fine("File path: "+cacheFileRelPath);
+			cachedFilename = Integer.toString(title.hashCode());
+			logger.fine("File path: "+cachedFilename);
 		} catch (Exception e) {
 			e.getMessage();
 			e.printStackTrace();
 		}
 		if (usecache) {
-			if (cachedFileExists(cacheFileRelPath)) {
+			if (cachedFileExists(cachedFilename)) {
 				logger.fine("Cached version exists & useCache flag specified; using cached version");
-				content = retrieveFileFromCache(cacheFileRelPath);
+				content = retrieveFileFromCache(cachedFilename);
 			} else {
 				logger.fine("No cached version exists according to pathname specified.");
 				logger.fine("Querying Wikipedia directly...");
-				content = retrieveArticleFromWikipedia(title, cacheFileRelPath);
+				content = retrieveArticleFromWikipedia(title, cachedFilename);
 			}
 			
 		} else {
 			logger.fine("useCache flag set to false; querying Wikipedia for article text.");
-			content = retrieveArticleFromWikipedia(title, cacheFileRelPath);			
+			content = retrieveArticleFromWikipedia(title, cachedFilename);			
 		}
 		if (content.length() == 0) {
 			logger.severe("Content length is zero; something went wrong retrieving the article.");
@@ -138,7 +130,7 @@ public class WikipediaController implements IWikipediaController {
 		return getContent(realTitle);
 	}
 
-	private String retrieveFileFromCache(String filename) {
+	public String retrieveFileFromCache(String filename) {
 		String content;
 		StringBuffer stringBuffer = new StringBuffer();
 		String nl = System.getProperty("line.separator");
@@ -159,7 +151,13 @@ public class WikipediaController implements IWikipediaController {
 		return content;
 	}
 
-	private String retrieveArticleFromWikipedia(String title, String filename) {
+	/**
+	 * Pull information from Wikipedia to send to the parser.
+	 * @param title full location of the article (everything past the mediawiki url)
+	 * @param cachedFilename name to use when storing retrieved content in the cache
+	 * @return
+	 */
+	private String retrieveArticleFromWikipedia(String title, String cachedFilename) {
 		String content = "";
 		if (!isAuthenticated()) {
 			logger.info("Bot is logging in...");
@@ -174,10 +172,10 @@ public class WikipediaController implements IWikipediaController {
 		try {
 			Article article = wpBot.readContent(title);
 			String articleContent = article.getText();
-			// TODO: We write the content to the cache and pull it back out to ensure that line endings and encoding is 
-			// correct; this is probably not optimal.
-			writeContentToCache(articleContent, filename);
-			content = retrieveFileFromCache(filename);
+			// We write the content to the cache and pull it back out to ensure that line endings and encoding are 
+			// correct; this is probably not the best way to do this.
+			writeContentToCache(articleContent, cachedFilename);
+			content = retrieveFileFromCache(cachedFilename);
 		} catch (ActionException e) {
 			logger.severe(e.getMessage());
 			e.printStackTrace();
@@ -188,6 +186,12 @@ public class WikipediaController implements IWikipediaController {
 		return content;
 	}
 
+	/**
+	 * Writes content to a directory specified by the cacheDirectory variable in
+	 * the configuration file.
+	 * @param content
+	 * @param filename
+	 */
 	public void writeContentToCache(String content, String filename) {
 		try{
 			BufferedWriter writer = new BufferedWriter(new FileWriter(cacheDirectory+filename));
@@ -208,17 +212,25 @@ public class WikipediaController implements IWikipediaController {
 		return wpBot.isLoggedIn();
 	}
 
+	
 	/**
-	 * Parses a JSON file for credentials information. File should be in the form <br />
-	 * <code>{ "user":"your_username", "password":"your_password" } </code> <br />
-	 * See the included credentials_example.json in the top folder of the bot's directory.
+	 * Logs the bot in with the username and password from
+	 * the configuration file.
+	 * @throws Exception
 	 */
 	public void authenticate() throws Exception {
 		wpBot.login(username, password);
 	}
 
-	@Override
-	public String putContent(String content, String title, String changes) throws Exception {
+	/**
+	 * Puts content either to Wikipedia or to the cache directory, depending on bot state
+	 * and settings. 
+	 * @param content which should be previously verified
+	 * @param title will be used to find the appropriate URL to write to
+	 * @param changes a summary of changes made, such as fields updated
+	 * @throws Exception
+	 */
+	public void putContent(String content, String title, String changes) throws Exception {
 		String status = "";
 		String live_title = "";
 		
@@ -229,9 +241,7 @@ public class WikipediaController implements IWikipediaController {
 			writeContentToCache(content, "DRYRUN_"+title);
 			logger.info(changes);
 			logger.info("Wrote file "+cacheDirectory+"DRYRUN_"+title);
-			return null;
-		} else if (USE_SANDBOX) {
-			live_title = SANDBOX_URL;
+			return;
 		} else {
 			live_title = templatePrefix + title;
 		}
@@ -271,10 +281,12 @@ public class WikipediaController implements IWikipediaController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return status;
 	}
 
+	/**
+	 * Writes a report to the cache directory based on successful updates and fields updated.
+	 * @param report
+	 */
 	public void writeReport(String report) {
 		Calendar cal = Calendar.getInstance();
 		this.writeContentToCache(report, "BotExecutionReport_"+cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR));

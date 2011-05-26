@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +49,9 @@ public class InfoboxParser extends AbstractParser {
 		this.templateName = templateName;
 		textBeforeTemplate = "";
 		textAfterTemplate = "";
+		if (this.verbose) {
+			logger.setLevel(Level.FINE);
+		}
 	}
 	
 	public static InfoboxParser factory(String rawText) {
@@ -252,7 +256,7 @@ public class InfoboxParser extends AbstractParser {
 				if ((ch == '{' && prev == '{') || (ch == '[' && prev == '[')) {
 					level++;
 					inBrackets = true;
-				} else if ((ch == '}' && prev == '}') || (ch == '}' && prev == '}')) {
+				} else if ((ch == '}' && prev == '}') || (ch == ']' && prev == ']')) {
 					level--;
 					if (!inTag && level == 0) {
 						inBrackets = false;
@@ -283,13 +287,14 @@ public class InfoboxParser extends AbstractParser {
 					String name = content.substring(nameStart, nameEnd).trim();
 					String value = content.substring(valueStart, valueEnd).trim();
 					results.put(name, value);
+					logger.fine(String.format("Added field: %s : %s", name, value));
 					nameParsed = false; 	// reset these values
 					valueParsed = false;
 				}
 				
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			botState.recoverable(e);
 		}
 		return results;
 	}
@@ -310,7 +315,8 @@ public class InfoboxParser extends AbstractParser {
 			List<String> valueList = new ArrayList<String>(0);
 			// We only make a list if they're collections of {{..}} and if they don't have < (this usually
 			// indicates that they have some sort of HTML tag, and who know's what's inside those...)
-			if (value.split("\\}\\}").length > 1 && !value.contains("<")) {
+			if ((value.split("\\}\\}").length > 1 && !value.contains("<")) || (key.equals("PDB") || 
+					key.equals("Function") || key.equals("Process") || key.equals("Component"))) {
 				valueBuffer = value.replaceAll("\\}\\}", ", ");
 				valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
 				valueList = Arrays.asList(valueBuffer.split(", "));

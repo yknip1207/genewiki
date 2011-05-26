@@ -3,7 +3,7 @@ package org.gnf.pbb;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.gnf.pbb.wikipedia.IWikipediaController;
+import org.gnf.pbb.wikipedia.WikipediaController;
 
 
 
@@ -56,7 +56,7 @@ public interface Update {
 	 * @param updates
 	 * @param view controller
 	 */
-	public void update(IWikipediaController viewControl);
+	public void update(WikipediaController wpControl);
 
 	/**
 	 * Returns the unique identifier for this update (title, gene ID, etc)

@@ -1,5 +1,6 @@
 package org.gnf.pbb.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,12 +76,23 @@ public abstract class AbstractBotController implements Runnable {
 				boolean success = this.resetAndExecuteUpdateForId(id);
 				if (success) {
 					completed.add(id);
+					//XXX Debug hacks.
+					Runtime run = Runtime.getRuntime();
+					Process p = run.exec("C:\\Users\\eclarke\\AppData\\Local\\Mozilla Firefox\\firefox.exe -new-tab " +
+							"http://184.72.42.242/mediawiki/index.php?title=Template:PBB/"+id+"&action=history");
+					System.out.println("Once satisfied, press any key to continue.");
+					System.in.read();
+					p.destroy();
+					System.out.println("Moving along...");
 				} else {
 					failed.add(id);
 				}
 			} catch (InterruptedException e) {
 				prepareReport();
 				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			if (Thread.interrupted()) {
 				prepareReport();
