@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.gnf.pbb.Configs;
@@ -15,7 +16,7 @@ import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.util.ListUtils;
-import org.gnf.pbb.wikipedia.IWikipediaController;
+import org.gnf.pbb.wikipedia.WikipediaController;
 
 public class PbbUpdate implements Update {
 	private final static Logger logger = Logger.getLogger(Update.class.getName());
@@ -39,6 +40,9 @@ public class PbbUpdate implements Update {
 			verbose = Configs.GET.flag("verbose");
 		} catch (ConfigException e) {
 			botState.fatal(e);
+		}
+		if (verbose) {
+			logger.setLevel(Level.FINE);
 		}
 	}
 	
@@ -100,7 +104,9 @@ public class PbbUpdate implements Update {
 			out.append("{{GNF_Protein_box"+nl);
 			Set<String> keys = updatedData.keySet();
 			for (String key: keys) {
-				if (key.equalsIgnoreCase("Function") || 
+				if (key.equals("TextBeforeTemplate") || key.equals("TextAfterTemplate")) {
+					continue;
+				} else if (key.equalsIgnoreCase("Function") || 
 						key.equalsIgnoreCase("Process") || 
 						key.equalsIgnoreCase("Component") ||
 						key.equalsIgnoreCase("pdb")) {
@@ -110,26 +116,36 @@ public class PbbUpdate implements Update {
 						String next = templateLinks.next();
 						if (next.length() != 0) {
 							out.append("{{");
-							if (key.equalsIgnoreCase("pdb")) // pdb ids require a standard PDB2| prefix in their template tags
-								out.append("PDB2|");
-							out.append(next+"}} ");
-						}	
+							if (key.equalsIgnoreCase("pdb")) { // pdb ids require a standard PDB2| prefix in their template tags
+								out.append("PDB2|"+next+"}}, ");
+							} else {
+								out.append(next+"}} ");
+							}
+						}
 					}
+					if (out.charAt(out.length()-2) == ',')
+						out.deleteCharAt(out.length()-2); // Removes the trailing comma from a list of template links
 					out.append(nl);
 				} else if (updatedData.get(key).size() > 0) {
 					String value = updatedData.get(key).get(0);
 					if (key.equals("Name")) {
 						value = Character.toUpperCase(value.charAt(0)) + value.substring(1);
 					}
+
 					if (key.equals("AltSymbols")) {
 						// format of this field requires a leading semicolon
-						out.append(" | "+key+" =; "+value+nl);
+						out.append(" | "+key+" ="+value+nl);
 					} else {
 						out.append(" | "+key+" = "+value+nl);
 					}
 				}
 			}
 			out.append("}}");
+			if (updatedData.get("TextAfterTemplate") != null) {
+				out.append((updatedData.get("TextAfterTemplate")).get(0));
+			}
+			if (updatedData.get("TextBeforeTemplate") != null)
+				out.insert(0, updatedData.get("TextBeforeTemplate"));
 			_update = out.toString();
 		} catch (Exception e) {
 			// If this method is called without checking canUpdate flag, 
@@ -212,6 +228,7 @@ public class PbbUpdate implements Update {
 			
 			// The comparison:
 			for (String key : sourceData.keySet()) {
+				
 				List<String> sourceValues = sourceData.get(key), infoboxValues = infoboxData.get(key);
 				// make sure we even have this field in the infobox (if we don't, we'll hit a NullPointerException)
 				boolean update = true;
@@ -221,13 +238,17 @@ public class PbbUpdate implements Update {
 				// result in code duplication.
 				if (infoboxValues != null) {
 					if (infoboxValues.equals(sourceValues))
-						update = false;
+						continue;
 					if (infoboxValues.containsAll(sourceValues))
-						update = false;
-					
+						continue;
 				}
 				if (sourceValues.isEmpty() || sourceValues == null) {
-					update = false;
+					continue;
+				}
+				
+				// Don't yet have the capability to handle image and image sources - 5/16/11
+				if (key.equals("image") || key.equals("image_source")) {
+					continue;
 				}
 				
 				if (sourceValues != null && infoboxValues != null) {
@@ -239,11 +260,11 @@ public class PbbUpdate implements Update {
 							matches++;
 					}
 					if (matches == srcSet.size())
-						update = false;
+						continue;
 					Collections.sort(infoboxValues);
 					Collections.sort(sourceValues);
 					if (infoboxValues.containsAll(sourceValues)) 
-						update = false;
+						continue;
 				}
 				
 				
@@ -294,13 +315,13 @@ public class PbbUpdate implements Update {
 	}
 
 	@Override
-	public void update(IWikipediaController viewControl) {
+	public void update(WikipediaController wpControl) {
 		if (botState.isFine()) {
 			try {
 				if (verbose)
-					logger.fine("Handing over the reigns to "+viewControl.getClass().getName()+" with updated data...");
+					logger.fine("Handing over the reigns to "+wpControl.getClass().getName()+" with updated data...");
 				logger.info("Summary: "+getEditSummary());
-				viewControl.putContent(formattedContent, getId(), getEditSummary());
+				wpControl.putContent(formattedContent, getId(), getEditSummary());
 				
 			} catch (Exception e) {
 				logger.severe(e.getMessage());
