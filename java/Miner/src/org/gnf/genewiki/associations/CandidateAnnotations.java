@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,24 @@ public class CandidateAnnotations {
 		//		c.writeGOCandiListWithEvidence(Config.merged_mined_ranked_filtered_annos_go);
 	}
 
+	
+	public Map<String, Set<String>> getGene2OntoMap(){
+		Map<String, Set<String>> gene2onto = new HashMap<String, Set<String>>();
+		for(CandidateAnnotation canno : cannos){
+			Set<String> onts = gene2onto.get(canno.getEntrez_gene_id());
+			if(onts==null){
+				onts = new HashSet<String>();
+			}
+			String acc = canno.getTarget_accession();
+			if(acc.contains("/")){
+				acc = acc.substring(acc.indexOf("/")+1);
+			}
+			onts.add(acc);
+			gene2onto.put(canno.getEntrez_gene_id(),onts);
+		}
+		return gene2onto;
+	}
+	
 	public void filterKnownHuman(){
 		List<CandidateAnnotation> filtered = new ArrayList<CandidateAnnotation>();
 		for(CandidateAnnotation canno : cannos){

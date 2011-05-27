@@ -378,7 +378,7 @@ public class Prioritizer {
 	}
 
 	public static Map<String, List<String>> filterMegaGenePubs(Map<String, List<String>> gene2pubs, int max_genes_per_pmid){
-		Map<String, Set<String>> pmid2genes = MapFun.flipMapStringStrings(gene2pubs);
+		Map<String, Set<String>> pmid2genes = MapFun.flipMapStringListStrings(gene2pubs);
 
 		Set<String> too_many = new HashSet<String>();
 		for(Entry<String, List<String>> gene2pub : gene2pubs.entrySet()){
