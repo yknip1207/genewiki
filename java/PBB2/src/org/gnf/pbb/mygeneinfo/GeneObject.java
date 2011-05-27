@@ -365,7 +365,7 @@ public class GeneObject implements Serializable{
 
 	public void setHsRefSeqProtein(String[] hsRefSeqProtein) {
 		HsRefSeqProtein = hsRefSeqProtein;
-		geneData.put("Hs_RefHsseqProtein", Arrays.asList(hsRefSeqProtein));
+		geneData.put("Hs_RefseqProtein", Arrays.asList(hsRefSeqProtein));
 	}
 
 	public String[] getHsRefSeqProtein() {

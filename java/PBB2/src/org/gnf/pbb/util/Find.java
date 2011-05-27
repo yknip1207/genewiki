@@ -20,7 +20,7 @@ public class Find {
 	 * @return
 	 */
 	public static List<String> updateCandidates(int count, Configs cfg) {
-		int batchsize = count%2;
+		int batchsize = 100;
 		List<String> candidates = new ArrayList<String>();
 		WikipediaController wpControl = new WikipediaController(PbbExceptionHandler.INSTANCE, cfg);
 		String indexName = "ids.txt";

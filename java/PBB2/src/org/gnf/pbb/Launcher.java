@@ -36,7 +36,7 @@ public class Launcher {
 		
 		if (args.length < 1) {
 			System.out.println("Retrieving some gene ids to play with instead.");
-			inputs  = Find.updateCandidates(3, Configs.GET);
+			inputs  = Find.updateCandidates(500, Configs.GET);
 			Collections.shuffle(inputs);
 			System.out.println(inputs);
 			System.out.println("Press any key to continue.");

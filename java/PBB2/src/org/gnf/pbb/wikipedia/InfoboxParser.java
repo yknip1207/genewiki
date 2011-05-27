@@ -69,7 +69,9 @@ public class InfoboxParser extends AbstractParser {
 	}
 	
 	/**
-	 * Parses the raw text passed to the instance on initialization
+	 * A one-shot method to process and parse the fields of a template (specified
+	 * by name in the configuration file) into a linked map of string:list pairs.
+	 * Returns the values as lists even if the value is singular for consistency.
 	 * @return linked hash map of field names and corresponding values
 	 * @throws NoBotsException 
 	 * @throws ValidationException 
@@ -103,7 +105,8 @@ public class InfoboxParser extends AbstractParser {
 		if (matcher.find()) {
 			String foundName = matcher.group();
 			if (!(foundName.contains(templateName)))
-				throw new ValidationException("Detected template name ("+foundName+") does not match specified template name \""+templateName+"\".");
+				throw new ValidationException("Detected template name ("+foundName+")" +
+						" does not match specified template name \""+templateName+"\".");
 		}
 		return false;
 	}
@@ -127,7 +130,9 @@ public class InfoboxParser extends AbstractParser {
 	
 	/**
 	 * This method finds the template specified by the global TemplateName variable
-	 * and returns its content, omitting any other text in the source. 
+	 * and returns its content, omitting any other text in the source. Includes the 
+	 * opening and closing {{ }} in returned string.
+	 * @param source string
 	 * @return extracted template content
 	 * @throws MalformedWikitextException
 	 */
@@ -137,6 +142,7 @@ public class InfoboxParser extends AbstractParser {
 		int firstOpen = -1;
 		int lastClose = -1;
 		char[] src = source.toCharArray();
+		
 		for (int i = startIndex; i < src.length; i++) {
 			char ch = src[i];
 			char prev = ' ';
@@ -155,6 +161,7 @@ public class InfoboxParser extends AbstractParser {
 			if (level == 0 && firstOpen != -1)
 				break;
 		}
+		
 		String result = source.substring(firstOpen, lastClose);
 		return result;
 	}
@@ -206,13 +213,28 @@ public class InfoboxParser extends AbstractParser {
 	 * @return a representation of the fields as a map of name:value pairs
 	 */
 	public LinkedHashMap<String,String> parseFields(String content) {
-		// Preprocess the content to ensure it doesn't begin with any brackets
+		/* ---- Preprocessing directions ---- */
+		
+		// Note (and avoid) a reference tag. If there are more than one, the bot will skip this update.
+		// TODO: Write functionality to handle multiple ref tags.
+		int openRefTag = content.indexOf("<ref>");
+		int closeRefTag = content.lastIndexOf("</ref>");
+		String substring = content.substring(openRefTag, closeRefTag);
+		if (substring.indexOf("<ref>") != 0) {
+			botState.recoverable(new Exception("Too many reference tags; the parser is confused."));
+			return null;
+		}
+		
+		// Check the content to ensure it doesn't begin with any brackets
 		if (content.indexOf("{{") == 0) {
 			content = content.substring(2);
 		}
 		if (content.lastIndexOf("}}") == content.length()-1) {
 			content = content.substring(0, content.length()-3);
 		}
+		
+		/* ---- Variable declarations ---- */
+		
 		char[] src = content.toCharArray();
 		char ch;		// The current character
 		char prev;		// The previous character
@@ -231,10 +253,10 @@ public class InfoboxParser extends AbstractParser {
 		
 		LinkedHashMap<String,String> results = new LinkedHashMap<String,String>();
 		
-		// We are not going to parse anything within the angle brackets (usually contain ref tags that have
-		// formatting similar to our infobox)
-		int firstAngleBracket = content.indexOf("<");
-		int lastAngleBracket = content.lastIndexOf(">");
+		
+		
+		/* ---- Character-by-character parser ---- */
+		// Regular expressions were not used for the sake of flexibility and maintainability
 		
 		try {
 			for (int i = 0; i < src.length; i++) {
@@ -244,7 +266,7 @@ public class InfoboxParser extends AbstractParser {
 				} else { prev = ch; }
 				// If we're within previously determined angle brackets, 
 				// we won't parse anything
-				if (firstAngleBracket <= i && i <= lastAngleBracket) {
+				if (openRefTag <= i && i <= closeRefTag) {
 					inTag = true;
 					inBrackets = true;
 				} else if (inTag) {
