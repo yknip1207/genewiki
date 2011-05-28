@@ -9,7 +9,7 @@ public class Ontologies {
 	//and they did, but now should be stable - switched to 'virtual ids'
 	//See http://bioportal.bioontology.org/annotator
 	public static final String OLD_GO_ONT = "44171";
-	public static final String GO_ONT = "1070";//"44171";
+	public static final String GO_ONT = "1070";//45118 //"44171";
 	public static final String HUMAN_DISEASE_ONT = "1009";//44172";
 	public static final String FMA_ONT = "1053";//"39966";
 	public static final String HPO_ONT = "1125";//"44170";

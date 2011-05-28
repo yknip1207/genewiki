@@ -223,9 +223,13 @@ public class CandidateAnnotations {
 			while(line!=null){
 				String[] item = line.split("\t");
 				String acc = item[9];
-				if(acc.startsWith(Ontologies.OLD_GO_ONT)||acc.startsWith("GO:")){// //"44171/")
+				if(acc.contains("GO:")){// //"44171/")
 					CandidateAnnotation canno = new CandidateAnnotation(item);
-					String a = acc.substring(Ontologies.OLD_GO_ONT.length()+4);
+					int trim = acc.indexOf("/");
+					String a = acc;
+					if(trim>0){
+						a = acc.substring(trim+4);
+					}
 					if(acc.startsWith("GO:")){
 						a = acc.substring(3);
 					}

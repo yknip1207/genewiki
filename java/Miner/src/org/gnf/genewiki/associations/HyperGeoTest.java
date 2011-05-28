@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import org.gnf.util.FileFun;
 import org.gnf.util.MapFun;
 import org.gnf.util.StatFun;
 
+
 /**
  * @author bgood
  *
@@ -37,14 +39,17 @@ public class HyperGeoTest {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
-		
+		//getDataForAbstract2Annotations();
+		measureGeneWikiValue();
+	}
+
+	public static void measureGeneWikiValue(){
 		//for each go term in gene2go
 		//get the genes related to it 
 		//get the go terms related to those genes via the annotator and associated abstracts
 		//test 1, what fraction of the go_gene associations are rediscovered via the annotator-abstract process?
 		
-		boolean skipIEA = false;
+		boolean skipIEA = true;
 		Map<String, Set<GOterm>> genego = Annotation.readGene2GO(Config.gene_go_file, skipIEA);
 		Map<String, GOterm> acc2go = new HashMap<String, GOterm>();
 		for(Set<GOterm> terms : genego.values()){
@@ -62,18 +67,47 @@ public class HyperGeoTest {
 		Map<String, Set<String>> gene_ab_gos = abcannos.getGene2OntoMap();
 		Map<String, Set<String>> go_ab_genes = MapFun.flipMapStringSetStrings(gene_ab_gos);
 		
+		
+		CandidateAnnotations gwcannos = new CandidateAnnotations();
+		gwcannos.loadAndFilterCandidateGOAnnotations(Config.text_mined_annos);
+		Map<String, Set<String>> gene_gw_gos = gwcannos.getGene2OntoMap();
+		Map<String, Set<String>> go_gw_genes = MapFun.flipMapStringSetStrings(gene_gw_gos);
+		//make a random one
+		List<String> allgenes = new ArrayList<String>(genego.keySet());
+		Map<String, Set<String>> go_ran_genes = new HashMap<String, Set<String>>();
+		for(Entry<String, Set<String>> go_gw_gene : go_gw_genes.entrySet()){
+			Collections.shuffle(allgenes);
+			Set<String> genes = new HashSet<String>();
+			String go = go_gw_gene.getKey();
+			for(int i=0; i<go_gw_gene.getValue().size(); i++){
+				genes.add(allgenes.get(i));
+			}
+			go_ran_genes.put(go, genes);
+		}
+		
+		
+		System.out.println("go	yy	ny	yn	nn	p_abs_only	delta_w	p_with_gw	yy	ny	yn	nn");
 		for(Entry<String, Set<String>> go_genes : go_geness.entrySet()){
 			String goterm = go_genes.getKey();
 			Set<String> genes_f_goa = go_genes.getValue();
-			Set<String> genes_f_ab = go_ab_genes.get(goterm);
+	///////////// ab only		
+			Set<String> genes_f_ab = new HashSet<String>();
+			if(go_ab_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_ab_genes.get(goterm));
+			}			
+			if(genes_f_ab==null||genes_f_ab.size()==0){
+				continue;
+			}
+		//	System.out.println(genes_f_goa);
+		//	System.out.println(genes_f_ab);
 			int total_goa_ = genes_f_goa.size();
-			int total_not_goa_ = total_genes_from_goa - total_goa_;
 			int total_goa_not_ab_ = 0;
 			int total_ab_ = 0;
 			int total_ab_goa_ = 0;
 			int total_ab_not_goa_ = 0;
 			int total_not_goa_not_ab = 0;
-			if(genes_f_ab!=null){
+			double chi_p_ab_only = 0;
+			if(genes_f_ab!=null&&genes_f_ab.size()>0){
 				total_ab_ = genes_f_ab.size();
 				//find genes reproduced..
 				genes_f_ab.retainAll(genes_f_goa);
@@ -86,15 +120,70 @@ public class HyperGeoTest {
 				//--
 				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
 				//test
-				double chi_p = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				chi_p_ab_only = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				System.out.print("\n"+goterm+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
+			}else{
+				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
+				System.out.print("\n"+goterm+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
 			}
-			
+	//////// plus gene wiki
+			genes_f_ab = new HashSet<String>();
+			if(go_ab_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_ab_genes.get(goterm));
+			}	
+			if(go_gw_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_gw_genes.get(goterm));
+			}
+			if(genes_f_ab!=null&&genes_f_ab.size()>0){
+				total_ab_ = genes_f_ab.size();
+				//find genes reproduced..
+				genes_f_ab.retainAll(genes_f_goa);
+				//++
+				total_ab_goa_ = genes_f_ab.size();
+				//-+
+				total_ab_not_goa_ = total_ab_ - total_ab_goa_;
+				//+_
+				total_goa_not_ab_ = total_goa_ - total_ab_goa_;
+				//--
+				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
+				//test
+				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}else{
+				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}
+ ////// plus random
+//TODO something wrong here... not random			
+			genes_f_ab = new HashSet<String>();
+			if(go_ab_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_ab_genes.get(goterm));
+			}	
+			if(go_ran_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_ran_genes.get(goterm));
+			}
+			if(genes_f_ab!=null&&genes_f_ab.size()>0){
+				total_ab_ = genes_f_ab.size();
+				//find genes reproduced..
+				genes_f_ab.retainAll(genes_f_goa);
+				//++
+				total_ab_goa_ = genes_f_ab.size();
+				//-+
+				total_ab_not_goa_ = total_ab_ - total_ab_goa_;
+				//+_
+				total_goa_not_ab_ = total_goa_ - total_ab_goa_;
+				//--
+				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
+				//test
+				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}else{
+				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}
 		}
-		
-		
 	}
-
-
+	
 	public static void getDataForAbstract2Annotations(){
 		//get genes associated with a go term in goa file
 		//get pubmed ids linked to these genes
@@ -217,14 +306,14 @@ public class HyperGeoTest {
 						cannos.addAll(annos);
 					}
 				}
-				try{
-					FileWriter w = new FileWriter(checked_genes, true);
-					w.write(gene+"\n");
-					w.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			}
+			try{
+				FileWriter w = new FileWriter(checked_genes, true);
+				w.write(gene+"\n");
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
