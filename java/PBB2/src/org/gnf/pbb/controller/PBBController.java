@@ -1,12 +1,12 @@
 package org.gnf.pbb.controller;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 
 import org.codehaus.jackson.map.JsonMappingException;
-import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.mygeneinfo.GeneObject;
 import org.gnf.pbb.mygeneinfo.JsonParser;
@@ -28,36 +28,29 @@ public class PBBController extends AbstractBotController {
 	 * Calls the appropriate classes to pull info from mygene.info and parse it; sets the internal linked hash map
 	 * sourceData from the result. Does not currently do anything with the gene object; object is only used internally for
 	 * validation purposes.
+	 * @return 
 	 */
-	public void importSourceData(String identifier) {
+	public LinkedHashMap<String, List<String>> importSourceData(String identifier) {
 		JsonParser jsonParser = new JsonParser();
 		GeneObject gene = null;
 		
 		try {
 			gene = jsonParser.newGeneFromId(identifier);
-			sourceData = gene.getGeneDataAsMap();
+			return gene.getGeneDataAsMap();
 		} catch (JsonParseException e) {
 			logger.severe("Error parsing json file.");
 			botState.recoverable(e);
+			return null;
 		} catch (JsonMappingException e) {
 			logger.severe("Error mapping json values.");
 			botState.recoverable(e);
+			return null;
 		} catch (NumberFormatException e) {
 			logger.severe("Error parsing object identifier. Identifier must be Entrez id, consisting only of numbers.");
 			botState.recoverable(e);
+			return null;
 		} catch (IOException e) {
 			botState.recoverable(e);
-		}
-	}
-
-	/**
-	 * Sets the internal Update object, updatedData, from a call to the PbbUpdateFactory.
-	 */
-	public PbbUpdate createUpdate (String id, Update update) {
-		if (botState.checkState().compareTo(Severity.RECOVERABLE) < 0) {
-			update = PbbUpdate.PbbUpdateFactory(id, sourceData, wikipediaData);
-			return (PbbUpdate) update;
-		} else {
 			return null;
 		}
 	}

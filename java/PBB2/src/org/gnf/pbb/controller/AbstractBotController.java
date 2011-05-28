@@ -6,62 +6,63 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.gnf.pbb.AbstractUpdate;
 import org.gnf.pbb.Configs;
-import org.gnf.pbb.Update;
 import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
+import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
 public abstract class AbstractBotController implements Runnable {
-	// Initializing the singleton logger and config objects
-	protected final static Logger logger = Logger.getLogger(AbstractBotController.class.getName());
-	protected ExceptionHandler botState;
-	protected Update updatedData;
-	protected WikipediaController wpControl;
-	protected LinkedHashMap<String, List<String>> sourceData;
-	protected LinkedHashMap<String, List<String>> wikipediaData;
-	public final List<String> identifiers;
-	protected List<String> completed;
-	protected List<String> failed;
 
-	/**
-	 * This constructor should not be used.
-	 */
-	@SuppressWarnings("unused")
-	private AbstractBotController() {
-		this.identifiers = null;
-	}
+	/* ---- Declarations ---- */
+	protected final Logger logger;				
+	protected final DatabaseManager dbManager;	// Manages SQLite db to track changes
+	protected final ExceptionHandler botState;	// ExceptionHandler to communicate bot state
 	
-	/**
-	 * Create a new AbstractBotController with a list of identifiers and a specified ExceptionHandler
-	 * @param identifiers
-	 * @param exhandler
-	 */
-	public AbstractBotController(List<String> identifiers, ExceptionHandler exhandler) {
-		this.botState = exhandler;
-		wpControl = new WikipediaController(botState, Configs.GET);
-		sourceData = new LinkedHashMap<String,List<String>>();
-		wikipediaData = new LinkedHashMap<String,List<String>>();
+	protected 	WikipediaController wpControl;
+	
+	public		List<String> identifiers;
+	protected 	List<String> completed;
+	protected	List<String> failed;
+	
+	protected 	LinkedHashMap<String, List<String>> sourceData;
+	protected 	LinkedHashMap<String, List<String>> wikipediaData;
+	
+	private 	int delay;
+	
+	
+	/* ---- Constructors ---- */
+	public AbstractBotController(List<String> identifiers, ExceptionHandler exh) {
+		logger = Logger.getLogger(AbstractUpdate.class.getName());
+		dbManager = new DatabaseManager();
+		botState = exh;
+		
+		this.wpControl = new WikipediaController(botState, Configs.GET);
+		this.sourceData = new LinkedHashMap<String,List<String>>();
+		this.wikipediaData = new LinkedHashMap<String,List<String>>();
+		
+		this.delay = 3;
 		this.identifiers = identifiers;
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);
 	}
 	
-	/**
-	 * Create a new AbstractBotController with a list of identifiers. Uses the singleton instance of 
-	 * PbbExceptionHandler.
-	 * @param identifiers
-	 */
 	public AbstractBotController(List<String> identifiers) {
 		this(identifiers, PbbExceptionHandler.INSTANCE);
 	}
-
+	
+	public AbstractBotController(List<String> identifiers, int delay) {
+		this(identifiers);
+		this.delay = delay;
+	}
+	
+	/* ---- Main run() method ---- */
 	public void run() {
-		int delay = 3; // Seconds to delay between updates
 		for (String id : identifiers) {
 			try {
 				System.out.print(String.format("Executing update for id: "+id+" in %d...\n", delay+1));
@@ -73,7 +74,11 @@ public abstract class AbstractBotController implements Runnable {
 						return;
 					}
 				}
-				boolean success = this.resetAndExecuteUpdateForId(id);
+				
+				reset();									// This is where everything
+				Update updatedData = createUpdateForId(id);	// important happens- follow
+				boolean success = this.update(updatedData);	// these methods back
+				
 				if (success) {
 					completed.add(id);
 					//XXX Debug hacks.
@@ -93,6 +98,9 @@ public abstract class AbstractBotController implements Runnable {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (ConfigException ce) {
+				prepareReport();
+				return;
 			}
 			if (Thread.interrupted()) {
 				prepareReport();
@@ -103,83 +111,15 @@ public abstract class AbstractBotController implements Runnable {
 		return;
 	}
 	
-	public void reset() {
-		sourceData = new LinkedHashMap<String, List<String>>();
-		wikipediaData = new LinkedHashMap<String, List<String>>();
-		botState.reset();
-		logger.info("Bot reset.");
-	}
+	/* ---- Private methods ---- */
 	
 	/**
-	 * Instructs the bot to import data corresponding to the specified identifier
-	 * @param identifier
+	 * Executes the push() method of the given update object, with safety
+	 * checks in place
 	 */
-	public void prepareUpdateForId(String identifier) {
-		try {
-			importSourceData(identifier);
-			importWikipediaData(identifier);
-			updatedData = createUpdate(identifier, updatedData);
-		} catch (NoBotsException e) {
-			logger.severe("{{nobots}} flag found in template and strict checking set: live updates disabled.");
-			botState.minor(e);
-		} catch (Exception e) {
-			botState.recoverable(e);
-			return;
-		}
-	}
-	
-	/**
-	 * Attempts to update Wikipedia (or the cache, if the dryrun flag is set). If the data maps are empty,
-	 * it runs prepareUpdateForId, though this does not help if a parsing error is returning empty maps.
-	 * @param identifier
-	 */
-	public boolean resetAndExecuteUpdateForId(String identifier) {
-		reset();
-		logger.info("Executing new update for "+identifier);
-		prepareUpdateForId(identifier);
-		if (botState.canExecute()){
-			try {
-				update();
-			} catch (ConfigException e) {
-				botState.fatal(e);
-				return false;
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	/**
-	 * Imports data from non-Wikipedia source. Must set the internal sourceData map as the final target.
-	 * @param identifier
-	 */
-	abstract void importSourceData(String identifier);
-	
-	/**
-	 * Imports wikipedia infobox data for a given id and sets it to the internal wikipediaData map.
-	 * @param id
-	 * @throws NoBotsException
-	 * @throws ValidationException
-	 */
-	public void importWikipediaData (String id) throws NoBotsException, ValidationException {
-		InfoboxParser parser = InfoboxParser.factory(wpControl.getContentForId(id));
-		this.wikipediaData = parser.parse();
-	}
-	
-	public LinkedHashMap<String, List<String>> getSourceData() { return sourceData; }
-	public LinkedHashMap<String, List<String>> getWikipediaData() { return wikipediaData; }
-	public Update getUpdateObject() { return updatedData; }
-	
-	/**
-	 * Attempts to call the update object's internal methods to push its data to Wikipedia (or the cache). If 
-	 * it is not a dry run, and something happened along the way that flipped the bot's internal canUpdate bit
-	 * to false, it will not send the update to Wikipedia. That bit is often flipped by detecting a {{nobots}} flag.
-	 * @throws ConfigException 
-	 */
-	public boolean update() throws ConfigException {
+	private boolean update(Update update) throws ConfigException {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
-			updatedData.update(wpControl);
+			update.push(wpControl);
 			return true;
 		} else {
 			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
@@ -187,9 +127,48 @@ public abstract class AbstractBotController implements Runnable {
 			}
 	}
 	
-	abstract protected Update createUpdate(String id, Update update);
+	/**
+	 * Called each new iteration of the bot. Ensures that any recoverable errors
+	 * and any data from the previous session is discarded.
+	 */
+	private void reset() {
+		sourceData = new LinkedHashMap<String, List<String>>();
+		wikipediaData = new LinkedHashMap<String, List<String>>();
+		botState.reset();
+		logger.info("Bot reset.");
+	}
 	
-	abstract public String prepareReport();
-
+	/**
+	 * Calls both private importer methods to build a new Update object
+	 * @param id
+	 * @return
+	 */
+	private Update createUpdateForId(String id) {
+		sourceData = importSourceData(id);
+		wikipediaData = importWikipediaData(id);
+		Update update = new Update(id, sourceData, wikipediaData);
+		return update;
+	}
 	
+	/* ---- Private importer methods ---- */
+	
+	abstract protected LinkedHashMap<String, List<String>> importSourceData(String id);
+	
+	private LinkedHashMap<String, List<String>> importWikipediaData(String id) {
+		String content = wpControl.getContentForId(id);
+		InfoboxParser parser = InfoboxParser.factory(content);
+		try {
+			return parser.parse();
+		} catch (NoBotsException e) {
+			botState.recoverable(e);
+			return null;
+		} catch (ValidationException e) {
+			botState.recoverable(e);
+			return null;
+		}
+	}
+	
+	/* ---- Public methods ---- */
+	
+	abstract protected String prepareReport();
 }
