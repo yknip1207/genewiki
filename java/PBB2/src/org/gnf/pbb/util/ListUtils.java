@@ -6,19 +6,23 @@ import java.util.List;
 
 public class ListUtils {
 
-	public static String toString(List<String> list) {
+	public static String toString(List<String> list, String delimiter) {
 		StringBuilder sb = new StringBuilder();
 		if (list == null) 
 			return "";
 		for (String str : list) {
 			sb.append(str);
 			if (list.size() > 1)
-				sb.append(", ");
+				sb.append(delimiter);
 		}
 		if (list.size() > 1) 
 			sb.deleteCharAt(sb.length()-1);
 		
 		return sb.toString();
+	}
+	
+	public static String toString(List<String> list) {
+		return toString(list, ", ");
 	}
 
 	public static List<String> parseString(String strList) {

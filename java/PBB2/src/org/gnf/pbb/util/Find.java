@@ -31,7 +31,7 @@ public class Find {
 			try {
 				String user = cfg.str("username");
 				String pass = cfg.str("password");
-				WikiCategoryReader wcr = new WikiCategoryReader(user, pass);
+				WikiCategoryReader wcr = new WikiCategoryReader(user);
 				List<Page> pages = wcr.getPagesWithPBB(count, batchsize);
 				for (Page page : pages) {
 					GeneWikiPage p = new GeneWikiPage(page.getTitle());

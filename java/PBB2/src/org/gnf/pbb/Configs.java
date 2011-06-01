@@ -34,9 +34,8 @@ public enum Configs {
 	 * Returns boolean state for specified flag
 	 * @param key name of flag
 	 * @return boolean state
-	 * @throws ConfigException if specified key is not found
 	 */
-	public boolean flag(String key) throws ConfigException {
+	public boolean flag(String key) {
 		Boolean flag = flags.get(key);
 		if (initialized() && flag != null) {
 			return flag;
@@ -51,9 +50,8 @@ public enum Configs {
 	 * Returns the string associated for specified key
 	 * @param key name of the string
 	 * @return corresponding string
-	 * @throws ConfigException if specified key is not found
 	 */
-	public String str(String key) throws ConfigException {
+	public String str(String key) {
 		String str = strings.get(key);
 		if (initialized() && str != null) {
 			return str;
@@ -64,7 +62,7 @@ public enum Configs {
 		}
 	}
 	
-	public void set(String key, Boolean flag) throws ConfigException {
+	public void set(String key, Boolean flag) {
 		if (!initialized()) {
 			flags.put(key, flag);
 		} else {

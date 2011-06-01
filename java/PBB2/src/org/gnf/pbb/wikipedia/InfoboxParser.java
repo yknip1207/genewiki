@@ -76,27 +76,21 @@ public class InfoboxParser extends AbstractParser {
 	 * @throws NoBotsException 
 	 * @throws ValidationException 
 	 */
-	public LinkedHashMap<String,List<String>> parse() throws NoBotsException, ValidationException {
+	public ProteinBox parse() throws NoBotsException, ValidationException {
 		if (strict) {
 			findNoBotsFlag();
 			validateTemplateName();
 		}
-		LinkedHashMap<String, List<String>> fields = postprocessFields(parseFields(extractTemplate(rawText)));
+		ProteinBox fields = postprocessFields(parseFields(extractTemplate(rawText)));
 		textBeforeTemplate = preTemplateContent(rawText);
 		textAfterTemplate = postTemplateContent(rawText);
 		if (textBeforeTemplate != null) {
-			String[] arraybuffer = {textBeforeTemplate};
-			fields.put("TextBeforeTemplate", Arrays.asList(arraybuffer));
+			fields.prepend(textBeforeTemplate);
 		}
 		if (textAfterTemplate != null) {
-			String[] arraybuffer = {textAfterTemplate};
-			fields.put("TextAfterTemplate", Arrays.asList(arraybuffer));
+			fields.append(textAfterTemplate);
 		}
-		if (fields.isEmpty() && !canCreate) {	
-			throw new ValidationException("Infobox fields map is empty, probably due to a parsing error. Bot cannot continue.");
-		} else {	// if canCreate flag is set, it's fine that the fields are empty- the bot will populate them.
-			return fields;
-		}
+		return fields;
 	}
 
 	private boolean validateTemplateName() throws ValidationException {
@@ -308,7 +302,11 @@ public class InfoboxParser extends AbstractParser {
 				if (nameParsed && valueParsed) {
 					String name = content.substring(nameStart, nameEnd).trim();
 					String value = content.substring(valueStart, valueEnd).trim();
-					results.put(name, value);
+					if (ProteinBox.ALL_VALUES.contains(name)) {
+						results.put(name, value);
+					} else {
+						logger.severe(String.format("Name '%s' not found in list of fields!"));
+					}
 					logger.fine(String.format("Added field: %s : %s", name, value));
 					nameParsed = false; 	// reset these values
 					valueParsed = false;
@@ -327,8 +325,8 @@ public class InfoboxParser extends AbstractParser {
 	 * @param map of fields
 	 * @return field map in the form string:list
 	 */
-	private LinkedHashMap<String, List<String>> postprocessFields(LinkedHashMap<String, String> map) {
-		LinkedHashMap<String, List<String>> newFields= new LinkedHashMap<String, List<String>>();
+	private ProteinBox postprocessFields(LinkedHashMap<String, String> map) {
+		ProteinBox.Builder builder = new ProteinBox.Builder(map.get("Name"), map.get("Symbol"));
 		
 		Set<String> keys = map.keySet();
 		for (String key : keys) {
@@ -342,16 +340,26 @@ public class InfoboxParser extends AbstractParser {
 				valueBuffer = value.replaceAll("\\}\\}", ", ");
 				valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
 				valueList = Arrays.asList(valueBuffer.split(", "));
+				for (String val : valueList) {
+					val = val.replaceAll("PDB2\\|", "");
+					val = val.trim();
+				}
+				builder.add(key, valueList);
+			} else if (key.equals("AltSymbols")){
+				valueList = Arrays.asList(value.split(";"));
+				for (String val : valueList) {
+					val = val.trim();
+				}
+				builder.add(key, valueList);
 			} else {
-				valueList.add(value);
+				builder.add(key, value.trim());
 			}
-			// Some custom find/replace calls are made here; this code can be altered to suit
-			valueList = Custom.valueParse(valueList);
-			newFields.put(key, valueList);
+
 		}
-		
-		return newFields;
+		// Creates the new ProteinBox and returns it
+		return builder.build();
 	}
+	
 	
 	
 }
