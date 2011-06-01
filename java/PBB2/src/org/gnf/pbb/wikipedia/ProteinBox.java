@@ -102,6 +102,7 @@ public class ProteinBox {
 	
 	private String prependText;
 	private String appendText;
+	private String summary;
 	
 	
 	/**
@@ -146,8 +147,7 @@ public class ProteinBox {
 				singleValFields.put("Name", name);
 				singleValFields.put("Symbol", symbol);
 			} else if (Configs.GET.flag("canCreate")){
-				
-				throw new IllegalArgumentException("Name and/or symbol fields cannot be blank.");
+				throw new IllegalArgumentException("Name and/or symbol fields cannot be null.");
 			}
 		}
 		
@@ -236,6 +236,14 @@ public class ProteinBox {
 	
 	public void append(String appendText) {
 		this.appendText = appendText;
+	}
+	
+	public void setEditSummary(String summary) {
+		this.summary = summary;
+	}
+	
+	public String getSummary() {
+		return summary;
 	}
 	
 	/**
@@ -333,14 +341,12 @@ public class ProteinBox {
 		return out.toString();
 	}
 	
-	/**
-	 * This does something a bit different than other isEmpty() comparisons:
-	 * if only the Name and Symbol field are 
-	 * @return
-	 */
-	public boolean isEmpty() {
+	public void reset() {
+		singleValueFields = new LinkedHashMap<String, String>();
+		multipleValueFields = new LinkedHashMap<String, List<String>>();
+		prependText = "";
+		appendText = "";
 		
-		return false;
 	}
 	
 	

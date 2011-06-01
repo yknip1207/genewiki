@@ -30,7 +30,7 @@ public class PBBController extends AbstractBotController {
 	 * validation purposes.
 	 * @return 
 	 */
-	public LinkedHashMap<String, List<String>> importSourceData(String identifier) {
+	public ProteinBox importSourceData(String identifier) {
 		JsonParser jsonParser = new JsonParser();
 		GeneObject gene = null;
 		

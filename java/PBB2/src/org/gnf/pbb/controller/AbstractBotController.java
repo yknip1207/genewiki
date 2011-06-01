@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.gnf.pbb.AbstractUpdate;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
@@ -15,6 +14,7 @@ import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.wikipedia.InfoboxParser;
+import org.gnf.pbb.wikipedia.ProteinBox;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
 public abstract class AbstractBotController implements Runnable {
@@ -30,21 +30,19 @@ public abstract class AbstractBotController implements Runnable {
 	protected 	List<String> completed;
 	protected	List<String> failed;
 	
-	protected 	LinkedHashMap<String, List<String>> sourceData;
-	protected 	LinkedHashMap<String, List<String>> wikipediaData;
+	protected 	ProteinBox sourceData;
+	protected 	ProteinBox wikipediaData;
 	
 	private 	int delay;
 	
 	
 	/* ---- Constructors ---- */
 	public AbstractBotController(List<String> identifiers, ExceptionHandler exh) {
-		logger = Logger.getLogger(AbstractUpdate.class.getName());
+		logger = Logger.getLogger(AbstractBotController.class.getName());
 		dbManager = new DatabaseManager();
 		botState = exh;
 		
 		this.wpControl = new WikipediaController(botState, Configs.GET);
-		this.sourceData = new LinkedHashMap<String,List<String>>();
-		this.wikipediaData = new LinkedHashMap<String,List<String>>();
 		
 		this.delay = 3;
 		this.identifiers = identifiers;
@@ -76,7 +74,7 @@ public abstract class AbstractBotController implements Runnable {
 				}
 				
 				reset();									// This is where everything
-				Update updatedData = createUpdateForId(id);	// important happens- follow
+				ProteinBox updatedData = createUpdateForId(id);	// important happens- follow
 				boolean success = this.update(updatedData);	// these methods back
 				
 				if (success) {
@@ -98,7 +96,7 @@ public abstract class AbstractBotController implements Runnable {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ConfigException ce) {
+			} catch (Exception ce) {
 				prepareReport();
 				return;
 			}
@@ -117,9 +115,9 @@ public abstract class AbstractBotController implements Runnable {
 	 * Executes the push() method of the given update object, with safety
 	 * checks in place
 	 */
-	private boolean update(Update update) throws ConfigException {
+	private boolean update(ProteinBox update) throws Exception {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
-			update.push(wpControl);
+			wpControl.putContent(update.toString(), update.getSingle("Symbol"), update.getSummary());
 			return true;
 		} else {
 			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
@@ -132,8 +130,8 @@ public abstract class AbstractBotController implements Runnable {
 	 * and any data from the previous session is discarded.
 	 */
 	private void reset() {
-		sourceData = new LinkedHashMap<String, List<String>>();
-		wikipediaData = new LinkedHashMap<String, List<String>>();
+		sourceData.reset();
+		wikipediaData.reset();
 		botState.reset();
 		logger.info("Bot reset.");
 	}
@@ -143,18 +141,18 @@ public abstract class AbstractBotController implements Runnable {
 	 * @param id
 	 * @return
 	 */
-	private Update createUpdateForId(String id) {
+	private ProteinBox createUpdateForId(String id) {
 		sourceData = importSourceData(id);
 		wikipediaData = importWikipediaData(id);
-		Update update = new Update(id, sourceData, wikipediaData);
+		ProteinBox update = wikipediaData.updateWith(sourceData);
 		return update;
 	}
 	
 	/* ---- Private importer methods ---- */
 	
-	abstract protected LinkedHashMap<String, List<String>> importSourceData(String id);
+	abstract protected ProteinBox importSourceData(String id);
 	
-	private LinkedHashMap<String, List<String>> importWikipediaData(String id) {
+	private ProteinBox importWikipediaData(String id) {
 		String content = wpControl.getContentForId(id);
 		InfoboxParser parser = InfoboxParser.factory(content);
 		try {
