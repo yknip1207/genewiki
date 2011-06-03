@@ -30,7 +30,7 @@ public class Find {
 		} else {
 			try {
 				String user = cfg.str("username");
-				String pass = cfg.str("password");
+				// String pass = cfg.str("password");
 				WikiCategoryReader wcr = new WikiCategoryReader(user);
 				List<Page> pages = wcr.getPagesWithPBB(count, batchsize);
 				for (Page page : pages) {

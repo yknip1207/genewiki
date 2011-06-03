@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gnf.pbb.Configs;
-import org.gnf.pbb.Custom;
 import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.MalformedWikitextException;
@@ -33,18 +32,16 @@ public class InfoboxParser extends AbstractParser {
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
 	private boolean strict;
-	private boolean canCreate;
 	private boolean verbose;
 	private String templateName;
 	private String textBeforeTemplate;
 	private String textAfterTemplate;
 	
-	public InfoboxParser(String rawText, boolean strict, boolean canCreate, boolean verbose, String templateName, ExceptionHandler exh) {
+	public InfoboxParser(String rawText, boolean strict, boolean verbose, String templateName, ExceptionHandler exh) {
 		super(rawText);
 		botState = exh;
 		this.rawText = rawText;
 		this.strict = strict;
-		this.canCreate = canCreate;
 		this.verbose = verbose;
 		this.templateName = templateName;
 		textBeforeTemplate = "";
@@ -57,7 +54,6 @@ public class InfoboxParser extends AbstractParser {
 	public static InfoboxParser factory(String rawText) {
 		try {
 			return new InfoboxParser(rawText, Configs.GET.flag("strict"), 
-					Configs.GET.flag("canCreate"), 
 					Configs.GET.flag("verbose"),
 					Configs.GET.str("templateName"),
 					PbbExceptionHandler.INSTANCE);		

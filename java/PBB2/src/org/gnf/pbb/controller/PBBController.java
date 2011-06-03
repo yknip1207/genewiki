@@ -1,14 +1,11 @@
 package org.gnf.pbb.controller;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 
 import org.codehaus.jackson.map.JsonMappingException;
-import org.gnf.pbb.exceptions.Severity;
-import org.gnf.pbb.mygeneinfo.GeneObject;
 import org.gnf.pbb.mygeneinfo.JsonParser;
 import org.gnf.pbb.wikipedia.ProteinBox;
 

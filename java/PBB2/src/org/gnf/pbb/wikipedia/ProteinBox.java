@@ -258,7 +258,6 @@ public class ProteinBox {
 	 */
 	public ProteinBox updateWith(ProteinBox source) {
 		int updated = 0;
-		int total = ALL_VALUES.size();
 		String name = source.getSingle("Name");	
 		String symbol = source.getSingle("Symbol");
 		ProteinBox.Builder builder = new ProteinBox.Builder(name, symbol);

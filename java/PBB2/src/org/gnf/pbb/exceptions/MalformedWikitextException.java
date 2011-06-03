@@ -1,5 +1,6 @@
 package org.gnf.pbb.exceptions;
 
+@SuppressWarnings("serial")
 public class MalformedWikitextException extends Exception {
 	private String message;
 

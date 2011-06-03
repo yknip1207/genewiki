@@ -2,12 +2,10 @@ package org.gnf.pbb.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.gnf.pbb.Configs;
-import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
@@ -136,16 +134,6 @@ public abstract class AbstractBotController implements Runnable {
 		wikipediaData.reset();
 		botState.reset();
 		logger.info("Bot reset.");
-	}
-	
-	/**
-	 * Calls both private importer methods to build a new Update object
-	 * @param id
-	 * @return
-	 */
-	private ProteinBox createUpdateForId(String id) {
-		ProteinBox update = wikipediaData.updateWith(sourceData);
-		return update;
 	}
 	
 	/* ---- Private importer methods ---- */
