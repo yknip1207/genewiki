@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.mygeneinfo.GeneObject;
 import org.gnf.pbb.mygeneinfo.JsonParser;
+import org.gnf.pbb.wikipedia.ProteinBox;
 
 /**
  * The PBBController extends the AbstractBotController, and is responsible for importing the parsed data from mygene.info
@@ -31,12 +32,11 @@ public class PBBController extends AbstractBotController {
 	 * @return 
 	 */
 	public ProteinBox importSourceData(String identifier) {
-		JsonParser jsonParser = new JsonParser();
-		GeneObject gene = null;
+		ProteinBox gene = null;
 		
 		try {
-			gene = jsonParser.newGeneFromId(identifier);
-			return gene.getGeneDataAsMap();
+			gene = JsonParser.newGeneFromId(identifier);
+			return gene;
 		} catch (JsonParseException e) {
 			logger.severe("Error parsing json file.");
 			botState.recoverable(e);

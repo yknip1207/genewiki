@@ -73,9 +73,10 @@ public abstract class AbstractBotController implements Runnable {
 					}
 				}
 				
-				reset();									// This is where everything
-				ProteinBox updatedData = createUpdateForId(id);	// important happens- follow
-				boolean success = this.update(updatedData);	// these methods back
+				sourceData = importSourceData(id);
+				wikipediaData = importWikipediaData(id);
+				ProteinBox updatedData = wikipediaData.updateWith(sourceData);	
+				boolean success = this.update(updatedData);	
 				
 				if (success) {
 					completed.add(id);
@@ -90,6 +91,7 @@ public abstract class AbstractBotController implements Runnable {
 				} else {
 					failed.add(id);
 				}
+				reset();
 			} catch (InterruptedException e) {
 				prepareReport();
 				return;
@@ -117,7 +119,7 @@ public abstract class AbstractBotController implements Runnable {
 	 */
 	private boolean update(ProteinBox update) throws Exception {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
-			wpControl.putContent(update.toString(), update.getSingle("Symbol"), update.getSummary());
+			wpControl.putContent(update.toString(), update.getSingle("Hs_EntrezGene"), update.getSummary());
 			return true;
 		} else {
 			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
@@ -142,8 +144,6 @@ public abstract class AbstractBotController implements Runnable {
 	 * @return
 	 */
 	private ProteinBox createUpdateForId(String id) {
-		sourceData = importSourceData(id);
-		wikipediaData = importWikipediaData(id);
 		ProteinBox update = wikipediaData.updateWith(sourceData);
 		return update;
 	}

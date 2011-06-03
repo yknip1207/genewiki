@@ -223,8 +223,8 @@ public class InfoboxParser extends AbstractParser {
 		if (content.indexOf("{{") == 0) {
 			content = content.substring(2);
 		}
-		if (content.lastIndexOf("}}") == content.length()-1) {
-			content = content.substring(0, content.length()-3);
+		if (content.lastIndexOf("}}") == content.length()-2) {
+			content = content.substring(0, content.length()-2);
 		}
 		
 		/* ---- Variable declarations ---- */
@@ -305,7 +305,7 @@ public class InfoboxParser extends AbstractParser {
 					if (ProteinBox.ALL_VALUES.contains(name)) {
 						results.put(name, value);
 					} else {
-						logger.severe(String.format("Name '%s' not found in list of fields!"));
+						logger.severe(String.format("Name '%s' not found in list of fields!", name));
 					}
 					logger.fine(String.format("Added field: %s : %s", name, value));
 					nameParsed = false; 	// reset these values
@@ -326,7 +326,7 @@ public class InfoboxParser extends AbstractParser {
 	 * @return field map in the form string:list
 	 */
 	private ProteinBox postprocessFields(LinkedHashMap<String, String> map) {
-		ProteinBox.Builder builder = new ProteinBox.Builder(map.get("Name"), map.get("Symbol"));
+		ProteinBox.Builder builder = new ProteinBox.Builder(map.get("Name"), map.get("Hs_EntrezGene"));
 		
 		Set<String> keys = map.keySet();
 		for (String key : keys) {
@@ -337,18 +337,29 @@ public class InfoboxParser extends AbstractParser {
 			// indicates that they have some sort of HTML tag, and who know's what's inside those...)
 			if ((value.split("\\}\\}").length > 1 && !value.contains("<")) || (key.equals("PDB") || 
 					key.equals("Function") || key.equals("Process") || key.equals("Component"))) {
-				valueBuffer = value.replaceAll("\\}\\}", ", ");
+				if (key.equals("PDB")) {
+					valueBuffer = value.replaceAll("\\}\\},", ",");
+					valueBuffer = value.replaceAll("\\}\\}", "");
+				} else {
+					valueBuffer = value.replaceAll("\\}\\}", ",");
+				}
 				valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
-				valueList = Arrays.asList(valueBuffer.split(", "));
-				for (String val : valueList) {
-					val = val.replaceAll("PDB2\\|", "");
-					val = val.trim();
+				List<String> valueListBuffer = Arrays.asList(valueBuffer.split(","));
+				for (String val : valueListBuffer) {
+					if (key.equals("PDB")) {
+						val = val.replaceAll("PDB2\\|", "");
+					} 
+					valueList.add(val.trim());
 				}
 				builder.add(key, valueList);
 			} else if (key.equals("AltSymbols")){
-				valueList = Arrays.asList(value.split(";"));
-				for (String val : valueList) {
-					val = val.trim();
+				if (value.charAt(0) == ';') {
+					value = value.substring(1, value.length());
+				}
+				List<String>valueListBuffer = Arrays.asList(value.split(";"));
+				valueList = new ArrayList<String>(0);
+				for (String val : valueListBuffer) {
+					valueList.add(val.trim());
 				}
 				builder.add(key, valueList);
 			} else {

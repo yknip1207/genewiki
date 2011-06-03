@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.apache.commons.collections.IterableMap;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
 
@@ -36,6 +34,7 @@ public class ProteinBox {
 			"GeneAtlas_image3", 
 			"Protein_domain_image",
 			"Hs_EntrezGene",
+			"Hs_Ensembl",
 			"Hs_RefseqmRNA",
 			"Hs_RefseqProtein",
 			"Hs_GenLoc_db",
@@ -44,6 +43,7 @@ public class ProteinBox {
 			"Hs_GenLoc_end",
 			"Hs_Uniprot",
 			"Mm_EntrezGene",
+			"Mm_Ensembl",
 			"Mm_RefseqmRNA",
 			"Mm_RefseqProtein",
 			"Mm_GenLoc_db",
@@ -81,6 +81,7 @@ public class ProteinBox {
 			"Component",
 			"Process",
 			"Hs_EntrezGene",
+			"Hs_Ensembl",
 			"Hs_RefseqmRNA",
 			"Hs_RefseqProtein",
 			"Hs_GenLoc_db",
@@ -89,6 +90,7 @@ public class ProteinBox {
 			"Hs_GenLoc_end",
 			"Hs_Uniprot",
 			"Mm_EntrezGene",
+			"Mm_Ensembl",
 			"Mm_RefseqmRNA",
 			"Mm_RefseqProtein",
 			"Mm_GenLoc_db",
@@ -124,30 +126,30 @@ public class ProteinBox {
 		private boolean used = false;
 		
 		/**
-		 * Creates a new ProteinBox.Builder with the required Name and Symbol fields, which can then be
+		 * Creates a new ProteinBox.Builder with the required Name and Hs_EntrezGene fields, which can then be
 		 * extended through this.add(key, value), or used to generate a ProteinBox through this.build().
 		 * @param name
-		 * @param symbol
+		 * @param entrezId
 		 */
-		public Builder(String name, String symbol) {
+		public Builder(String name, String entrezId) {
 			singleValFields = new LinkedHashMap<String, String>();
 			multipleValFields = new LinkedHashMap<String, List<String>>();
 			
 			// Initializing all known fields to default empty values
 			for (String key : SINGLE_VALUES) {
 				singleValFields.put(key, "");
-				System.out.println(singleValFields.get(key));
+				//System.out.println(singleValFields.get(key));
 			}
 			for (String key : MULTIPLE_VALUES) {
 				multipleValFields.put(key, new ArrayList<String>(0));
 			}
 			
 			// initializing the two required fields
-			if (!(name == null) || !(symbol == null)) {
+			if (!(name == null) || !(entrezId == null)) {
 				singleValFields.put("Name", name);
-				singleValFields.put("Symbol", symbol);
+				singleValFields.put("Hs_EntrezGene", entrezId);
 			} else if (Configs.GET.flag("canCreate")){
-				throw new IllegalArgumentException("Name and/or symbol fields cannot be null.");
+				throw new IllegalArgumentException("Name and/or EntrezId fields cannot be null.");
 			}
 		}
 		
@@ -264,6 +266,9 @@ public class ProteinBox {
 		for (String key : SINGLE_VALUES) {
 			String thisValue = this.getSingle(key);
 			String sourceValue = source.getSingle(key);
+			if (sourceValue == null || thisValue == null) {
+				continue;
+			}
 			if (thisValue.equalsIgnoreCase(sourceValue)) {
 				// No need to update.
 				builder.add(key, thisValue);
@@ -278,7 +283,7 @@ public class ProteinBox {
 		
 		for (String key : MULTIPLE_VALUES) {
 			List<String> thisList = this.getList(key);
-			List<String> sourceList = this.getList(key);
+			List<String> sourceList = source.getList(key);
 			Collections.sort(thisList);
 			Collections.sort(sourceList);
 			if (sourceList.isEmpty()) {
@@ -293,8 +298,12 @@ public class ProteinBox {
 				builder.add(key, sourceList);
 			}
 		}
-		System.out.printf("%d/%d fields updated.\n", updated, total);
-		return builder.build();
+		//System.out.printf("%d/%d fields updated.\n", updated, total);
+		ProteinBox pb = builder.build();
+		pb.prepend(this.prependText);
+		pb.append(this.appendText);
+		
+		return pb;
 	}
 
 	/**
@@ -326,7 +335,7 @@ public class ProteinBox {
 						if (key.equals("PDB")) { 
 							out.append("PDB2|"+str+"}}, ");
 						} else { 
-							out.append("}}"); 
+							out.append(str+"}} ");
 						}
 						
 					}

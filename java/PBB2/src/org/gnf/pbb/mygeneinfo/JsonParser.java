@@ -12,14 +12,18 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.wikipedia.ProteinBox;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
@@ -89,73 +93,68 @@ public class JsonParser {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public GeneObject newGeneFromId(String id) throws JsonParseException, JsonMappingException, IOException {
-		GeneObject gene = new GeneObject();
+	public static ProteinBox newGeneFromId(String id) throws JsonParseException, JsonMappingException, IOException {
 		JsonNode rootNode = getJsonForId(id);
 		final int MOUSE_TAXON_ID = 10090;
-		
+		ProteinBox.Builder builder = new ProteinBox.Builder(rootNode.path("name").getTextValue(), id);
 		// Parsing the returned JSON tree, in order of GNF_Protein_box format	
 		try {
-			gene.setPDB(getTextualValues(rootNode.path("pdb")));
-			gene.setName(rootNode.path("name").getTextValue());
-			gene.setHGNCid(rootNode.path("HGNC").getTextValue());
-			gene.setSymbol(rootNode.path("symbol").getTextValue());
-			gene.setAltSymbols(rootNode.path("alias").getTextValue()); //TODO ensure setAltSymbols converts this to String[]
-			gene.setOMIM(rootNode.path("MIM").getTextValue());
-			gene.setECnumber(rootNode.path("ec").getTextValue());
-			gene.setHomologene(rootNode.path("homologene").path("id").getIntValue()); // have to traverse down the tree a bit
+			builder.add("PDB", buildListFromArray(rootNode.path("pdb")));
+			builder.add("HGNCid", rootNode.path("HGNC").getTextValue());
+			builder.add("AltSymbols", buildListFromArray(rootNode.path("alias"))); //TODO ensure setAltSymbols converts this to String[]
+			builder.add("OMIM",rootNode.path("MIM").getTextValue());
+			builder.add("ECnumber",rootNode.path("ec").getTextValue());
+			builder.add("Homologene", Integer.toString(rootNode.path("homologene").path("id").getIntValue())); // have to traverse down the tree a bit
 			// setMGIid(null); // can't find this on downloaded json file
 			// setGeneAtlas_image(null); // can't find this either
-			gene.geneOntologies.setGeneOntologies(
+			builder.add("Function", buildOntologyList(
 					rootNode.path("go").path("MF").findValuesAsText("term"), 
-					rootNode.path("go").path("MF").findValuesAsText("id"),
-					"Molecular Function");
-			gene.geneOntologies.setGeneOntologies(
+					rootNode.path("go").path("MF").findValuesAsText("id")));
+			builder.add("Component", buildOntologyList(
 					rootNode.path("go").path("CC").findValuesAsText("term"), 
-					rootNode.path("go").path("CC").findValuesAsText("id"),
-					"Cellular Component");
-			gene.geneOntologies.setGeneOntologies(
+					rootNode.path("go").path("CC").findValuesAsText("id")));
+			builder.add("Process", buildOntologyList(
 					rootNode.path("go").path("BP").findValuesAsText("term"), 
-					rootNode.path("go").path("BP").findValuesAsText("id"),
-					"Biological Process");
-			gene.setHsEntrezGene(rootNode.get("entrezgene").getIntValue());
-			gene.setHsEnsemble(rootNode.path("ensembl").path("gene").getTextValue());
-			gene.setHsRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein"))); 
-			gene.setHsRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-			gene.setHsGenLocChr(rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
-			gene.setHsGenLocStart(rootNode.path("genomic_pos").path("start").getIntValue());
-			gene.setHsGenLocEnd(rootNode.path("genomic_pos").path("end").getIntValue());
+					rootNode.path("go").path("BP").findValuesAsText("id")));
+			builder.add("Hs_EntrezGene", Integer.toString(rootNode.get("entrezgene").getIntValue()));
+			builder.add("Hs_Ensembl", rootNode.path("ensembl").path("gene").getTextValue());
+			builder.add("Hs_RefseqProtein", rootNode.path("refseq").findValuesAsText("protein").get(0)); // Only getting the first value 
+			builder.add("Hs_RefseqmRNA", rootNode.path("refseq").findValuesAsText("rna").get(0));
+			builder.add("Hs_GenLoc_chr", rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
+			builder.add("Hs_GenLoc_start", Integer.toString(rootNode.path("genomic_pos").path("start").getIntValue()));
+			builder.add("Hs_GenLoc_end", Integer.toString(rootNode.path("genomic_pos").path("end").getIntValue()));
 			
-			//TODO: Detect which uniprot id reviewed
-			gene.setHsUniprot(findReviewedUniprotEntry(rootNode.path("uniprot")));
+			// Finds the Uniprot entry that's been reviewed, if any
+			builder.add("Hs_Uniprot", findReviewedUniprotEntry(rootNode.path("uniprot")));
 			
 			// Need to load mouse gene data for the next group of setters
 			// The information is contained in the homologene array; we need to find the array with
 			// the first element being 10090 (the mouse taxon id) and then grab the corresponding
 			// gene id for that taxon id.
 			Iterator<JsonNode> homologArray = rootNode.path("homologene").path("genes").getElements();
+			int mouseId = 0;
 			for (int i =0; homologArray.hasNext(); i++) {
 				JsonNode node = homologArray.next();
 				if (node.path(0).getIntValue() == MOUSE_TAXON_ID) {
-					gene.setMmEntrezGene(node.path(1).getIntValue()); // success!
+					builder.add("Mm_EntrezGene", Integer.toString(node.path(1).getIntValue())); // success!
+					mouseId = node.path(1).getIntValue();
 					break;
 				}
 			}
-			if (gene.getMmEntrezGene() != 0) {
+			if (mouseId != 0) {
 				// Switching rootNode to the equivalent mouse gene information
-				rootNode = getJsonForId(gene.getMmEntrezGene());
-				gene.setMmEnsemble(rootNode.path("ensembl").path("gene").getTextValue());
-				gene.setMmRefSeqProtein(getTextualValues(rootNode.path("refseq").path("protein")));
-				gene.setMmRefSeqmRNA(getTextualValues(rootNode.path("refseq").path("rna")));
-				gene.setMmGenLocChr(rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
-				gene.setMmGenLocStart(rootNode.path("genomic_pos").path("start").getIntValue());
-				gene.setMmGenLocEnd(rootNode.path("genomic_pos").path("end").getIntValue());
-				gene.setMmUniprot(findReviewedUniprotEntry(rootNode.path("uniprot")));
+				rootNode = getJsonForId(mouseId);
+				builder.add("Mm_Ensembl", rootNode.path("ensembl").path("gene").getTextValue());
+				builder.add("Mm_RefseqProtein", rootNode.path("refseq").findValuesAsText("protein").get(0)); // Only getting the first value 
+				builder.add("Mm_RefseqmRNA", rootNode.path("refseq").findValuesAsText("rna").get(0));
+				builder.add("Mm_GenLoc_chr", rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
+				builder.add("Mm_GenLoc_start", Integer.toString(rootNode.path("genomic_pos").path("start").getIntValue()));
+				builder.add("Mm_GenLoc_end", Integer.toString(rootNode.path("genomic_pos").path("end").getIntValue()));
 			}
 			
 			// set the GenLoc db numbers from mygene.info's metadata file
-			gene.setHsGenLocDb(metadata.path("GENOME_ASSEMBLY").get("human").getTextValue());
-			gene.setMmGenLocDb(metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
+			builder.add("Hs_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("human").getTextValue());
+			builder.add("Mm_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
 		} catch (NumberFormatException e) {
 			botState.recoverable(e);
@@ -167,29 +166,25 @@ public class JsonParser {
 			logger.info("Some fields were unavailable or missing from gene: "+id);
 		} */
 		
-		return gene;
+		return builder.build();
 		
 	}
 	
-	
-	/**
-	 * iterates over a node and returns all the values 
-	 * @param rootNode
-	 * @return
-	 */
-	private static String[] getTextualValues(JsonNode rootNode) {
-		try {
-			Iterator<JsonNode> iter = rootNode.getElements();
-			String[] values = new String[rootNode.size()];
-			for (int i = 0; iter.hasNext(); i++) {
-				values[i] = iter.next().getTextValue();
-			}
-			return values;
-		} catch (NullPointerException e) {
-			logger.warning("Getting textual values from provided node failed because node is null.");
-			return null;
+	private static List<String> buildListFromArray(JsonNode arrayNode) {
+		List<String> outList = new ArrayList<String>();
+		Iterator<JsonNode> it = arrayNode.getElements();
+		while (it.hasNext()) {
+			outList.add(it.next().getTextValue());
 		}
-		
+		return outList;
+	}
+	
+	private static List<String> buildOntologyList(List<String> terms, List<String> ids) {
+		List<String> outList = new ArrayList<String>();
+		for (int i = 0; i < ids.size(); i++) {
+			outList.add("GNF_GO|id="+ids.get(i)+" |text = "+terms.get(i));
+		}
+		return outList;
 	}
 	
 	/**
@@ -201,7 +196,7 @@ public class JsonParser {
 	 * @param uniprotNode
 	 * @return uniprot entry that's been reviewed, if available
 	 */
-	private String findReviewedUniprotEntry(JsonNode uniprotNode) {
+	private static String findReviewedUniprotEntry(JsonNode uniprotNode) {
 		String uniprot = null;
 		URL uniprotEntry;
 		URLConnection connection;
@@ -231,5 +226,29 @@ public class JsonParser {
 			} 
 		}
 		return uniprot;
+	}
+	
+	public static void main(String[] args) {
+		
+		
+		try {
+//			JsonNode root = JsonParser.getJsonForId("410");
+//			ArrayNode pdb = (ArrayNode) root.path("pdb");
+//			Iterator<JsonNode> it = pdb.getElements();
+//			while (it.hasNext()) {
+//				System.out.println(it.next().getTextValue());
+//			}
+			ProteinBox pb = JsonParser.newGeneFromId("410");
+			System.out.println(pb.toString());
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
