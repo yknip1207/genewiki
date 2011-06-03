@@ -334,13 +334,13 @@ public class InfoboxParser extends AbstractParser {
 			if ((value.split("\\}\\}").length > 1 && !value.contains("<")) || (key.equals("PDB") || 
 					key.equals("Function") || key.equals("Process") || key.equals("Component"))) {
 				if (key.equals("PDB")) {
-					valueBuffer = value.replaceAll("\\}\\},", ",");
 					valueBuffer = value.replaceAll("\\}\\}", "");
+					valueBuffer = valueBuffer.replaceAll(",", "```");
 				} else {
-					valueBuffer = value.replaceAll("\\}\\}", ",");
+					valueBuffer = value.replaceAll("\\}\\}", "```");
 				}
 				valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
-				List<String> valueListBuffer = Arrays.asList(valueBuffer.split(","));
+				List<String> valueListBuffer = Arrays.asList(valueBuffer.split("```"));
 				for (String val : valueListBuffer) {
 					if (key.equals("PDB")) {
 						val = val.replaceAll("PDB2\\|", "");

@@ -1,5 +1,6 @@
 package org.gnf.pbb.wikipedia;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,6 +9,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
+import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.logs.DatabaseManager;
 
 /**
  * ProteinBox represents all possible fields in the GNF_Protein_box wikipedia template.
@@ -17,6 +20,8 @@ import org.gnf.pbb.Configs;
  *
  */
 public class ProteinBox {
+	
+	private final PbbExceptionHandler botState;
 	
 	// Keys that may only correspond to one value
 	private static final List<String> SINGLE_VALUES = Arrays.asList(new String[]{
@@ -105,6 +110,8 @@ public class ProteinBox {
 	private String prependText;
 	private String appendText;
 	private String summary;
+	
+	private String id;		// The Entrez id for this gene
 	
 	
 	/**
@@ -202,6 +209,8 @@ public class ProteinBox {
 		multipleValueFields = builder.multipleValFields;
 		prependText = "";
 		appendText = "";
+		id = builder.singleValFields.get("Hs_EntrezGene");
+		botState = PbbExceptionHandler.INSTANCE;
 	}
 	
 	/* ---- Public Methods ---- */
@@ -259,8 +268,9 @@ public class ProteinBox {
 	public ProteinBox updateWith(ProteinBox source) {
 		int updated = 0;
 		String name = source.getSingle("Name");	
-		String symbol = source.getSingle("Symbol");
-		ProteinBox.Builder builder = new ProteinBox.Builder(name, symbol);
+		String entrez = source.getSingle("Hs_EntrezGene");
+		ProteinBox.Builder builder = new ProteinBox.Builder(name, entrez);
+		DatabaseManager db = new DatabaseManager();
 		
 		for (String key : SINGLE_VALUES) {
 			String thisValue = this.getSingle(key);
@@ -277,6 +287,12 @@ public class ProteinBox {
 			} else {
 				updated++;
 				builder.add(key, sourceValue);
+				try {
+					db.addChange(entrez, key, thisValue, sourceValue);
+					System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
+				} catch (SQLException e) {
+					botState.minor(e);
+				}
 			}
 		}
 		
@@ -288,16 +304,36 @@ public class ProteinBox {
 			if (sourceList.isEmpty()) {
 				// Don't update if it's empty.
 				builder.add(key, thisList);
+			} else if (thisList.equals(sourceList)) {
+				// Don't update if they're the same lists.
+				builder.add(key, thisList);
 			} else {
+				if (key.equals("PDB")) {
+					System.out.println("H!"); 	// XXX remove this
+					for (String str : thisList) {
+						System.out.println(str);
+					}
+					for (String str : sourceList) {
+						System.out.println(str);
+					}
+					System.out.println(thisList.size()+" vs "+sourceList.size());
+				}
 				// We always overwrite the fields with lists
 				// due to their changing nature (ontologies
 				// could be corrected, PDB ids could be removed,
 				// etc)
 				updated++;
 				builder.add(key, sourceList);
+				try {
+					db.addChange(entrez, key, thisList.toString(), sourceList.toString());
+					System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
+				} catch (SQLException e) {
+					botState.minor(e);
+				}
 			}
 		}
-		//System.out.printf("%d/%d fields updated.\n", updated, total);
+
+		System.out.printf("%d/%d fields updated.\n", updated, ALL_VALUES.size());
 		ProteinBox pb = builder.build();
 		pb.prepend(this.prependText);
 		pb.append(this.appendText);
