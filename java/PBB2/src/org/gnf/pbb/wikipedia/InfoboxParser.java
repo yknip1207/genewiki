@@ -127,33 +127,38 @@ public class InfoboxParser extends AbstractParser {
 	 * @throws MalformedWikitextException
 	 */
 	public String extractTemplate(String source) {
-		int startIndex = source.indexOf("{{"+this.templateName);
-		int level = 0;
-		int firstOpen = -1;
-		int lastClose = -1;
-		char[] src = source.toCharArray();
-		
-		for (int i = startIndex; i < src.length; i++) {
-			char ch = src[i];
-			char prev = ' ';
-			if (i > 0) {
-				prev = src[i-1];
+		try {
+			int startIndex = source.indexOf("{{"+this.templateName);
+			int level = 0;
+			int firstOpen = -1;
+			int lastClose = -1;
+			char[] src = source.toCharArray();
+			
+			for (int i = startIndex; i < src.length; i++) {
+				char ch = src[i];
+				char prev = ' ';
+				if (i > 0) {
+					prev = src[i-1];
+				}
+				
+				if (ch == '{' && prev == '{') {
+					level++;
+					if (firstOpen == -1) firstOpen = i-1;
+				} else if (ch == '}' && prev == '}'){
+					level--;
+					if (lastClose < i) lastClose = i+1;
+				}
+				
+				if (level == 0 && firstOpen != -1)
+					break;
 			}
 			
-			if (ch == '{' && prev == '{') {
-				level++;
-				if (firstOpen == -1) firstOpen = i-1;
-			} else if (ch == '}' && prev == '}'){
-				level--;
-				if (lastClose < i) lastClose = i+1;
-			}
-			
-			if (level == 0 && firstOpen != -1)
-				break;
+			String result = source.substring(firstOpen, lastClose);
+			return result;
+		} catch (Exception e) {
+			botState.recoverable(e);
+			return null;
 		}
-		
-		String result = source.substring(firstOpen, lastClose);
-		return result;
 	}
 	
 	/**
@@ -209,10 +214,16 @@ public class InfoboxParser extends AbstractParser {
 		// TODO: Write functionality to handle multiple ref tags.
 		int openRefTag = content.indexOf("<ref>");
 		int closeRefTag = content.lastIndexOf("</ref>");
-		String substring = content.substring(openRefTag, closeRefTag);
-		if (substring.indexOf("<ref>") != 0) {
-			botState.recoverable(new Exception("Too many reference tags; the parser is confused."));
-			return null;
+		try {
+			if (openRefTag != -1 || closeRefTag != -1) {
+				String substring = content.substring(openRefTag, closeRefTag);
+				if (substring.indexOf("<ref>") != 0) {
+					botState.recoverable(new Exception("Too many reference tags; the parser is confused."));
+					return null;
+				}
+			}
+		} catch (StringIndexOutOfBoundsException e1) {
+			botState.recoverable(e1);
 		}
 		
 		// Check the content to ensure it doesn't begin with any brackets
@@ -296,16 +307,23 @@ public class InfoboxParser extends AbstractParser {
 				}
 				
 				if (nameParsed && valueParsed) {
-					String name = content.substring(nameStart, nameEnd).trim();
-					String value = content.substring(valueStart, valueEnd).trim();
-					if (ProteinBox.ALL_VALUES.contains(name)) {
-						results.put(name, value);
-					} else {
-						logger.severe(String.format("Name '%s' not found in list of fields!", name));
+					try {
+						String name = content.substring(nameStart, nameEnd).trim();
+						String value = content.substring(valueStart, valueEnd).trim();
+						if (ProteinBox.ALL_VALUES.contains(name)) {
+							results.put(name, value);
+						} else {
+							logger.severe(String.format("Name '%s' not found in list of fields!", name));
+						}
+						logger.fine(String.format("Added field: %s : %s", name, value));
+						nameParsed = false; 	// reset these values
+						valueParsed = false;
+					} catch (RuntimeException e) {
+						botState.recoverable(e);
+						nameParsed = false;
+						valueParsed = false;
+						break;
 					}
-					logger.fine(String.format("Added field: %s : %s", name, value));
-					nameParsed = false; 	// reset these values
-					valueParsed = false;
 				}
 				
 			}
@@ -323,45 +341,49 @@ public class InfoboxParser extends AbstractParser {
 	 */
 	private ProteinBox postprocessFields(LinkedHashMap<String, String> map) {
 		ProteinBox.Builder builder = new ProteinBox.Builder(map.get("Name"), map.get("Hs_EntrezGene"));
-		
-		Set<String> keys = map.keySet();
-		for (String key : keys) {
-			String value = map.get(key);
-			String valueBuffer = "";
-			List<String> valueList = new ArrayList<String>(0);
-			// We only make a list if they're collections of {{..}} and if they don't have < (this usually
-			// indicates that they have some sort of HTML tag, and who know's what's inside those...)
-			if ((value.split("\\}\\}").length > 1 && !value.contains("<")) || (key.equals("PDB") || 
-					key.equals("Function") || key.equals("Process") || key.equals("Component"))) {
-				if (key.equals("PDB")) {
-					valueBuffer = value.replaceAll("\\}\\}", "");
-					valueBuffer = valueBuffer.replaceAll(",", "```");
-				} else {
-					valueBuffer = value.replaceAll("\\}\\}", "```");
-				}
-				valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
-				List<String> valueListBuffer = Arrays.asList(valueBuffer.split("```"));
-				for (String val : valueListBuffer) {
+		try {
+			Set<String> keys = map.keySet();
+			for (String key : keys) {
+				String value = map.get(key);
+				String valueBuffer = "";
+				List<String> valueList = new ArrayList<String>(0);
+				// We only make a list if they're collections of {{..}} and if they don't have < (this usually
+				// indicates that they have some sort of HTML tag, and who know's what's inside those...)
+				if ((!value.contains("<")) && ( (key.equals("PDB") || 
+						key.equals("Function") || key.equals("Process") || key.equals("Component")))) {
 					if (key.equals("PDB")) {
-						val = val.replaceAll("PDB2\\|", "");
-					} 
-					valueList.add(val.trim());
+						valueBuffer = value.replaceAll("\\}\\}", "");
+						valueBuffer = valueBuffer.replaceAll(",", "```");
+					} else {
+						valueBuffer = value.replaceAll("\\}\\}", "```");
+					}
+					valueBuffer = valueBuffer.replaceAll("\\{\\{", "");
+					List<String> valueListBuffer = Arrays.asList(valueBuffer.split("```"));
+					for (String val : valueListBuffer) {
+						if (key.equals("PDB")) {
+							val = val.replaceAll("PDB2\\|", "");
+						} 
+						valueList.add(val.trim());
+					}
+					builder.add(key, valueList);
+				} else if (key.equals("AltSymbols")){
+					if (value.charAt(0) == ';') {
+						value = value.substring(1, value.length());
+					}
+					List<String>valueListBuffer = Arrays.asList(value.split(";"));
+					valueList = new ArrayList<String>(0);
+					for (String val : valueListBuffer) {
+						valueList.add(val.trim());
+					}
+					builder.add(key, valueList);
+				} else {
+					builder.add(key, value.trim());
 				}
-				builder.add(key, valueList);
-			} else if (key.equals("AltSymbols")){
-				if (value.charAt(0) == ';') {
-					value = value.substring(1, value.length());
-				}
-				List<String>valueListBuffer = Arrays.asList(value.split(";"));
-				valueList = new ArrayList<String>(0);
-				for (String val : valueListBuffer) {
-					valueList.add(val.trim());
-				}
-				builder.add(key, valueList);
-			} else {
-				builder.add(key, value.trim());
+	
 			}
-
+		} catch (Exception e) {
+			botState.recoverable(e);
+			// It's better to just move on than to fail.
 		}
 		// Creates the new ProteinBox and returns it
 		return builder.build();

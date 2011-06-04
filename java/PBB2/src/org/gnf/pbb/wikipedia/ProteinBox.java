@@ -1,5 +1,9 @@
 package org.gnf.pbb.wikipedia;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -273,15 +277,29 @@ public class ProteinBox {
 		DatabaseManager db = new DatabaseManager();
 		
 		for (String key : SINGLE_VALUES) {
+//			if (key.equals("Hs_EntrezGene"))
+//				System.out.println("Start debugger.");
 			String thisValue = this.getSingle(key);
 			String sourceValue = source.getSingle(key);
-			if (sourceValue == null || thisValue == null) {
+			if (sourceValue == null && thisValue == null) {
 				continue;
-			}
-			if (thisValue.equalsIgnoreCase(sourceValue)) {
+			} else if (sourceValue == null) {
+				// Nothing to update.
+				System.out.println("WARNING: mygene.info potentially missing information in field "+ key);
+				try {
+					db.addMissingFromSource(entrez, key, thisValue);
+				} catch (SQLException e) {
+					botState.minor(e);
+				}
+				builder.add(key, thisValue);
+				
+			} else if (thisValue == null) {
+				// Definitely update.
+				System.out.printf("Field %s in original is empty.", key);
+			} else if (thisValue.equalsIgnoreCase(sourceValue)) {
 				// No need to update.
 				builder.add(key, thisValue);
-			} else if (sourceValue.equals("")) {
+			} else if (sourceValue.equals("") || sourceValue.equals("0") || sourceValue == null) {
 				// No need to update.
 				builder.add(key, thisValue);
 			} else {
@@ -289,7 +307,7 @@ public class ProteinBox {
 				builder.add(key, sourceValue);
 				try {
 					db.addChange(entrez, key, thisValue, sourceValue);
-					System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
+					//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
 				} catch (SQLException e) {
 					botState.minor(e);
 				}
@@ -308,16 +326,16 @@ public class ProteinBox {
 				// Don't update if they're the same lists.
 				builder.add(key, thisList);
 			} else {
-				if (key.equals("PDB")) {
-					System.out.println("H!"); 	// XXX remove this
-					for (String str : thisList) {
-						System.out.println(str);
-					}
-					for (String str : sourceList) {
-						System.out.println(str);
-					}
-					System.out.println(thisList.size()+" vs "+sourceList.size());
-				}
+//				if (key.equals("PDB")) {
+//					//System.out.println("H!"); 	// XXX remove this
+//					for (String str : thisList) {
+//						System.out.println(str);
+//					}
+//					for (String str : sourceList) {
+//						System.out.println(str);
+//					}
+//					System.out.println(thisList.size()+" vs "+sourceList.size());
+//				}
 				// We always overwrite the fields with lists
 				// due to their changing nature (ontologies
 				// could be corrected, PDB ids could be removed,
@@ -326,7 +344,7 @@ public class ProteinBox {
 				builder.add(key, sourceList);
 				try {
 					db.addChange(entrez, key, thisList.toString(), sourceList.toString());
-					System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
+					//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
 				} catch (SQLException e) {
 					botState.minor(e);
 				}
@@ -394,20 +412,20 @@ public class ProteinBox {
 	}
 	
 	
-	public static void main(String[] args) {
-
-		ProteinBox.Builder buildMe = new ProteinBox.Builder("LOL", "LOL1").add("OMIM", "1234");
-		buildMe.add("PDB", Arrays.asList(new String[]{"123", "452", "f4g"}));
-		ProteinBox pb = buildMe.build();
-		pb.prepend("Something before");
-		pb.append("Something after");
-		
-		//buildMe = new ProteinBox.Builder("LOL", "LOL1");
-		buildMe.add("OMIM", "blahblah");
-		buildMe.add("PDB", Arrays.asList(new String[]{"123", "jupiter"}));
-		ProteinBox src = buildMe.build();
-		pb = pb.updateWith(src);
-		System.out.println(pb.toString());
-		
-	}
+//	public static void main(String[] args) {
+//
+//		ProteinBox.Builder buildMe = new ProteinBox.Builder("LOL", "LOL1").add("OMIM", "1234");
+//		buildMe.add("PDB", Arrays.asList(new String[]{"123", "452", "f4g"}));
+//		ProteinBox pb = buildMe.build();
+//		pb.prepend("Something before");
+//		pb.append("Something after");
+//		
+//		//buildMe = new ProteinBox.Builder("LOL", "LOL1");
+//		buildMe.add("OMIM", "blahblah");
+//		buildMe.add("PDB", Arrays.asList(new String[]{"123", "jupiter"}));
+//		ProteinBox src = buildMe.build();
+//		pb = pb.updateWith(src);
+//		System.out.println(pb.toString());
+//		
+//	}
 }

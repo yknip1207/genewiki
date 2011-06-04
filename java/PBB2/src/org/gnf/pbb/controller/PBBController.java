@@ -1,11 +1,16 @@
 package org.gnf.pbb.controller;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 
 import org.codehaus.jackson.map.JsonMappingException;
+import org.gnf.pbb.Configs;
+import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.mygeneinfo.JsonParser;
 import org.gnf.pbb.wikipedia.ProteinBox;
 
@@ -69,6 +74,25 @@ public class PBBController extends AbstractBotController {
 		}
 		String report = sb.toString();
 		System.out.println(report);
+		try {
+			DatabaseManager db = new DatabaseManager();
+			String cachedir = Configs.GET.str("cacheLocation");
+			BufferedWriter writer = new BufferedWriter(new FileWriter(cachedir+"DB_CHANGES.csv"));
+			writer.write(db.printChanges());
+			writer.close();
+			writer = new BufferedWriter(new FileWriter(cachedir+"DB_ERRATA.csv"));
+			writer.write(db.printMissing());
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+			botState.recoverable(e);
+		}
 		wpControl.writeReport(report);
 		return report;
 	}

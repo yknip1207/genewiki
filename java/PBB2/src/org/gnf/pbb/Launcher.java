@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -13,6 +14,7 @@ import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.util.Find;
 //import org.gnf.pbb.util.Find;
 
 
@@ -30,17 +32,19 @@ public class Launcher {
 		DatabaseManager dbManager = new DatabaseManager();
 		try {
 			dbManager.init();
-		} catch (ValidationException e1) {}
+		} catch (ValidationException e1) {
+			System.out.println("Database exists, not overwriting...");
+		}
 		List<String> inputs = new ArrayList<String>(0);
 		
-//		if (args.length < 1) {
-//			System.out.println("Retrieving some gene ids to play with instead.");
-//			inputs  = Find.updateCandidates(500, Configs.GET);
-//			Collections.shuffle(inputs);
-//			System.out.println(inputs);
-//			System.out.println("Press any key to continue.");
-//			System.in.read();
-//		}
+		if (args.length < 1) {
+			System.out.println("Retrieving some gene ids to play with instead.");
+			inputs  = Find.updateCandidates(100, Configs.GET);
+			Collections.shuffle(inputs);
+			System.out.println(inputs);
+			System.out.println("Press any key to continue.");
+			System.in.read();
+		}
 		
 		for (String geneId : args) {
 			try {

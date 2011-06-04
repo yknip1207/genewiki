@@ -144,7 +144,7 @@ public class JsonParser {
 				// Switching rootNode to the equivalent mouse gene information
 				rootNode = getJsonForId(mouseId);
 				builder.add("Mm_Ensembl", rootNode.path("ensembl").path("gene").getTextValue());
-				builder.add("Mm_RefseqProtein", rootNode.path("refseq").findValuesAsText("protein").get(0)); // Only getting the first value 
+				builder.add("Mm_RefseqProtein", safeGetFirstEntry(rootNode.path("refseq").findValuesAsText("protein"))); // Only getting the first value 
 				builder.add("Mm_RefseqmRNA", rootNode.path("refseq").findValuesAsText("rna").get(0));
 				builder.add("Mm_GenLoc_chr", rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
 				builder.add("Mm_GenLoc_start", Integer.toString(rootNode.path("genomic_pos").path("start").getIntValue()));
@@ -155,20 +155,23 @@ public class JsonParser {
 			builder.add("Hs_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("human").getTextValue());
 			builder.add("Mm_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			botState.recoverable(e);
 			return null;
-		} catch (IllegalArgumentException e) {
-			botState.recoverable(e);
-			return null;
-		} /*catch (NullPointerException e) {
-			logger.info("Some fields were unavailable or missing from gene: "+id);
-		} */
+		}
 		
 		return builder.build();
 		
 	}
 	
+	private static String safeGetFirstEntry(List<String> list) {
+		try {
+			return list.get(0);
+		} catch (Exception e){
+			return "";
+		}
+	}
+
 	private static List<String> buildListFromArray(JsonNode arrayNode) {
 		List<String> outList = new ArrayList<String>();
 		Iterator<JsonNode> it = arrayNode.getElements();

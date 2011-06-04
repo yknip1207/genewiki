@@ -27,10 +27,10 @@ public class DatabaseManager {
 		}
 	}
 	
-	public DatabaseManager DatabaseManagerFactory(ExceptionHandler _exHandler) {
+	public static DatabaseManager factory(ExceptionHandler _exHandler) {
 		DatabaseManager dbmanager = new DatabaseManager(); 
 		dbmanager.exHandler = _exHandler;
-		locked = false;
+		dbmanager.locked = false;
 		return dbmanager;
 	}
 	
@@ -51,7 +51,9 @@ public class DatabaseManager {
 			Connection conn = DriverManager.getConnection("jdbc:sqlite:pbb.db");
 			Statement stat = conn.createStatement();
 			stat.executeUpdate("drop table if exists changes;");
-			stat.executeUpdate("create table changes (gene, fields, oldvalues, newvalues, time);");
+			stat.executeUpdate("create table changes (gene, field, oldvalues, newvalues, time);");
+			stat.executeUpdate("drop table if exists missing;");
+			stat.executeUpdate("create table missing (gene, field, wikiValues);");
 			conn.close();
 		} catch (SQLException e) {
 			exHandler.pass(e, Severity.FATAL);
@@ -116,26 +118,60 @@ public class DatabaseManager {
 		dbconnect.setAutoCommit(true);
 		
 		close(dbconnect);
-		
 	}
 	
-	public void printDb() throws SQLException {
+	public void addMissingFromSource(String gene, String field, String wikiValue) throws SQLException {
+		Connection dbconnect = connect();
+		PreparedStatement prep = dbconnect.prepareStatement("insert into missing values (?, ?, ?);");
+		prep.setString(1, gene);
+		prep.setString(2, field);
+		prep.setString(3, wikiValue);
+		
+		dbconnect.setAutoCommit(false);
+		prep.executeBatch();
+		dbconnect.setAutoCommit(true);
+		
+		close(dbconnect);
+	}
+	
+	public String printChanges() throws SQLException {
 		Connection dbconnect = connect();
 		Statement stat = dbconnect.createStatement();
 		ResultSet results = stat.executeQuery("select * from changes;");
+		StringBuilder sb = new StringBuilder();
 		while (results.next()) {
 			String geneId = results.getString("gene");
-			String field = results.getString("fields");
+			String field = results.getString("field");
 			String oldvalue = results.getString("oldvalues");
 			String newvalue = results.getString("newvalues");
 			long timeStamp = results.getLong("time");
 			Calendar cal = Calendar.getInstance();
 			cal.setTimeInMillis(timeStamp);
 			String time = cal.getTime().toString();
-			System.out.format("Protein \t Field \t Old -> New \t Time\n");
-			System.out.format("%s \t %s \t %s -> %s \t %s \n", geneId, field, oldvalue, newvalue, time);
+			//sb.append(String.format("Gene,Field,Old,New,Time\n"));
+			sb.append(String.format("%s,%s,\"%s\",\"%s\",%s\n", geneId, field, oldvalue, newvalue, time));
 		}
 		results.close();
 		close(dbconnect);
+		return sb.toString();
 	}
+	
+	public String printMissing() throws SQLException {
+		Connection dbconnect = connect();
+		Statement stat = dbconnect.createStatement();
+		ResultSet results = stat.executeQuery("select * from missing;");
+		StringBuilder sb = new StringBuilder();
+		while (results.next()) {
+			String geneId = results.getString("gene");
+			String field = results.getString("field");
+			String wikiValue = results.getString("wikiValue");
+			sb.append(String.format("Gene,Field,Values from Wikipedia\n"));
+			sb.append(String.format("%s,%s,\"%s\"\n", geneId, field, wikiValue));
+			System.out.println("Errata added to database");
+		}
+		results.close();
+		close(dbconnect);
+		return sb.toString();
+	}
+
 }

@@ -42,7 +42,7 @@ public abstract class AbstractBotController implements Runnable {
 		
 		this.wpControl = new WikipediaController(botState, Configs.GET);
 		
-		this.delay = 3;
+		this.delay = 1;
 		this.identifiers = identifiers;
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);
@@ -70,33 +70,47 @@ public abstract class AbstractBotController implements Runnable {
 						return;
 					}
 				}
+				boolean success = false;
+				try {
+					sourceData = importSourceData(id);
+					wikipediaData = importWikipediaData(id);
+				} catch (Exception e) {
+					botState.recoverable(e);
+				}
 				
-				sourceData = importSourceData(id);
-				wikipediaData = importWikipediaData(id);
-				ProteinBox updatedData = wikipediaData.updateWith(sourceData);	
-				boolean success = this.update(updatedData);	
+				if (botState.isFine()) {
+					ProteinBox updatedData = wikipediaData.updateWith(sourceData);	
+					success = this.update(updatedData);
+				} else if (botState.canRecover()) {
+					success = false;
+				} else {
+					throw new Exception("Bot state is unrecoverable, exiting.");
+				}
 				
 				if (success) {
 					completed.add(id);
 					//XXX Debug hacks.
-					Runtime run = Runtime.getRuntime();
-					Process p = run.exec("C:\\Users\\eclarke\\AppData\\Local\\Mozilla Firefox\\firefox.exe -new-tab " +
-							"http://184.72.42.242/mediawiki/index.php?title=Template:PBB/"+id+"&action=history");
-					System.out.println("Once satisfied, press any key to continue.");
-					System.in.read();
-					p.destroy();
-					System.out.println("Moving along...");
+//					Runtime run = Runtime.getRuntime();
+//					Process p = run.exec("C:\\Users\\eclarke\\AppData\\Local\\Mozilla Firefox\\firefox.exe -new-tab " +
+//							"http://184.72.42.242/mediawiki/index.php?title=Template:PBB/"+id+"&action=history");
+//					System.out.println("Once satisfied, press any key to continue.");
+//					System.in.read();
+//					p.destroy();
+//					System.out.println("Moving along...");
 				} else {
 					failed.add(id);
 				}
 				reset();
 			} catch (InterruptedException e) {
+				e.printStackTrace();
 				prepareReport();
 				return;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (Exception ce) {
+				prepareReport();
+				return;
+			} catch (Exception e) {
+				e.printStackTrace();
 				prepareReport();
 				return;
 			}
