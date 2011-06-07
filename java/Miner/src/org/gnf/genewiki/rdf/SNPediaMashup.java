@@ -12,12 +12,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.gnf.dont.DOmapping;
 import org.gnf.dont.DOowl;
 import org.gnf.dont.DOterm;
@@ -59,11 +61,13 @@ public class SNPediaMashup {
 	 */
 	public static void main(String[] args) {
 		//dumpTabTriples();
-		String rdf = "file:///Users/bgood/data/SMW/gw_snp_mashup3.rdf";
-		String outputdir = "/Users/bgood/data/SMW/";
-		//		summarizeGeneDiseaseIntersection(rdf, outputdir);
+		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
+		String outputdir = "/Users/bgood/data/SMW/dump3/";
+		//summarizeGeneDiseaseIntersection(rdf, outputdir);
 		//summarizeGeneDiseaseJustSnpedia(rdf, outputdir);
-		summarizeGeneDiseaseJustGwiki(rdf, outputdir);
+		//summarizeGeneDiseaseJustGwiki(rdf, outputdir);
+		//summarizeGeneDiseaseUnion(rdf, outputdir);
+		measureOnSamples(rdf, outputdir);
 
 		//getEditCountsForSNPedia()
 		//getSNPDiseaseLinksFromSNPedia()
@@ -369,14 +373,16 @@ public class SNPediaMashup {
 			ResultSet rs = qe.execSelect();
 			try {
 				FileWriter tab = new FileWriter(outputdir+"gene2disease.txt");
+				FileWriter tabgw = new FileWriter(outputdir+"gene2disease_onlygw.txt");
 				tab.write("Gene\tTitle\tDisease\tDiseaseOntologyTerm\tSNP\tMatch2DOA\n");
+				tabgw.write("Gene\tTitle\tDisease\tDiseaseOntologyTerm\tMatch2DOA\n");
 				int parents = 0; int directs = 0; int total = 0;
 				Set<String> gene_disease = new HashSet<String>();
 				Set<String> gene_disease_snp = new HashSet<String>();
 				Set<String> genes = new HashSet<String>();
 				Set<String> diseases = new HashSet<String>();
 				Set<String> snps = new HashSet<String>();
-				Set<String> gene_disease_gw = new HashSet<String>();
+				Set<String> gene_disease_gw_and_snp = new HashSet<String>();
 				while(rs.hasNext()){
 					QuerySolution rb = rs.nextSolution() ;
 					Resource gene = rb.getResource("gene");
@@ -391,7 +397,7 @@ public class SNPediaMashup {
 						while(it.hasNext()){
 							Resource dd = it.nextStatement().getObject().as(Resource.class);
 							if(dd.equals(disease)){
-								gene_disease_gw.add(gene_id+do_term);
+								gene_disease_gw_and_snp.add(gene_id+do_term);
 								break;
 							}
 						}
@@ -439,10 +445,11 @@ public class SNPediaMashup {
 									}
 								}
 							}
+							tabgw.write(gene_id+"\t"+g+"\t"+smwuriToText(disease)+"\t"+do_term+"\t"+doa_match+"\n");
 						}
-//						else{
-//							System.out.println(gene_id+"\t"+do_term);
-//						}
+						//						else{
+						//							System.out.println(gene_id+"\t"+do_term);
+						//						}
 						if(gene_disease_snp.add(gene_id+" "+do_term+" "+snp)){
 							tab.write(gene_id+"\t"+g+"\t"+smwuriToText(disease)+"\t"+do_term+"\t"+smwuriToText(snp)+"\t"+doa_match+"\n");
 						}
@@ -453,8 +460,9 @@ public class SNPediaMashup {
 				System.out.println("parents\tdirects\tnone\ttotal");
 				System.out.println(parents+"\t"+directs+"\t"+(total-parents-directs)+"\t"+total);
 				System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps\tGene_Disease_also_inSNP");
-				System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size()+"\t"+gene_disease_gw.size());
+				System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size()+"\t"+gene_disease_gw_and_snp.size());
 				tab.close();
+				tabgw.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -642,6 +650,379 @@ public class SNPediaMashup {
 		}
 
 
+
+	}
+
+	/**
+	 * Process the RDF export to produce a summary of the mashup.
+	 * Main method for producing the results in ISMB bio-ontology SIG
+	 * @param rdffile
+	 * @param output
+	 */
+	public static void summarizeGeneDiseaseUnion(String rdffile, String outputdir){
+		String datafile = rdffile;
+		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
+		//	RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"), snpedia);
+		GeneWikiPage gwiki = new GeneWikiPage(creds.get("wpid"), creds.get("wppw"));
+		//load the disease ontology mappings for comparison
+		Map<String, Set<DOterm>> gene_dos = DOmapping.loadGeneRifs2DO();
+		DOowl dowl = new DOowl();
+		gene_dos = dowl.expandDoMap(gene_dos, false);
+
+		//load the gene wiki index to get the mappings to ncbi gene ids
+		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";
+		//	Map<String, String> gene_page = new HashMap<String, String>();
+		Map<String, String> page_gene = new HashMap<String, String>();
+		File in = new File(gindex);
+		if(in.canRead()){
+			try {
+				BufferedReader f = new BufferedReader(new FileReader(gindex));
+				String line = f.readLine().trim();
+				while(line!=null){
+					if(!line.startsWith("#")){
+						String[] item = line.split("\t");
+						if(item!=null&&item.length>1){
+							//		if(gene_page.get(item[0])!=null){
+							//			System.out.println(item[0]+" duplicated "+item[1]+" -- "+gene_page.get(item[1]));
+							//		}
+							//		gene_page.put(item[0], item[1].replaceAll(" ", "_"));
+							page_gene.put(item[1].replaceAll(" ", "_"), item[0]);
+						}
+					}
+					line = f.readLine();
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		Model model = ModelFactory.createDefaultModel();
+		model.read(datafile);
+		//		Property snp = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AHasSNP");
+		//		Property associated_with = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AIs-2Dassociated-2Dwith");
+		//		Property sameas = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3ASame-2Das");
+
+
+		////////////////////		
+		////  Get gene-disease and gene-snp-disease examples
+		///////////////////
+		String queryString = 
+			"PREFIX wiki: <http://184.72.42.242/mediawiki/index.php/Special:URIResolver/>" +
+			"SELECT ?gene ?disease ?do_term ?snp "+ 
+			"WHERE { "+
+			" { ?gene wiki:Property-3AIs-2Dassociated-2Dwith ?disease . " +
+			" ?disease wiki:Property-3ASame-2Das ?do_term . " +
+			"	FILTER regex(?do_term, \"^DOID\", \"i\") . " +
+			" } " +
+			" UNION { "+
+			" ?gene wiki:Property-3AHasSNP ?snp .  " +
+			" ?snp wiki:Property-3AIs-2Dassociated-2Dwith ?disease . " +
+			" ?disease wiki:Property-3ASame-2Das ?do_term . " +
+			"	FILTER regex(?do_term, \"^DOID\", \"i\") . " +
+			" }" +
+			"} ";
+
+		//////////////////////
+		////  Get all gene-disease, gene-snp relations
+		/////////////////////
+
+		Query query = QueryFactory.create(queryString);
+		// Execute the query and obtain results
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+
+		try{
+			ResultSet rs = qe.execSelect();
+			try {
+				FileWriter tab = new FileWriter(outputdir+"gene2diseaseORsnp2disease.txt");
+				tab.write("Gene\tTitle\tDisease\tDiseaseOntologyTerm\tsnp\tMatch2DOA\n");
+				int parents = 0; int directs = 0; int total = 0;
+				Set<String> gene_disease_snp = new HashSet<String>();
+				Set<String> gene_disease = new HashSet<String>();
+				Set<String> genes = new HashSet<String>();
+				Set<String> diseases = new HashSet<String>();
+				Set<String> snps = new HashSet<String>();
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					Resource gene = rb.getResource("gene");
+					Resource disease = rb.getResource("disease");
+					String do_term = rb.getLiteral("do_term").getString();
+					Resource snp = rb.getResource("snp");
+
+					String g = smwuriToText(gene);
+					String gene_id = page_gene.get(g);
+					String doa_match = "none";
+					Set<DOterm> dos = null;
+
+
+					if(gene_id==null){
+						gwiki.setTitle(g);
+						gwiki.setTitleToRedirect();
+						gwiki.retrieveWikiTextContent();
+						gwiki.parseAndSetNcbiGeneId();
+						gene_id = gwiki.getNcbi_gene_id();
+						if(gene_id!=null&&gene_id.trim()!=""){
+							page_gene.put(g, gene_id);
+							FileWriter f = new FileWriter(gindex, true);
+							f.write(gene_id+"\t"+g+"\n");
+							f.close();
+						}else{
+							gene_id = null;
+						}
+					}
+
+					if(gene_id!=null){
+						genes.add(gene_id);
+						diseases.add(do_term);
+						if(snp!=null)snps.add(snp.getLocalName());
+
+						if(gene_disease.add(gene_id+"_"+do_term)){
+							total++;
+							dos = gene_dos.get(gene_id);
+							if(dos!=null){
+								for(DOterm dot : dos){
+									if(dot.getAccession().equals(do_term)){
+										if(dot.isInferred_parent()){
+											doa_match = "parent";
+											parents++;
+										}else{
+											doa_match = "direct";
+											directs++;
+										}
+										break;
+									}
+								}
+							}
+							//one allowed snp per gene-disease pair just to mark where it came from
+							tab.write(gene_id+"\t"+g+"\t"+smwuriToText(disease)+"\t"+do_term+"\t"+smwuriToText(snp)+"\t"+doa_match+"\n");
+						}else{
+							System.out.println(gene_id+"\t"+do_term);
+						}
+					}else{
+						System.out.println("No gene mapped to "+g);
+					}
+				}
+				System.out.println("parents\tdirects\tnone\ttotal");
+				System.out.println(parents+"\t"+directs+"\t"+(total-parents-directs)+"\t"+total);
+				System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps");
+				System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size());
+				tab.close();
+
+
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}finally{
+			// Important � free up resources used running the query
+			qe.close();
+		}
+	}
+
+	public static class LinkedDisease{
+		String disease;
+		String linktype; //gw, snp, both
+		public LinkedDisease(String do_term, String string) {
+			this.disease = do_term;
+			this.linktype = string;
+		}
+
+	}
+
+	public static void measureOnSamples(String rdffile, String outputdir){
+		String datafile = rdffile;
+		//load the gene wiki index to get the mappings to ncbi gene ids
+		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";
+		//	Map<String, String> gene_page = new HashMap<String, String>();
+		Map<String, String> page_gene = new HashMap<String, String>();
+		File in = new File(gindex);
+		if(in.canRead()){
+			try {
+				BufferedReader f = new BufferedReader(new FileReader(gindex));
+				String line = f.readLine().trim();
+				while(line!=null){
+					if(!line.startsWith("#")){
+						String[] item = line.split("\t");
+						if(item!=null&&item.length>1){
+							page_gene.put(item[1].replaceAll(" ", "_"), item[0]);
+						}
+					}
+					line = f.readLine();
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		Model model = ModelFactory.createDefaultModel();
+		model.read(datafile);
+		//		Property snp = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AHasSNP");
+		//		Property associated_with = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AIs-2Dassociated-2Dwith");
+		//		Property sameas = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3ASame-2Das");
+
+		Set<String> gene_disease_snp = new HashSet<String>();
+		Set<String> gene_disease = new HashSet<String>();
+		Map<String, ArrayList<LinkedDisease>> gene_overlap = new HashMap<String, ArrayList<LinkedDisease>>();
+		Set<String> genes = new HashSet<String>();
+		Set<String> diseases = new HashSet<String>();
+		Set<String> snps = new HashSet<String>();
+		////////////////////		
+		////  Get gene-disease and gene-snp-disease examples
+		///////////////////
+		String queryString = 
+			"PREFIX wiki: <http://184.72.42.242/mediawiki/index.php/Special:URIResolver/>" +
+			"SELECT ?gene ?disease ?do_term "+ 
+			"WHERE "+
+			" { ?gene wiki:Property-3AIs-2Dassociated-2Dwith ?disease . " +
+			" ?disease wiki:Property-3ASame-2Das ?do_term . " +
+			"	FILTER regex(?do_term, \"^DOID\", \"i\") . " +
+			"} ";
+
+		//////////////////////
+		////  Get all gene-disease, gene-snp relations
+		/////////////////////
+
+		Query query = QueryFactory.create(queryString);
+		//		// Execute the query and obtain results
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+
+		try{
+			ResultSet rs = qe.execSelect();
+			while(rs.hasNext()){
+				QuerySolution rb = rs.nextSolution() ;
+				Resource gene = rb.getResource("gene");
+				String do_term = rb.getLiteral("do_term").getString();
+				Resource snp = rb.getResource("snp");
+
+				String g = smwuriToText(gene);
+				String gene_id = page_gene.get(g);
+
+				if(gene_id!=null){
+					genes.add(gene_id);
+					diseases.add(do_term);
+					if(snp!=null)snps.add(snp.getLocalName());
+
+					if(gene_disease.add(gene_id+"_"+do_term)){
+						ArrayList<LinkedDisease> linked = gene_overlap.get(gene_id);
+						if(linked==null){
+							linked = new ArrayList<LinkedDisease>();
+						}
+						linked.add(new SNPediaMashup.LinkedDisease(do_term,"gw"));
+						gene_overlap.put(gene_id, linked);
+					}else{
+						//System.out.println(gene_id+"\t"+do_term);
+					}
+				}else{
+					System.out.println("No gene mapped to "+g);
+				}
+			}
+			//			System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps");
+			//			System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size());
+		}finally{
+			// Important � free up resources used running the query
+			qe.close();
+		}
+
+		queryString = 
+			"PREFIX wiki: <http://184.72.42.242/mediawiki/index.php/Special:URIResolver/>" +
+			"SELECT ?gene ?disease ?do_term ?snp "+ 
+			"WHERE "+
+			" {  "+
+			" ?gene wiki:Property-3AHasSNP ?snp .  " +
+			" ?snp wiki:Property-3AIs-2Dassociated-2Dwith ?disease . " +
+			" ?disease wiki:Property-3ASame-2Das ?do_term . " +
+			"	FILTER regex(?do_term, \"^DOID\", \"i\") . "+
+			"} ";
+
+		//////////////////////
+		////  Get all gene-disease, gene-snp relations
+		/////////////////////
+
+		query = QueryFactory.create(queryString);
+		// Execute the query and obtain results
+		qe = QueryExecutionFactory.create(query, model);
+		Set<String> bothpairs = new HashSet<String>();
+		try{
+			ResultSet rs = qe.execSelect();
+			while(rs.hasNext()){
+				QuerySolution rb = rs.nextSolution() ;
+				Resource gene = rb.getResource("gene");
+				String do_term = rb.getLiteral("do_term").getString();
+				Resource snp = rb.getResource("snp");
+
+				String g = smwuriToText(gene);
+				String gene_id = page_gene.get(g);
+
+				if(gene_id!=null){
+					genes.add(gene_id);
+					diseases.add(do_term);
+					if(snp!=null)snps.add(snp.getLocalName());
+
+					if(gene_disease.add(gene_id+"_"+do_term)){
+						ArrayList<LinkedDisease> linked = gene_overlap.get(gene_id);
+						if(linked==null){
+							linked = new ArrayList<LinkedDisease>();
+						}
+						linked.add(new SNPediaMashup.LinkedDisease(do_term,"snp"));
+						gene_overlap.put(gene_id, linked);
+						bothpairs.add(gene_id+"_"+do_term);
+					}
+					else{
+						if(bothpairs.add(gene_id+"_"+do_term)){
+							//System.out.println(gene_id+" "+do_term+" "+snp);
+							ArrayList<LinkedDisease> linked = gene_overlap.get(gene_id);
+							if(linked==null){
+								linked = new ArrayList<LinkedDisease>();
+							}
+							linked.add(new SNPediaMashup.LinkedDisease(do_term,"both"));
+							gene_overlap.put(gene_id, linked);
+						}
+					}
+				}else{
+					System.out.println("No gene mapped to "+g);
+				}
+			}
+
+						System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps");
+						System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size());
+			//
+						System.out.println(gene_overlap.size());
+
+			List<String> gs = new ArrayList<String>(gene_overlap.keySet());
+			Collections.shuffle(gs);
+			
+			int group = 100;
+			DescriptiveStatistics stats = new DescriptiveStatistics();
+			for(int l=0; l<2000; l+=100){
+				double g = 0; double b = 0; double s = 0;
+				for(int i = l; i<l+100; i++){
+					for(LinkedDisease ld : gene_overlap.get(gs.get(i))){
+						if(ld.linktype.equals("gw")){
+							g++;
+						}else if(ld.linktype.equals("both")){
+							b++;
+						}else if(ld.linktype.equals("snp")){
+							s++;
+						}
+					}
+				}
+				System.out.println(g+"\t"+b+"\t"+s+"\t"+b/(g+b+s));
+				stats.addValue((double)b/(g+b+s));
+			}
+			System.out.println(stats);
+		}finally{
+			// Important � free up resources used running the query
+			qe.close();
+		}
 
 	}
 

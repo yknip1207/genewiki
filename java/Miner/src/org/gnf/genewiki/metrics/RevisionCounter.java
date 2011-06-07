@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -77,26 +78,29 @@ public class RevisionCounter {
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
 		List<String> titles = new ArrayList<String>();
-		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
-		titles.addAll(gene_wiki.values());
-		Collections.sort(titles);
+	//	Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
+	//	titles.addAll(gene_wiki.values());
+	//	Collections.sort(titles);
+		String article_names = "/users/bgood/data/wikiportal/facebase_genes.txt";
+		titles.addAll(FileFun.readOneColFile(article_names));
 		Calendar latest = Calendar.getInstance();
 		Calendar earliest = Calendar.getInstance();
 		earliest.add(Calendar.YEAR, -1);
-		String outfile = "/Users/bgood/data/SMW/genewiki_edit_report";
-		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);
-		
-//		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
-//		System.out.println(revs.size());
+		String outfile = "/Users/bgood/data/wikiportal/fb_denver/networks/fb_gene_editor";
+		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);	
+		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
+		System.out.println(revs.size());
 		
 	}
-
+	
 	public RevisionsReport generateBatchReport(Set<String> titles, Calendar latest, Calendar earliest, String outfile){
 		RevisionsReport report = null;
 		String timespan = DateFun.yearMonthDay.format(earliest.getTime())+"-"+DateFun.yearMonthDay.format(latest.getTime());
 		int n = 0;
 		try {
 			FileWriter f = new FileWriter(outfile+"_all.txt");
+			FileWriter editor_network = new FileWriter(outfile+"_gene_editor_net.txt");
+			editor_network.write("gene\tedits\teditor\n");
 			f.write(timespan+"__"+RevisionsReport.getArticleHeader()+"\n");
 			List<GWRevision> allrevs = new ArrayList<GWRevision>();
 			for(String title : titles){
@@ -106,12 +110,16 @@ public class RevisionCounter {
 					report = new RevisionsReport(revs);	
 					System.out.println(n+"\t"+report.getArticleString(title));
 					f.write(report.getArticleString(title)+"\n");
+					for(Entry<String, Integer> user_edit : report.getUser_edits().entrySet()){
+						editor_network.write(title+"\t"+user_edit.getValue()+"\t"+user_edit.getKey()+"\n");
+					}
 				}else{
 					System.out.println(title+"\tnone\t");
-					f.write(title+"\tnone\n");
+					f.write(title+"\t0\n");
 				}
 				n++;
 			}
+			editor_network.close();
 			f.close();
 			f = new FileWriter(outfile+"_summary.txt");
 			report = new RevisionsReport(allrevs);

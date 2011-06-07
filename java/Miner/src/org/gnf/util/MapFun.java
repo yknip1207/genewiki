@@ -15,6 +15,8 @@ import java.util.Set;
 
 import javax.swing.text.html.HTMLDocument.Iterator;
 
+import org.gnf.go.GOterm;
+
 /**
  * @author bgood
  *
@@ -56,8 +58,41 @@ public class MapFun {
 	        });
 	        return keys;
 	    }
-	
-	 public static Map<String, Set<String>> flipMapStringStrings(Map<String, List<String>> inmap){
+
+	 public static Map<String, Set<String>> flipMapStringGOs(Map<String, Set<GOterm>> inmap){
+		 Map<String, Set<String>> outmap = new HashMap<String, Set<String>>();
+		 for(Entry<String, Set<GOterm>> in : inmap.entrySet()){
+			if(in.getKey().equals("55669")){
+				System.out.println("flip 55669 size "+in.getValue().size());
+			}
+			 for(GOterm f : in.getValue()){
+				 Set<String> fvals = outmap.get(f.getAccession());
+				 if(fvals==null){
+					 fvals = new HashSet<String>();
+				 }
+				 fvals.add(in.getKey());
+				 outmap.put(f.getAccession(), fvals);
+			 }
+		 }
+		 return outmap;
+	 }
+
+	 public static Map<String, Set<String>> flipMapStringSetStrings(Map<String, Set<String>> inmap){
+		 Map<String, Set<String>> outmap = new HashMap<String, Set<String>>();
+		 for(Entry<String, Set<String>> in : inmap.entrySet()){
+			 for(String f : in.getValue()){
+				 Set<String> fvals = outmap.get(f);
+				 if(fvals==null){
+					 fvals = new HashSet<String>();
+				 }
+				 fvals.add(in.getKey());
+				 outmap.put(f, fvals);
+			 }
+		 }
+		 return outmap;
+	 }
+	 
+	 public static Map<String, Set<String>> flipMapStringListStrings(Map<String, List<String>> inmap){
 		 Map<String, Set<String>> outmap = new HashMap<String, Set<String>>();
 		 for(Entry<String, List<String>> in : inmap.entrySet()){
 			 for(String f : in.getValue()){

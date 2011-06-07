@@ -47,7 +47,7 @@ public class TestExporter {
 	 */
 	public static OntModel loadGOAssociations(OntModel model){
 		CandidateAnnotations cannolist = new CandidateAnnotations();
-		cannolist.loadAndFilterCandidateGOAnnotations(Config.merged_mined_annos);
+		cannolist.loadAndFilterCandidateGOAnnotations(Config.merged_mined_annos, false);
 		List<CandidateAnnotation> cannos = cannolist.getCannos();		
 		System.out.println("Loaded all candidate GO annotations "+cannos.size());
 		for(CandidateAnnotation canno : cannos){

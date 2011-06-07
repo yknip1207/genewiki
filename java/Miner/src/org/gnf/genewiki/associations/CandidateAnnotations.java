@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,24 @@ public class CandidateAnnotations {
 		//		c.cannos = CandiAnnoSorter.addAllEvidenceForGOAnnotations(c.cannos);
 		//		System.out.println("added evidence "+c.cannos.size());
 		//		c.writeGOCandiListWithEvidence(Config.merged_mined_ranked_filtered_annos_go);
+	}
+
+
+	public Map<String, Set<String>> getGene2OntoMap(){
+		Map<String, Set<String>> gene2onto = new HashMap<String, Set<String>>();
+		for(CandidateAnnotation canno : cannos){
+			Set<String> onts = gene2onto.get(canno.getEntrez_gene_id());
+			if(onts==null){
+				onts = new HashSet<String>();
+			}
+			String acc = canno.getTarget_accession();
+			if(acc.contains("/")){
+				acc = acc.substring(acc.indexOf("/")+1);
+			}
+			onts.add(acc);
+			gene2onto.put(canno.getEntrez_gene_id(),onts);
+		}
+		return gene2onto;
 	}
 
 	public void filterKnownHuman(){
@@ -186,12 +205,12 @@ public class CandidateAnnotations {
 		}
 	}
 
-/**
- * Reads a candidate annotation text file and filters out non-GO annotations as well as annotations that are from unwanted areas of the gene wiki page
- * or that include uninteresting GO terms
- * @param file
- */
-	public void loadAndFilterCandidateGOAnnotations(String file){
+	/**
+	 * Reads a candidate annotation text file and filters out non-GO annotations as well as annotations that are from unwanted areas of the gene wiki page
+	 * or that include uninteresting GO terms
+	 * @param file
+	 */
+	public void loadAndFilterCandidateGOAnnotations(String file, boolean nopbb){
 		cannos = new ArrayList<CandidateAnnotation>();
 		Set<String> unique_annos = new HashSet<String>();		
 		GOowl gol = new GOowl();
@@ -204,23 +223,30 @@ public class CandidateAnnotations {
 			while(line!=null){
 				String[] item = line.split("\t");
 				String acc = item[9];
-				if(acc.startsWith(Ontologies.OLD_GO_ONT)||acc.startsWith("GO:")){// //"44171/")
+				if(acc.contains("GO:")){// //"44171/")
 					CandidateAnnotation canno = new CandidateAnnotation(item);
-					String a = acc.substring(Ontologies.OLD_GO_ONT.length()+4);
-					if(acc.startsWith("GO:")){
-						a = acc.substring(3);
-					}
-					a = Filter.replaceOldGoAcc(a);
-					//remove unwanted matches
-					if(!Filter.fromUnwantedWikiSection(canno)
-							&&!Filter.containsUnwantedGOTerm(canno)){		
-						if(unique_annos.add(canno.getEntrez_gene_id()+canno.getTarget_accession())){
-							canno.setTarget_accession("GO:"+a);
-							canno.setVocabulary_branch(gol.getGoBranch(a));
-							cannos.add(canno);
+					//if filtering for pbb then skip where author equals pbb..
+					if(!(nopbb&&canno.getLink_author().equals("ProteinBoxBot"))){
+						int trim = acc.indexOf("/");
+						String a = acc;
+						if(trim>0){
+							a = acc.substring(trim+4);
 						}
-					}
-				}				
+						if(acc.startsWith("GO:")){
+							a = acc.substring(3);
+						}
+						a = Filter.replaceOldGoAcc(a);
+						//remove unwanted matches
+						if(!Filter.fromUnwantedWikiSection(canno)
+								&&!Filter.containsUnwantedGOTerm(canno)){		
+							if(unique_annos.add(canno.getEntrez_gene_id()+canno.getTarget_accession())){
+								canno.setTarget_accession("GO:"+a);
+								canno.setVocabulary_branch(gol.getGoBranch(a));
+								cannos.add(canno);
+							}
+						}
+					}	
+				}
 				line = f.readLine();
 			}
 			f.close();
@@ -275,7 +301,7 @@ public class CandidateAnnotations {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/***
 	 * Load annotations from tab-delimited file
 	 * @param file
