@@ -42,9 +42,8 @@ import com.hp.hpl.jena.vocabulary.RDFS;
  * GeneWikiPage contains methods to:
  * 		retrieve articles from Wikipedia and convert them into Java objects
  *		Serialize/Deserialize these objects as Java bytecode
- *		Export wiki page as plain text or as HTML
- *		Export extracted links as RDF or as tab-delimited text
- * 
+ *		parse links, sentences, references, headings, gene identifiers from Wikipedia text
+ * 		parse authors, trust information from WikiTrust markup
  * @author bgood
  *
  */

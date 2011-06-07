@@ -4,6 +4,7 @@ import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.inference.ChiSquareTest;
 import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
+import org.apache.commons.math.util.MathUtils;
 import org.apache.commons.math.distribution.HypergeometricDistribution;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 
@@ -19,9 +20,10 @@ public class StatFun {
 //		double p = hypergeoTest(populationSize, numberOfSuccessesInPopulation, sampleSize, successesInSample);
 //		System.out.println(p);
 		
-		int plusplus = 36; int minusplus = 14; int plusminus = 30; int minusminus = 25;
-		System.out.println(chiSquareTest(plusplus, minusplus, plusminus, minusminus));
-		
+		int plusplus = 15; int minusplus = 1; int plusminus = 1; int minusminus = 12500;
+		System.out.println("Chi square "+chiSquareValue(plusplus, minusplus, plusminus, minusminus));
+
+		System.out.println("fisher 2 tail "+fishersExact2tailed(plusplus,minusplus,plusminus,minusminus));
 	}
 
 	public static String statsToTabString(DescriptiveStatistics stats){
@@ -68,6 +70,15 @@ public class StatFun {
 			e.printStackTrace();
 		}
 		return chi;
+		
+	}
+	
+	public static double fishersExact2tailed(int a, int b, int c, int d){
+	//	double p = (MathUtils.factorial(a+b)*MathUtils.factorial(c+d)*MathUtils.factorial(a+c)*MathUtils.factorial(b+d))/(MathUtils.factorial(a)*MathUtils.factorial(b)*MathUtils.factorial(c)*MathUtils.factorial(d)*MathUtils.factorial(a+b+c+d));
+		double p = 0;
+		FisherExact fact = new FisherExact(a+b+c+d);
+		p = fact.getTwoTailedP(a, b, c, d);
+		return p;
 		
 	}
 	

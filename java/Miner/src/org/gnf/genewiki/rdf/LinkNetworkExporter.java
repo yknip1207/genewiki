@@ -96,7 +96,7 @@ public class LinkNetworkExporter {
 		Set<String> titles = FileFun.readOneColFile(article_name_file);
 		CandidateAnnotations cannolist = new CandidateAnnotations();
 		String annos = "/Users/bgood/data/genewiki_jan_2011/intermediate/text-mined-annos.txt";
-		cannolist.loadAndFilterCandidateGOAnnotations(annos);
+		cannolist.loadAndFilterCandidateGOAnnotations(annos, false);
 		List<CandidateAnnotation> testcannos = cannolist.getCannos();
 		try {
 			FileWriter f = new FileWriter(outfile);

@@ -46,7 +46,7 @@ public class CandiAnnoSorter {
 	public static void main(String[] args) {
 				CandidateAnnotations cannolist = new CandidateAnnotations();
 				String annos = "/Users/bgood/data/genewiki_jan_2011/output/evaluations/go_eval_sample.txt";
-				cannolist.loadAndFilterCandidateGOAnnotations(annos);
+				cannolist.loadAndFilterCandidateGOAnnotations(annos, false);
 				List<CandidateAnnotation> testcannos = cannolist.getCannos();
 				System.out.println("Loaded candidate GO annotations "+testcannos.size());
 				testcannos = addAllEvidenceForGOAnnotations(testcannos);
@@ -115,7 +115,7 @@ public class CandiAnnoSorter {
 	 */
 	public static void rankAndSaveGOAnnotations(String annos){
 		CandidateAnnotations cannolist = new CandidateAnnotations();
-		cannolist.loadAndFilterCandidateGOAnnotations(annos);
+		cannolist.loadAndFilterCandidateGOAnnotations(annos, false);
 		List<CandidateAnnotation> testcannos = cannolist.getCannos();
 		System.out.println("Loaded candidate GO annotations "+testcannos.size());
 		testcannos = addAllEvidenceForGOAnnotations(testcannos);
@@ -179,7 +179,7 @@ public class CandiAnnoSorter {
 
 	public static void getRealCandidateAnnotations(){
 		CandidateAnnotations c = new CandidateAnnotations();
-		c.loadAndFilterCandidateGOAnnotations(Config.merged_mined_ranked_annos_go);
+		c.loadAndFilterCandidateGOAnnotations(Config.merged_mined_ranked_annos_go, false);
 		System.out.println("all "+c.cannos.size());
 		c.filterPBB();
 		System.out.println("no pbb "+c.cannos.size());

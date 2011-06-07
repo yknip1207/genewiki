@@ -43,11 +43,17 @@ public class HyperGeoTest {
 		measureGeneWikiValue();
 	}
 
+	
+	/**
+	 * Considers all gene_abstract_go predictions drawn from all abstracts linked to each gene (via a goa record)
+	 * Means that some go_gene connections are drawn from abstracts linked to the genes but not necessarily to the GO term
+	 */
 	public static void measureGeneWikiValue(){
 		//for each go term in gene2go
 		//get the genes related to it 
 		//get the go terms related to those genes via the annotator and associated abstracts
-		//test 1, what fraction of the go_gene associations are rediscovered via the annotator-abstract process?
+		//measure the gene2pubmed2annotator process' ability to reproduce original go2gene tuples
+		//add on annotations from gene wiki and measure difference - does it help to include gene wiki content?
 		
 		boolean skipIEA = true;
 		Map<String, Set<GOterm>> genego = Annotation.readGene2GO(Config.gene_go_file, skipIEA);
@@ -60,18 +66,39 @@ public class HyperGeoTest {
 		int total_genes_from_goa = genego.keySet().size();
 		Map<String, Set<String>> go_geness = MapFun.flipMapStringGOs(genego);
 		//get gene_ab_go 
-
 		String abannos = "/Users/bgood/data/annos_from_abstracts.txt";
 		CandidateAnnotations abcannos = new CandidateAnnotations();
-		abcannos.loadAndFilterCandidateGOAnnotations(abannos);
+		abcannos.loadAndFilterCandidateGOAnnotations(abannos, false);
 		Map<String, Set<String>> gene_ab_gos = abcannos.getGene2OntoMap();
 		Map<String, Set<String>> go_ab_genes = MapFun.flipMapStringSetStrings(gene_ab_gos);
 		
+		System.out.println("got gene to go from abstracts ");
+		//get gene2pubmed
+		Map<String, Set<String>> gene2pmids = getGene2PMIDfromGene2GO();
+		Map<String, Set<String>> go2pmids = new HashMap<String, Set<String>>();
+		for(Entry<String, Set<String>> go_genes : go_geness.entrySet()){
+			Set<String> pmids = new HashSet<String>();
+			for(String gene : go_genes.getValue()){
+				Set<String> pp = gene2pmids.get(gene);
+				if(pp!=null&&pp.size()>0){
+					pmids.addAll(pp);
+				}else{
+					//System.out.println("no pmids for gene "+gene+" from go "+go_genes.getKey());
+				}
+			}
+			go2pmids.put(go_genes.getKey(), pmids);
+		}
+		
+		System.out.println("got gene to go to pmid from goa ");
+		System.out.println("GO:0002115 "+go2pmids.get("GO:0002115"));
 		
 		CandidateAnnotations gwcannos = new CandidateAnnotations();
-		gwcannos.loadAndFilterCandidateGOAnnotations(Config.text_mined_annos);
+		boolean ignorepbb = true;
+		gwcannos.loadAndFilterCandidateGOAnnotations(Config.text_mined_annos, ignorepbb);
 		Map<String, Set<String>> gene_gw_gos = gwcannos.getGene2OntoMap();
 		Map<String, Set<String>> go_gw_genes = MapFun.flipMapStringSetStrings(gene_gw_gos);
+		System.out.println("got gene to go from gene wiki ");
+		
 		//make a random one
 		List<String> allgenes = new ArrayList<String>(genego.keySet());
 		Map<String, Set<String>> go_ran_genes = new HashMap<String, Set<String>>();
@@ -84,11 +111,21 @@ public class HyperGeoTest {
 			}
 			go_ran_genes.put(go, genes);
 		}
+		System.out.println("got gene to go from random ");		
 		
-		
-		System.out.println("go	yy	ny	yn	nn	p_abs_only	delta_w	p_with_gw	yy	ny	yn	nn");
+		try {
+			FileWriter w = new FileWriter("/Users/bgood/data/term_gw_recovery_v4.txt");
+		w.write("acc	term	branch	pmid_count	ao_yy	ao_ny	ao_yn	ao_nn	f2t_abs_only	delta_log_f2t_gw	f2t_with_gw	gw_yy	gw_ny	gw_yn	gw_nn	delta_log_f2t_ran	f2t_with_ran	ran_yy	ran_ny	ran_yn	ran_nn	");
 		for(Entry<String, Set<String>> go_genes : go_geness.entrySet()){
 			String goterm = go_genes.getKey();
+			GOterm full = acc2go.get(goterm);
+			String preferred = full.getTerm();
+			String branch = full.getRoot();
+			Set<String> pmids = go2pmids.get(goterm);
+			String pmid_count = "0";
+			if(pmids!=null){
+				pmid_count = pmids.size()+"";
+			}
 			Set<String> genes_f_goa = go_genes.getValue();
 	///////////// ab only		
 			Set<String> genes_f_ab = new HashSet<String>();
@@ -98,8 +135,8 @@ public class HyperGeoTest {
 			if(genes_f_ab==null||genes_f_ab.size()==0){
 				continue;
 			}
-		//	System.out.println(genes_f_goa);
-		//	System.out.println(genes_f_ab);
+		//	w.writeln(genes_f_goa);
+		//	w.writeln(genes_f_ab);
 			int total_goa_ = genes_f_goa.size();
 			int total_goa_not_ab_ = 0;
 			int total_ab_ = 0;
@@ -120,11 +157,14 @@ public class HyperGeoTest {
 				//--
 				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
 				//test
-				chi_p_ab_only = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
-				System.out.print("\n"+goterm+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
+//				chi_p_ab_only = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+//				chi_p_ab_only = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				chi_p_ab_only = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write("\n"+goterm+"\t"+preferred+"\t"+branch+"\t"+pmid_count+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
 			}else{
 				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
-				System.out.print("\n"+goterm+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
+				chi_p_ab_only = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write("\n"+goterm+"\t"+preferred+"\t"+branch+"\t"+pmid_count+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t"+chi_p_ab_only+"\t");
 			}
 	//////// plus gene wiki
 			genes_f_ab = new HashSet<String>();
@@ -147,14 +187,18 @@ public class HyperGeoTest {
 				//--
 				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
 				//test
-				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
-				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+//				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+//				double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
 			}else{
-				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
-				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
-			}
- ////// plus random
-//TODO something wrong here... not random			
+//				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+//				double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}			
+			
+ ////// plus random	
 			genes_f_ab = new HashSet<String>();
 			if(go_ab_genes.get(goterm)!=null){
 				genes_f_ab.addAll(go_ab_genes.get(goterm));
@@ -175,13 +219,92 @@ public class HyperGeoTest {
 				//--
 				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
 				//test
-				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
-				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+		//		double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+		//		double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
 			}else{
-				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
-				System.out.print(chi_p_ab_only-chi_p_both+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+		//		double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+		//		double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
 			}
+	///// only gene wiki
+			//////// plus gene wiki
+			genes_f_ab = new HashSet<String>();
+//			if(go_ab_genes.get(goterm)!=null){
+//				genes_f_ab.addAll(go_ab_genes.get(goterm));
+//			}	
+			if(go_gw_genes.get(goterm)!=null){
+				genes_f_ab.addAll(go_gw_genes.get(goterm));
+			}
+			if(genes_f_ab!=null&&genes_f_ab.size()>0){
+				total_ab_ = genes_f_ab.size();
+				//find genes reproduced..
+				genes_f_ab.retainAll(genes_f_goa);
+				//++
+				total_ab_goa_ = genes_f_ab.size();
+				//-+
+				total_ab_not_goa_ = total_ab_ - total_ab_goa_;
+				//+_
+				total_goa_not_ab_ = total_goa_ - total_ab_goa_;
+				//--
+				total_not_goa_not_ab = total_genes_from_goa - total_ab_goa_ - total_ab_not_goa_ - total_goa_not_ab_;
+				//test
+//				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+//				double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}else{
+//				double chi_p_both = StatFun.chiSquareTest(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+//				double chi_p_both = StatFun.chiSquareValue(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				double chi_p_both = StatFun.fishersExact2tailed(total_ab_goa_, total_ab_not_goa_, total_goa_not_ab_, total_not_goa_not_ab);
+				w.write((Math.log(chi_p_both)-Math.log(chi_p_ab_only))+"\t"+chi_p_both+"\t"+total_ab_goa_+"\t"+total_ab_not_goa_+"\t"+total_goa_not_ab_+"\t"+total_not_goa_not_ab+"\t");
+			}
+			
 		}
+		w.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static Map<String, Set<String>> getGene2PMIDfromGene2GO(){
+			HashMap<String,Set<String>> gene_pmids = new HashMap<String, Set<String>>();
+			try {
+				BufferedReader f = new BufferedReader(new FileReader(Config.gene_go_file));
+				String line = f.readLine().trim();
+				while(line!=null){
+					if(!line.startsWith("#")){
+						String[] item = line.split("\t");
+						if(item!=null&&item.length>1){
+						//	String acc = item[2];
+						//	String code = item[3];
+							String geneid = item[1];
+							String pmids = item[6];
+							Set<String> gpmids = gene_pmids.get(geneid);
+							if(gpmids==null){
+								gpmids = new HashSet<String>();
+							}
+							if(pmids.trim()!="-"&&pmids.trim().length()>1){
+								for(String pmid : pmids.split(",")){
+									gpmids.add(pmid);
+								}
+							}
+							gene_pmids.put(geneid,gpmids);				
+						}
+					}
+					line = f.readLine();
+				}
+				f.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return gene_pmids;
 	}
 	
 	public static void getDataForAbstract2Annotations(){
@@ -242,7 +365,6 @@ public class HyperGeoTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Map<String, Set<String>> go_genes = MapFun.flipMapStringGOs(gene_gos);
 		//get pubmed ids linked to these genes
 		//build a local cache of the text from pubmed
 		String pubcache = "/Users/bgood/data/pubcache.txt";
@@ -335,7 +457,7 @@ public class HyperGeoTest {
 		//for each GO process represented in the gene wiki mining results
 		String annos = Config.text_mined_annos;
 		CandidateAnnotations cannolist = new CandidateAnnotations();
-		cannolist.loadAndFilterCandidateGOAnnotations(annos);
+		cannolist.loadAndFilterCandidateGOAnnotations(annos, false);
 		List<CandidateAnnotation> testcannos = cannolist.getCannos();
 		//		System.out.println("Loaded candidate GO annotations "+testcannos.size());
 		HashMap<String, Set<String>> go_gw_genes = new HashMap<String, Set<String>>();
