@@ -168,7 +168,7 @@ public class Connector {
 				if (responseCode == HttpStatus.SC_OK) {
 					String responseBody = getAsXmlString(method);
 					//XXX ec DEBUG
-					System.out.println(responseBody);
+					//System.out.println(responseBody);
 					XMLUserParser parser = new XMLUserParser(user, responseBody);
 					parser.parse();
 					if (i == 0 && user.getResult().equals(User.NEED_TOKEN_ID)) {
