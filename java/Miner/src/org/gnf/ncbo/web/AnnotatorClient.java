@@ -19,7 +19,7 @@ import org.jdom.input.SAXBuilder;
 
 public class AnnotatorClient {
 
-	public static final String PROD_URL = "http://rest.bioontology.org/obs/annotator?email=bgood@gnf.org";
+	public static final String PROD_URL = "http://rest.bioontology.org/obs/annotator?apikey=0d1e8183-6485-4866-8b8a-cbc35e8e77cc";
 
 	public static void main( String[] args ) {
 		String text ="The cerebellum is in the brain. The cell had a cell membrane and a nucleolus. Schizophrenia is a disease.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
@@ -178,7 +178,7 @@ public class AnnotatorClient {
 			}
 			// Execute the POST method
 			int statusCode = client.executeMethod(method);
-			if( statusCode != -1 ) {
+			if( statusCode != -1 && statusCode != 500) {
 				String contents = method.getResponseBodyAsString();
 				method.releaseConnection();
 				if(!contents.startsWith("<HTML><HEAD>\n<TITLE>Network Error</TITLE>")){
@@ -186,19 +186,22 @@ public class AnnotatorClient {
 				}else{
 					statusCode = -10;
 				}
+			}else{
+				
+				statusCode = -10;
 			}
 
 			if(statusCode<0){
 				int rnum = Integer.parseInt(params.get("rqnum"));
 				if(rnum<10){
-					System.out.println("No or bad response for "+params.get("textToAnnotate")+" rnum "+rnum);
+					//System.out.println("No or bad response for "+params.get("textToAnnotate")+" rnum "+rnum);
 					rnum++;
 					params.put("rqnum", ""+rnum);
 					//request failed, try again in 2 seconds up to 10 times.
 					Thread.currentThread().sleep(2000);				
 					return ncboAnnotate(params, text2annotate);
 				}else{
-					System.out.println("Quitting: Service would not answer request to annotate: "+params.get("textToAnnotate"));
+					System.out.println("Quitting: NCBO Annotator would not answer request to annotate: \""+params.get("textToAnnotate")+"\"");
 					System.exit(-1);
 				}
 			}

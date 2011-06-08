@@ -45,13 +45,13 @@ public class CandiAnnoSorter {
 	 */
 	public static void main(String[] args) {
 				CandidateAnnotations cannolist = new CandidateAnnotations();
-				String annos = "/Users/bgood/data/genewiki_jan_2011/output/evaluations/go_eval_sample.txt";
+				String annos = Config.text_mined_annos;
 				cannolist.loadAndFilterCandidateGOAnnotations(annos, false);
 				List<CandidateAnnotation> testcannos = cannolist.getCannos();
 				System.out.println("Loaded candidate GO annotations "+testcannos.size());
 				testcannos = addAllEvidenceForGOAnnotations(testcannos);
 				cannolist.setCannos(testcannos);
-				cannolist.writeGOCandiListWithEvidence("/Users/bgood/data/genewiki_jan_2011/output/evaluations/go_eval_sample_corrected.txt");
+				cannolist.writeGOCandiListWithEvidence("/Users/bgood/data/genewiki/output/no_IEA.txt");
 				System.out.println("Wrote output");
 
 		//CandiAnnoSorter.rankAndSaveGOAnnotations(Config.text_mined_annos);
@@ -136,29 +136,29 @@ public class CandiAnnoSorter {
 		gol_no_infer.initFromFile(usesimplified);
 		System.out.println("Gene Ontology loaded");	
 
-		setFuncBaseScoreGO(testcannos, gol, gol_no_infer);
-		trytofreeMemory();
-		System.out.println("Set FuncBase score for GO terms");	
+//		setFuncBaseScoreGO(testcannos, gol, gol_no_infer);
+//		trytofreeMemory();
+//		System.out.println("Set FuncBase score for GO terms");	
+//
+//		setYahooCoFromCache(testcannos);
+//		System.out.println("Set Yahoo co-occurrence information");	
+//
+//		setObsoleteGO(testcannos, true, gol_no_infer);
+//		System.out.println("Set Obsolete GO terms");
+//		//
+//		//		setPriorConfidenceGO(testcannos, gol);
+//		//		trytofreeMemory();
+//		//		System.out.println("Set prior probility for GO terms");		
+//
+//		setGeneGOPredictions(testcannos, gol, gol_no_infer);
+//		trytofreeMemory();
+//		System.out.println("Set GeneGo predictions for GO terms");		
+//
+//		setPantherOrthoSupportGO(testcannos, gol, gol_no_infer);
+//		trytofreeMemory();
+//		System.out.println("Set panther family support");
 
-		setYahooCoFromCache(testcannos);
-		System.out.println("Set Yahoo co-occurrence information");	
-
-		setObsoleteGO(testcannos, true, gol_no_infer);
-		System.out.println("Set Obsolete GO terms");
-		//
-		//		setPriorConfidenceGO(testcannos, gol);
-		//		trytofreeMemory();
-		//		System.out.println("Set prior probility for GO terms");		
-
-		setGeneGOPredictions(testcannos, gol, gol_no_infer);
-		trytofreeMemory();
-		System.out.println("Set GeneGo predictions for GO terms");		
-
-		setPantherOrthoSupportGO(testcannos, gol, gol_no_infer);
-		trytofreeMemory();
-		System.out.println("Set panther family support");
-
-		setKnownHumanAnnotationsGO(testcannos, false, gol, gol_no_infer);
+		setKnownHumanAnnotationsGO(testcannos, true, gol, gol_no_infer);
 		trytofreeMemory();
 		System.out.println("Set known human");
 

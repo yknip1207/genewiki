@@ -10,7 +10,7 @@ public class Ontologies {
 	//See http://bioportal.bioontology.org/annotator
 	public static final String OLD_GO_ONT = "44171";
 	public static final String GO_ONT = "1070";//45118 //"44171";
-	public static final String HUMAN_DISEASE_ONT = "1009";//44172";
+	public static final String HUMAN_DISEASE_ONT = "1009";//45125 //44172";
 	public static final String FMA_ONT = "1053";//"39966";
 	public static final String HPO_ONT = "1125";//"44170";
 	public static final String NATIONAL_DRUG_FILE_ONT = "1352";//"40402";

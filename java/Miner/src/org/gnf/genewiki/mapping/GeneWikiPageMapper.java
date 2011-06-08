@@ -95,6 +95,7 @@ public class GeneWikiPageMapper {
 			if(text==null||text.length()<5){
 				continue;
 			}
+	//		System.out.println(text);
 			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, useGO, useDO, useFMA, usePRO, false);
 			if(annos==null||annos.size()==0){
 				continue;
@@ -162,7 +163,7 @@ public class GeneWikiPageMapper {
 				if(f.isProteinBoxBotSummary(page,canno)){
 					canno.setPBB(true);
 				}
-				
+		//		System.out.println(canno.getEntrez_gene_id()+"\t"+canno.getSource_wiki_page_title()+"\t"+canno.getSection_heading()+"\t"+canno.getLink_author()+"\t"+canno.getAnnotationScore()+"\t"+canno.getTarget_accession()+"\t"+canno.getTarget_preferred_term()+"\t"+canno.getParagraph_around_link()+"\t"+canno.getPubmed_references());
 				cannos.add(canno);
 			}
 			

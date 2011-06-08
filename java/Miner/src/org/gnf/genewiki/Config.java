@@ -1,16 +1,6 @@
 package org.gnf.genewiki;
 
 public class Config {
-
-	
-	//depts/CompDisc/asu/Science/proteinboxbot/entrez_index
-	/**
-	 {<asu>hammer:entrez_index}121 % wc ../page_index.20101008
-10166 13168 90846 ../page_index.20101008
-{<asu>hammer:entrez_index}122 % wc GeneWikiIndex_20101008.txt
- 43 109 898 GeneWikiIndex_20101008.txt
-Okay, currently regenerating.  When the GeneWikiIndex_20101008.txt file reaches 10166 lines (or stops being updated), then it's done...
-	 */
 	
 	/****************************
 	 * Files used to assemble Candidate Annotation List

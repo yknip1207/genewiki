@@ -29,7 +29,7 @@ import org.gnf.util.BioInfoUtil;
  * if everything worked (especially external web services) you could uncomment all the lines in the main method and regenerate the results (but that is unlikely
  * because of the extensive dependence on external forces.
  * 
- * The static variables represent local configuration settings (that could be pulled into a config file somewhere if we were so inclined)
+ * The static variables represent local configuration settings (that could be pulled into a config file somewhere if we attempted to make a standalone distribution of this)
  * 
  * @author bgood
  *
@@ -130,7 +130,7 @@ public class Workflow {
 		////
 		// grab the wikitrust markup - assumes the gene wiki data has already been collected from wikipedia (stored locally as objects)
 		////
-	//	GeneWikiTrust.collectAllWikiTrustMarkup(1000000);
+		GeneWikiTrust.collectAllWikiTrustMarkup(1000000);
 		/////////////////////////////////////////////////////////////
 		// Generate Candidates Annotations via NCBO Text Mining
 		/////////////////////////////////////////////////////////////
