@@ -112,7 +112,7 @@ public class RevisionStream {
 	 * Writes out an RSS file that summarizes these revisions
 	 //TODO Write revisions out to twitter stream
 	 *
-	 */
+
 	public static void dailyDose(String gw_index, String rssfile, String tweetrssfile, int secondsback, boolean test, RevisionCounter rc){
 		TimeZone tz = TimeZone.getTimeZone("GMT");
 		Calendar latest = Calendar.getInstance(tz);
@@ -201,7 +201,8 @@ public class RevisionStream {
 		RSS.writeGeneWikiFeed(rssfile, rssentries);
 		RSS.writeGeneWikiFeed(tweetrssfile, tweetentries);
 	}
-
+	 */
+	
 	public static void printTweetables(List<String> titles, Calendar earliest, Calendar latest, RevisionCounter rc){
 		int n = 0;
 		for(String title : titles){

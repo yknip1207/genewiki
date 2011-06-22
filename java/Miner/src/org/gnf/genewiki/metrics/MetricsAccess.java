@@ -115,7 +115,8 @@ public class MetricsAccess {
 			System.out.println("a specific titles file overrides a template");
 			return;
 		}else if(title_file==null&&template_name!=null){
-			WikiCategoryReader r = new WikiCategoryReader();
+			//TODO - generalize this.
+			WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 			int batch = 500;
 			if(limit<batch){
 				batch = limit;

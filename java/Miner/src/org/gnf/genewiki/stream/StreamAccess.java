@@ -111,9 +111,7 @@ public class StreamAccess {
 	}
 
 	public static void printHelp(){
-		System.err.println("Provided by Benjamin Good. bgood@gnf.org");
-		System.err.println("-h this screen");
-		System.err.println("-o <directory> place to put all the data - will overwrite files..");
+		System.err.println("Provided by Benjamin Good. bgood@scripps.edu");
 
 	}
 	

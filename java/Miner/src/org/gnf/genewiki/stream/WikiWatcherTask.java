@@ -36,6 +36,7 @@ public class WikiWatcherTask extends TimerTask {
 	RevisionCounter rc;
 	Shortener shorty;
 	String index_file;
+	Map<String, String> creds_;
 
 	WikiWatcherTask(int max_times,int seconds2goback, List<String> titles_, String index_file_, Map<String, String> creds){
 		super();
@@ -46,6 +47,7 @@ public class WikiWatcherTask extends TimerTask {
 		titles = titles_;
 		index_file = index_file_;
 		rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
+		creds_ = creds;
 		shorty = new Shortener(creds);
 		Tweeter.initTweeter(creds);
 		System.out.println("Initialized watcher");
@@ -56,7 +58,7 @@ public class WikiWatcherTask extends TimerTask {
 	public void run() {
 		//every so often, re-capture the gene wiki from the template and store the file
 		if(n%15==0){
-			Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, false);
+			Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, false, creds_);
 			//once a day rebuild from scratch - won't work on linux...
 			//			if(n>0&&n%360==0){ //720 = 24 hr at 2min
 			//				try{

@@ -73,7 +73,7 @@ public class GeneWikiUtils {
 		return titles;
 	}
 
-	public static Map<String, String> getGeneWikiGeneIndex(String index_file, boolean recalculate_all){
+	public static Map<String, String> getGeneWikiGeneIndex(String index_file, boolean recalculate_all, Map<String, String> creds){
 		Map<String, String> old_gene_wiki = new HashMap<String, String>();
 		File in = new File(index_file);
 		if(in.canRead()){
@@ -100,7 +100,7 @@ public class GeneWikiUtils {
 				e.printStackTrace();
 			}
 		}
-		WikiCategoryReader r = new WikiCategoryReader();
+		WikiCategoryReader r = new WikiCategoryReader(creds);
 		List<Page> pages = r.getPagesWithPBB(1000000, 500);
 		System.out.println("N pages now = "+pages.size()+" n have "+old_gene_wiki.size());
 		ArrayList<String> t = new ArrayList<String>(old_gene_wiki.values());
@@ -171,9 +171,9 @@ public class GeneWikiUtils {
 	 * @param limit
 	 */
 
-	public static void retrieveAndStoreGeneWikiAsJava(int limit){
+	public static void retrieveAndStoreGeneWikiAsJava(int limit, String credfile){
 		//loads an index linking gene wiki page titles to NCBI geneids
-		WikiCategoryReader r = new WikiCategoryReader();
+		WikiCategoryReader r = new WikiCategoryReader(credfile);
 		List<Page> pages = r.getPagesWithPBB(limit, 500);
 		System.out.println("N pages = "+pages.size());
 		//checks to see which are already done

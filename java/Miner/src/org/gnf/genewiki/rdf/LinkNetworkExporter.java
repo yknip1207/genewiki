@@ -126,7 +126,7 @@ public class LinkNetworkExporter {
 		//		String article_names = "/users/bgood/data/wikiportal/gene_wiki_titles.txt";
 		//		Set<String> gwtitles = FileFun.readOneColFile(article_names);
 		Set<String> titles = new HashSet<String>();
-		WikiCategoryReader r = new WikiCategoryReader();
+		WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		int batch = 500;
 		if(limit<batch){
 			batch = limit;

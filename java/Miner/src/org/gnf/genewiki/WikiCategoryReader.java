@@ -21,15 +21,19 @@ import org.gnf.wikiapi.User;
  */
 public class WikiCategoryReader {
 	User user;
-
-	public WikiCategoryReader(){
-		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+	
+	public WikiCategoryReader(Map<String, String> creds){
+		init(creds.get("wpid"), creds.get("wppw"));
+	}
+	
+	public WikiCategoryReader(String credfile){
+//		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		init(creds.get("wpid"), creds.get("wppw"));
 	}
 
-	public WikiCategoryReader(String wikiapi){
-		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+	public WikiCategoryReader(String wikiapi, String credfile){
+	//	String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		init(creds.get("wpid"), creds.get("wppw"), wikiapi);
 	}
@@ -45,7 +49,7 @@ public class WikiCategoryReader {
 	}
 	
 	public static void main(String[] args){
-		WikiCategoryReader r = new WikiCategoryReader();
+		WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		//Genes_by_human_chromosome
 		List<Page> pages = r.listPagesByCategory(1000000, 500, "Human proteins"); //Genes_on_chromosome_1 Genes_by_human_chromosome
 		System.out.println(pages.size()+" "+pages.get(3).getTitle());
@@ -110,7 +114,7 @@ public class WikiCategoryReader {
 	
 	
 	public void getHumanProteinsAndStore(){
-		WikiCategoryReader gr = new WikiCategoryReader();
+		WikiCategoryReader gr = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		try {
 			FileWriter writer = new FileWriter("data\\hairball_10000.txt");
 			FileWriter attwriter = new FileWriter("data\\hairball_10000_att.txt");
