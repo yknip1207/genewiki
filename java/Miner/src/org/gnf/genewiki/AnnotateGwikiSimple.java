@@ -25,7 +25,7 @@ public class AnnotateGwikiSimple {
 		String title = args[0];
 		//get the page
 		GeneWikiPage page = new GeneWikiPage(title);
-		System.out.println("#Getting Gene Wiki data from WikiTrust (http://www.wikitrust.net/)");
+		System.out.println("#Getting Gene Wiki data from Wikipedia via WikiTrust (http://www.wikitrust.net/) for: "+title);
 		boolean worked = page.defaultPopulateWikiTrust();
 		page.parseAndSetNcbiGeneId();
 		System.out.println("#Sentences:\t"+page.getSentences().size());
