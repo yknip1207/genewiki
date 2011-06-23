@@ -187,14 +187,14 @@ public class AnnotatorClient {
 					statusCode = -10;
 				}
 			}else{
-				
+				System.out.println("bad response for "+params.get("textToAnnotate")+statusCode);
 				statusCode = -10;
 			}
 
 			if(statusCode<0){
 				int rnum = Integer.parseInt(params.get("rqnum"));
 				if(rnum<10){
-					//System.out.println("No or bad response for "+params.get("textToAnnotate")+" rnum "+rnum);
+					System.out.println("No or bad response for "+params.get("textToAnnotate")+" rnum "+rnum);
 					rnum++;
 					params.put("rqnum", ""+rnum);
 					//request failed, try again in 2 seconds up to 10 times.

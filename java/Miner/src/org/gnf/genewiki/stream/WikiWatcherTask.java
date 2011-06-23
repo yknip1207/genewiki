@@ -50,12 +50,16 @@ public class WikiWatcherTask extends TimerTask {
 		creds_ = creds;
 		shorty = new Shortener(creds);
 		Tweeter.initTweeter(creds);
+		String c2 = Tweeter.consKey;
 		System.out.println("Initialized watcher");
 		run();
 	}
 
 	@Override
 	public void run() {
+		if(n==0){
+			Tweeter.tweet("suggest merging pages SLC17A5 & HP59 (both linked to Gene:26503");
+		}
 		//every so often, re-capture the gene wiki from the template and store the file
 		if(n%15==0){
 			Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, false, creds_);
@@ -112,6 +116,7 @@ public class WikiWatcherTask extends TimerTask {
 								System.out.println(message);
 							}catch (Exception e){
 								System.err.println("Something went wrong sending the tweet or shortening the URL. ");
+								System.out.println(Tweeter.accSecret+"\n"+Tweeter.accToken+"\n"+Tweeter.consKey+"\n"+Tweeter.consSecret);
 								e.printStackTrace();
 							}
 							try {
