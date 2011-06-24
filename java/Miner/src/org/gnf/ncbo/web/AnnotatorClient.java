@@ -57,7 +57,7 @@ public class AnnotatorClient {
 		}else{
 			params.put("withSynonyms", "false");
 		}
-		params.put("longestOnly", "true");
+	//	params.put("longestOnly", "true");
 		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
 		params.put("stopWords", "protein, gene");
 		params.put("withDefaultStopWords", "true");

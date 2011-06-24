@@ -57,9 +57,9 @@ public class WikiWatcherTask extends TimerTask {
 
 	@Override
 	public void run() {
-		if(n==0){
-			Tweeter.tweet("suggest merging pages SLC17A5 & HP59 (both linked to Gene:26503");
-		}
+//		if(n==0){
+//			Tweeter.tweet("suggest merging pages SLC17A5 & HP59 (both linked to Gene:26503");
+//		}
 		//every so often, re-capture the gene wiki from the template and store the file
 		if(n%15==0){
 			Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(index_file, false, creds_);
