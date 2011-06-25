@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.gnf.genewiki.rdf;
+package org.gnf.genewiki.network;
 
 import java.util.List;
 import java.io.BufferedReader;

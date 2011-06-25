@@ -78,8 +78,8 @@ public class Tweetables {
 								break;
 							}
 							summary += ref.getPmid()+",";
-//							Url url = as(shorty.user, shorty.key).call(shorten("http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\""));
-//							String shorter = url.getShortUrl();
+							//							Url url = as(shorty.user, shorty.key).call(shorten("http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\""));
+							//							String shorter = url.getShortUrl();
 							summaryForRSS += "<a href=\"http://www.ncbi.nlm.nih.gov/pubmed/"+ref.getPmid()+"\">"+ref.getPmid()+"</a>,"; 
 						}
 					}
@@ -186,8 +186,10 @@ public class Tweetables {
 			if(diffs!=null&&diffs.size()>0){
 				for(String diff : diffs){
 					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(diff, true, useGO, useDO, useFMA, usePRO, useOMIM);
-					for(NcboAnnotation anno : annos){
-						keywords.add(anno.getConcept().getPreferredName());
+					if(annos!=null){
+						for(NcboAnnotation anno : annos){
+							keywords.add(anno.getConcept().getPreferredName());
+						}
 					}
 				}
 			}

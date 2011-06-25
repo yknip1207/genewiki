@@ -49,38 +49,38 @@ public class RevisionStream {
 	 */
 	public static void main(String[] args) {
 
-				Calendar latest = Calendar.getInstance();
-				Calendar earliest = Calendar.getInstance();
-				earliest.add(Calendar.MONTH, -1);
+		Calendar latest = Calendar.getInstance();
+		Calendar earliest = Calendar.getInstance();
+		earliest.add(Calendar.MONTH, -1);
 		List<String> titles = new ArrayList<String>();
-//		//		Map<String, String> genes = GeneWikiUtils.read2columnMap("/Users/bgood/data/wikiportal/stream/test_genes.txt");
-//		//		List<String> ncbis = new ArrayList<String>(genes.keySet());
-//		//		titles = GeneWikiUtils.getTitlesfromNcbiGenes(ncbis);
-//
-//		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
-//		titles.addAll(gene_wiki.values());
-//		Collections.sort(titles);
-//
-//		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
-//		titles.add("VIPR2"); 
-//		titles.add("VIPR1");
-//		titles.add("Human_chorionic_gonadotropin");
-//		titles.add("MYH9"); 
-//		titles.add("VAC14");
+		//		//		Map<String, String> genes = GeneWikiUtils.read2columnMap("/Users/bgood/data/wikiportal/stream/test_genes.txt");
+		//		//		List<String> ncbis = new ArrayList<String>(genes.keySet());
+		//		//		titles = GeneWikiUtils.getTitlesfromNcbiGenes(ncbis);
+		//
+		//		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
+		//		titles.addAll(gene_wiki.values());
+		//		Collections.sort(titles);
+		//
+		//		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
+		//		titles.add("VIPR2"); 
+		//		titles.add("VIPR1");
+		//		titles.add("Human_chorionic_gonadotropin");
+		//		titles.add("MYH9"); 
+		//		titles.add("VAC14");
 		titles.add("CD117");
-//		titles.add("Sonic hedgehog");
-//		//	printTweetables(titles, earliest, latest, rc);
+		//		titles.add("Sonic hedgehog");
+		//		//	printTweetables(titles, earliest, latest, rc);
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
-				RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-//		//		dailyDose("./gw_data/gene_wiki_index.txt", "/Users/bgood/workspace/genewiki/genewikitools/static/gwrss.xml",
-//		//				"/Users/bgood/workspace/genewiki/genewikitools/static/gwtweetsrss.xml", 5000, true, rc);
-//		int interval = 120;
-//		int max_times = -1;
-//		int seconds2goback = 5000;
-//		startWikiWatcher(interval, max_times, seconds2goback, titles, creds);
-		
-		
+		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
+		//		//		dailyDose("./gw_data/gene_wiki_index.txt", "/Users/bgood/workspace/genewiki/genewikitools/static/gwrss.xml",
+		//		//				"/Users/bgood/workspace/genewiki/genewikitools/static/gwtweetsrss.xml", 5000, true, rc);
+		//		int interval = 120;
+		//		int max_times = -1;
+		//		int seconds2goback = 5000;
+		//		startWikiWatcher(interval, max_times, seconds2goback, titles, creds);
+
+
 		List<GWRevision> newones = rc.checkListForRevisionsInRange(latest, earliest, titles);
 		if(newones!=null){
 			System.out.println("Found "+newones.size());
@@ -202,7 +202,7 @@ public class RevisionStream {
 		RSS.writeGeneWikiFeed(tweetrssfile, tweetentries);
 	}
 	 */
-	
+
 	public static void printTweetables(List<String> titles, Calendar earliest, Calendar latest, RevisionCounter rc){
 		int n = 0;
 		for(String title : titles){
@@ -231,24 +231,28 @@ public class RevisionStream {
 		if(revs!=null){
 			if(revs.size()==1&&revs.get(0).getParentid()!=null){
 				GWRevision older_parent = rc.getRevision(revs.get(0).getParentid(), false);
-				revs.add(older_parent);
+				if(older_parent != null){
+					revs.add(older_parent);
+				}
 			}
 			Collections.reverse(revs);
-			String last_revid = ""; int last_bytes = 0; int n = 0;
+			String last_revid = ""; int n = 0;
 			for(GWRevision r : revs){			
 				if(n > 0){
 					GWRevision curr_rev = rc.getRevision(r.getRevid(), true);
-					curr_rev.setTitle(title);
-					GeneWikiPage curr = new GeneWikiPage(curr_rev, rc.getUser(), true);
-					GWRevision last_rev = rc.getRevision(last_revid, true);
-					last_rev.setTitle(title);
-					GeneWikiPage last = new GeneWikiPage(last_rev, rc.getUser(), true);
-					int diff = r.getSize()-last_bytes;
-					Tweetables tweets = new Tweetables(last, curr, rc);
-					rev_tweets.put(title+":"+last_revid+":"+curr_rev, tweets);
+					if(curr_rev != null){
+						curr_rev.setTitle(title);
+						GeneWikiPage curr = new GeneWikiPage(curr_rev, rc.getUser(), true);
+						GWRevision last_rev = rc.getRevision(last_revid, true);
+						if(last_rev != null){
+							last_rev.setTitle(title);
+							GeneWikiPage last = new GeneWikiPage(last_rev, rc.getUser(), true);				
+							Tweetables tweets = new Tweetables(last, curr, rc);
+							rev_tweets.put(title+":"+last_revid+":"+curr_rev, tweets);
+						}
+					}
 				}
 				last_revid = r.getRevid();
-				last_bytes = r.getSize();
 				n++;
 			}
 		}

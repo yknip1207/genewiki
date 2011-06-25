@@ -1,4 +1,4 @@
-package org.gnf.genewiki.rdf;
+package org.gnf.genewiki.network;
 
 
 import org.gnf.wikiapi.Page;

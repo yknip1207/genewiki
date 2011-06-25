@@ -300,6 +300,10 @@ public class RevisionCounter {
 
 		Connector connector = user.getConnector();
 		String pagesXML = connector.queryXML(user, a,revQuery);
+		if(pagesXML==null){
+			System.err.println("No response received for revision "+revid);
+			return null;
+		}
 		List<GWRevision> newrevs = parser.parseRevisionsXml(pagesXML);
 		if(newrevs!=null&&newrevs.size()==1){
 			return newrevs.get(0);

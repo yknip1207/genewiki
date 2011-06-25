@@ -1,4 +1,4 @@
-package org.gnf.genewiki.rdf;
+package org.gnf.genewiki.network;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
