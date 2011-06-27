@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import org.gnf.genewiki.parse.JdomBackLinks;
 import org.gnf.genewiki.parse.JdomExtLinks;
+import org.gnf.genewiki.parse.JdomForwardLinks;
 import org.gnf.genewiki.parse.ParseUtils;
 import org.gnf.genewiki.parse.ParserAccess;
 import org.gnf.genewiki.lingpipe.SentenceSplitter;
@@ -115,9 +116,9 @@ public class GeneWikiPage implements Serializable, Comparable{
 			refs = new ArrayList<Reference>();
 			sentences = new ArrayList<Sentence>();
 			headings = new ArrayList<Heading>();
-			
+
 			parseAndSetNcbiGeneId();
-		//	parseAndSetGeneSymbol();
+			//	parseAndSetGeneSymbol();
 			parseAndSetSentences();
 			setReferences();
 			setHeadings();
@@ -198,18 +199,19 @@ public class GeneWikiPage implements Serializable, Comparable{
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
 		GeneWikiPage prot = new GeneWikiPage();//GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/genewiki/intermediate/javaobj/1812"); //5354
-		prot.setTitle("Human_chorionic_gonadotropin");
+		prot.setTitle("AXIN2");
 		prot.defaultPopulate();
-		prot.parseAndSetNcbiGeneId();
-		System.out.println(prot.getNcbi_gene_id());
-		
-//		boolean gotext = prot.defaultPopulate();
-//		if(gotext){
-//			prot.parseAndSetNcbiGeneId();
-//			prot.retrieveAllInBoundWikiLinks(true, false);
-//		}
+		prot.retrieveAllInBoundWikiLinks(true, false);
+		for(GeneWikiLink link : prot.getInglinks()){
+			System.out.println(link.getTarget_page());
+		}
+		//		boolean gotext = prot.defaultPopulate();
+		//		if(gotext){
+		//			prot.parseAndSetNcbiGeneId();
+		//			prot.retrieveAllInBoundWikiLinks(true, false);
+		//		}
 
-//		System.out.println(prot.getTitle()+"\n"+prot.getHeadings());
+		//		System.out.println(prot.getTitle()+"\n"+prot.getHeadings());
 
 		//		for(Heading h : prot.getHeadings()){
 		//			System.out.println(h.getPrettyText());
@@ -484,7 +486,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 			}
 		}
 	}
-	
+
 
 	/**
 	 * If extlinks has been set, try to dig external identifiers out of the links.  Currently only looks at ncbi gene
@@ -575,12 +577,14 @@ public class GeneWikiPage implements Serializable, Comparable{
 	 * Because transclusion can lead to a large number of links that can be of dubious relation to the source page this should be used with caution.
 	 */
 	public void retrieveAllOutBoundWikiLinks(boolean storeAllLinkedPageData){
-		int total = 3000;
+		int total = 1000;
 		int batch = 500;
 		List<String> a = new ArrayList<String>();
 		a.add(getTitle());
 		String nextLinkTitle = "";
 		Connector connector = user.getConnector();		
+		JdomForwardLinks parser = new JdomForwardLinks();
+		
 		for(int i = batch; i< total; i+=batch){
 			String[] linkQuery1 = { 
 					"prop", "links",
@@ -601,28 +605,28 @@ public class GeneWikiPage implements Serializable, Comparable{
 				pagesXML = connector.queryXML(user, a, linkQuery2);
 			}
 			try{
-				List<Page> links = parser.parseWikiContentApiXml(pagesXML);
+				List<String> links = parser.parseLinks(pagesXML);
 
 				if(links != null && links.size()>0){
-					for(Page link : links){
+					for(String link : links){
 						GeneWikiLink outlink = new GeneWikiLink();						
-						GeneWikiPage target = new GeneWikiPage(user);
-						target.setTitle(link.getTitle());
 						//Note this will be a lot of data and will go slow...
-						if(storeAllLinkedPageData){
-							target.setRedirect();
-							target.setAllRedirects();
-							target.retrieveWikiTextContent();
-							target.retrieveAllOutBoundWikiLinks(false);
-							target.retrieveAllOutBoundHyperLinks();
-						}
-						outlink.setTarget_page(target.getTitle());
+//						if(storeAllLinkedPageData){
+//							GeneWikiPage target = new GeneWikiPage(user);
+//							target.setTitle(link.getTitle());
+//							target.setRedirect();
+//							target.setAllRedirects();
+//							target.retrieveWikiTextContent();
+//							target.retrieveAllOutBoundWikiLinks(false);
+//							target.retrieveAllOutBoundHyperLinks();
+//						}
+						outlink.setTarget_page(link);
 						glinks.add(outlink);
 					}
 				}
 
 				//see if any more to get
-				nextLinkTitle = parser.parseWikiNextXml(pagesXML);
+				nextLinkTitle = parser.parseNextLinkChunk(pagesXML);
 				if(nextLinkTitle==""){
 					break;
 				}
@@ -676,17 +680,17 @@ public class GeneWikiPage implements Serializable, Comparable{
 				List<String> backlinks = parser.parseLinks(pagesXML);
 				if(backlinks != null && backlinks.size()>0){
 					for(String link : backlinks){
-						GeneWikiLink backlink = new GeneWikiLink();						
-						//						GeneWikiPage source = new GeneWikiPage(user);
-						//						source.setTitle(link);
-						//						//Note this will be a lot of data and will go slow...
-						//						if(storeAllLinkedInPageData){
-						//							source.setRedirect();
-						//							source.setAllRedirects();
-						//							source.retrieveWikiTextContent();
-						//							source.retrieveAllOutBoundWikiLinks(false);
-						//							source.retrieveAllOutBoundHyperLinks();
-						//						}
+						GeneWikiLink backlink = new GeneWikiLink();	
+						//Note this will be a lot of data and will go slow...
+						if(storeAllLinkedInPageData){
+							GeneWikiPage source = new GeneWikiPage(user);
+							source.setTitle(link);
+							source.setRedirect();
+							source.setAllRedirects();
+							source.retrieveWikiTextContent();
+							source.retrieveAllOutBoundWikiLinks(false);
+							source.retrieveAllOutBoundHyperLinks();
+						}
 						backlink.setTarget_page(link);
 						inglinks.add(backlink);
 					}
@@ -786,7 +790,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 			this.setGene_symbol(sym);
 		}
 	}
-	
+
 	/***
 	 * This is where the outgoing in-text wikilinks are parsed out of the wikitext.  The 'byheadings' just means that the we associate each link with the heading of the
 	 * text section where it was found.
@@ -825,35 +829,35 @@ public class GeneWikiPage implements Serializable, Comparable{
 		boolean heading = false;
 		String predicate = "summary";
 		int chunkstartindex = 0;
-//		for(String part : parts){
-//			if(heading){
-//				//collect links under this heading
-//				predicate = part;
-//				heading = false;
-//			}else{
-//				List<GeneWikiLink> gs = extractGeneWikiLinks(part, predicate,chunkstartindex);
-//				if(gs!=null){
-//					glinks.addAll(gs);
-//				}
-//				heading = true;
-//				chunkstartindex+=4;
-//			}
-//			chunkstartindex+=part.length(); //4 accounts for the '==' lost in the split
-//		}
+		//		for(String part : parts){
+		//			if(heading){
+		//				//collect links under this heading
+		//				predicate = part;
+		//				heading = false;
+		//			}else{
+		//				List<GeneWikiLink> gs = extractGeneWikiLinks(part, predicate,chunkstartindex);
+		//				if(gs!=null){
+		//					glinks.addAll(gs);
+		//				}
+		//				heading = true;
+		//				chunkstartindex+=4;
+		//			}
+		//			chunkstartindex+=part.length(); //4 accounts for the '==' lost in the split
+		//		}
 		for(int i=0; i<parts.length; i++){
-		if(heading&&parts[i].length()<200){
+			if(heading&&parts[i].length()<200){
 				predicate = parts[i];
 				heading = false;
-		}else{
-			List<GeneWikiLink> gs = extractGeneWikiLinks(parts[i], predicate,chunkstartindex);
-			if(gs!=null){
-				glinks.addAll(gs);
+			}else{
+				List<GeneWikiLink> gs = extractGeneWikiLinks(parts[i], predicate,chunkstartindex);
+				if(gs!=null){
+					glinks.addAll(gs);
+				}
+				heading = true;
+				chunkstartindex+=4;
 			}
-			heading = true;
-			chunkstartindex+=4;
+			chunkstartindex+=parts[i].length(); //4 accounts for the '==' lost in the split
 		}
-		chunkstartindex+=parts[i].length(); //4 accounts for the '==' lost in the split
-	}
 	}
 
 	/***
@@ -1181,18 +1185,18 @@ public class GeneWikiPage implements Serializable, Comparable{
 	 * Converts the GeneWikiPageData to HTML using the info.bliki.wiki library
 	 * @return
 	 */
-//	public String toHtml(){
-//		WikiModel wikiModel = new WikiModel(
-//				Configuration.DEFAULT_CONFIGURATION, Locale.ENGLISH, "${image}", "${title}");
-//		wikiModel.setUp();
-//		String result = "";
-//		try {
-//			result = wikiModel.render(new HTMLConverter(), this.getPageContent());
-//		} finally {
-//			wikiModel.tearDown();
-//		}
-//		return result;
-//	}
+	//	public String toHtml(){
+	//		WikiModel wikiModel = new WikiModel(
+	//				Configuration.DEFAULT_CONFIGURATION, Locale.ENGLISH, "${image}", "${title}");
+	//		wikiModel.setUp();
+	//		String result = "";
+	//		try {
+	//			result = wikiModel.render(new HTMLConverter(), this.getPageContent());
+	//		} finally {
+	//			wikiModel.tearDown();
+	//		}
+	//		return result;
+	//	}
 
 	@Override
 	public boolean equals(Object o) {

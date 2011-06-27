@@ -1,6 +1,7 @@
 package org.gnf.genewiki.network;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,11 +40,13 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 import com.hp.hpl.jena.vocabulary.DC;
 import com.hp.hpl.jena.vocabulary.RDF;
@@ -61,71 +64,327 @@ public class NetworkExtractor {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//String file = "/Users/bgood/data/wikiportal/fb_denver/all_gw_network.txt";
-		//buildTabLinkNetwork(file, 500000);
+		String datadir = "/Users/bgood/data/network/rdf/";
+		//getAllGeneWikiEditorsLinksAsRDF(datadir);
+		//outputRDFdirAsText(datadir, "/Users/bgood/data/network/all_gw_loops_editors.txt");
+		summarizeNetwork(datadir, "/Users/bgood/data/network/node_degrees.txt");
+	}
 
-		//		String file = "/Users/bgood/data/wikiportal/fb_denver/all_gw_mined_network.txt";
-		//		buildTabSemanticNetwork(file);
+	public static void summarizeNetwork(String rdfdir, String outfile){
+		File f = new File(rdfdir);
+		int limit = 10000000; int c = 0;
+		Map<String, Integer> in_deg = new HashMap<String, Integer>();
+		Map<String, Integer> out_deg = new HashMap<String, Integer>();
+		try {
+			FileWriter w = new FileWriter(outfile);
+			w.write("Type\turi\tin-degree\tout-degree\n");
+			w.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(File t: f.listFiles()){
+			c++;
+			Model m = getBaseModel();
+			m.read("file:"+t.getAbsolutePath());
+			//Genes, links
+			Resource g = m.getResource("http://dbpedia.org/resource/"+t.getName());
+			StmtIterator s = g.listProperties(m.getProperty("http://example.org/wikilink_in"));
+			int in = 0;
+			if(s!=null){
+				in = s.toList().size();
+				if(in>0){
+					while(s.hasNext()){
+						Resource l = (Resource)s.nextStatement().getObject();
+						Integer link_d = out_deg.get("link\t"+l.getURI());
+						if(link_d == null){
+							link_d = 0;
+						}
+						link_d++;
+						out_deg.put("link\t"+l.getURI(), link_d);
+					}
+				}
+			}
+			in_deg.put("gene\t"+t.getName(), in);
+			s = g.listProperties(m.getProperty("http://example.org/wikilink_out"));
+			int out = 0;
+			if(s!=null){
+				out = s.toList().size();
+				if(out>0){
+					while(s.hasNext()){
+						Resource l = (Resource)s.nextStatement().getObject();
+						Integer link_d = in_deg.get("link\t"+l.getURI());
+						if(link_d == null){
+							link_d = 0;
+						}
+						link_d++;
+						in_deg.put("link\t"+l.getURI(), link_d);
+					}
+				}
+			}
+			out_deg.put("gene\t"+t.getName(), out);
+			//editors
+			String uri = "";
+			try {
+				uri = "http://dbpedia.org/resource/"+URLEncoder.encode(t.getName(), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String queryString = 
+				"PREFIX ex: <http://example.org/> " +
+				"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
+				"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
+				"PREFIX RDFS: <"+RDFS.getURI()+"> " +
+				"SELECT ?user ?edits "+ 
+				"WHERE "+
+				" { ?event DC:subject <"+uri+"> . " +
+				" ?event DC:contributor ?user . " +
+				" ?event ex:weight ?edits ."+
+				"} ";
+			Query query = QueryFactory.create(queryString);
+			//		// Execute the query and obtain results
+			QueryExecution qe = QueryExecutionFactory.create(query, m);
 
-		//		String file = "/Users/bgood/data/wikiportal/fb_denver/all_gene_wiki_text_for_fb.txt";
-		//		getTagCloudText(file, 100);
+			try{
+				ResultSet rs = qe.execSelect();
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					Resource user = rb.getResource("user");
+					int edits = rb.getLiteral("edits").getInt();
+					Integer user_edits = out_deg.get("user\t"+user.getURI());
+					if(user_edits==null){
+						user_edits = 0;
+					}
+					user_edits++;
+					out_deg.put("user\t"+user.getURI(), user_edits);
+				}
+			}finally{
+				qe.close();
+			}
 
-		Model m = getBaseModel();
+
+			if(c%100==0){
+				System.out.println("Finished processing: "+c);
+			}
+			if(c==limit){
+				break;
+			}
+		}
+		try {
+			FileWriter w = new FileWriter(outfile);
+			w.write("Type\turi\tin-degree\tout-degree\n");
+			Set<String> keys = new HashSet<String>(out_deg.keySet());
+			keys.addAll(in_deg.keySet());
+			for(String key : keys){
+				Integer in = in_deg.get(key);
+				if(in==null){
+					in = 0;
+				}
+				Integer out = out_deg.get(key);
+				if(out==null){
+					out = 0;
+				}
+				w.write(key+"\t"+in+"\t"+out+"\n");
+			}
+			w.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void outputRDFdirAsText(String dir, String outfile){
+
+		File f = new File(dir);
+		int limit = 10000000; int c = 0;
+		try {
+			FileWriter w = new FileWriter(outfile, true);
+			w.write("gene\tweight\ttarget\ttargetType\n");
+			w.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(File t: f.listFiles()){
+			c++;
+			Model m = getBaseModel();
+			m.read("file:"+t.getAbsolutePath());
+			boolean loops = true; boolean outs = false; boolean ins = false;
+			String out = outputLinkModelAsText(m, loops, outs, ins);
+			out+=outputEditorModelAsText(m);
+			try {
+				FileWriter w = new FileWriter(outfile, true);
+				w.write(out);
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			m.close();
+			if(c%100==0){
+				System.out.println("Finished writing: "+c);
+			}
+			if(c==limit){
+				break;
+			}
+		}
+
+		//		System.out.println("gene\tweight\ttarget\ttargetType");
+		//		System.out.println(out);
+	}
+
+	public static void getAllGeneWikiEditorsLinksAsRDF(String outfolder){
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-		//loop
-		String title1 = "ABCA4"; String title2 = "AXIN2";
-		List<String> titles = new ArrayList<String>();
-		titles.add(title1); titles.add(title2);
-		for(String title : titles){
-//			m = extractRelatedEditors(m,title, rc);
-			m = extractLinksAsRDF(title, m);
+		//get gene wiki
+		WikiCategoryReader r = new WikiCategoryReader(creds);
+		List<Page> pages = r.getPagesWithPBB(1000000, 500);
+		int t = pages.size(); int c = 0;
+		System.out.println("Processing "+t+" gene wiki articles");
+		//store
+		for(Page page : pages){
+			c++;
+			//check if exists
+			String title = page.getTitle();
+			File f = new File(outfolder+title);
+			if(!f.exists()){
+				Model m = ModelFactory.createDefaultModel();
+				m = extractRelatedEditors(m,title, rc);
+				m = extractLinksAsRDF(title, m);
+				try{
+					FileOutputStream fout=new FileOutputStream(outfolder+title.replace("/", "-"));
+					m.write(fout);
+					fout.close();
+					m.close();
+				}catch(IOException e){
+					System.out.println("Exception caught"+e.getMessage());
+				}
+			}else{
+				System.out.println(title+" exists");
+			}
+			if(c%100==0){
+				System.out.println("Completed: "+c);
+			}
 		}
-//		outputEditorModelAsText(m);
-		outputLinkModelAsText(m);
-		
 	}
 
-	public static void outputLinkModelAsText(Model m){
+	public static String outputLinkModelAsText(Model m, boolean loops, boolean outs, boolean ins){
+		//gene	weight	target	targetType
+		//first get linked forward and back
+		Set<String> nodups = new HashSet<String>();
 		String queryString = 
 			"PREFIX ex: <http://example.org/> " +
 			"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
 			"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
 			"PREFIX RDF: <"+RDF.getURI()+"> "+
-			"SELECT ?gene ?link "+ 
+			"PREFIX RDFS: <"+RDFS.getURI()+"> "+
+			"SELECT distinct ?gene_l ?link_l "+ 
 			"WHERE "+
 			" { ?gene RDF:type ex:Gene . " +
-			"{ ?gene ex:hyperlink ?link } " +
-			"UNION " +
-			"{?link ex:hyperlink ?gene }" +
-			"} ";
+			" ?gene ex:wikilink_out ?link . " +
+			" ?gene ex:wikilink_in ?link . "+
+			" ?link RDF:type ex:wikiconcept . " +
+			" ?gene RDFS:label ?gene_l ." +
+			" ?link RDFS:label ?link_l " +
+			"}";
 
 		Query query = QueryFactory.create(queryString);
 		//		// Execute the query and obtain results
 		QueryExecution qe = QueryExecutionFactory.create(query, m);
-
-		try{
-			ResultSet rs = qe.execSelect();
-			while(rs.hasNext()){
-				QuerySolution rb = rs.nextSolution() ;
-				Resource gene = rb.getResource("gene");
-				Resource link = rb.getResource("link");
-				System.out.println("WikiLink\t"+gene.getLocalName()+"\t"+link.getLocalName()+"\t");
+		String out = "";
+		if(loops){
+			try{
+				ResultSet rs = qe.execSelect();
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					String gene = rb.getLiteral("gene_l").getString();
+					String link = rb.getLiteral("link_l").getString();
+					out+=(gene+"\t2\t"+link+"\tlink_loop\t\n");
+					nodups.add(gene+link);
+				}
+			}finally{
+				qe.close();
 			}
-		}finally{
-			qe.close();
 		}
+		if(outs){
+			queryString = "PREFIX ex: <http://example.org/> " +
+			"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
+			"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
+			"PREFIX RDF: <"+RDF.getURI()+"> "+
+			"PREFIX RDFS: <"+RDFS.getURI()+"> "+
+			"SELECT distinct ?gene_l ?link_l "+ 
+			"WHERE "+
+			" { ?gene RDF:type ex:Gene . " +
+			" ?gene ex:wikilink_out ?link . " +
+			" ?link RDF:type ex:wikiconcept . " +
+			" ?gene RDFS:label ?gene_l ." +
+			" ?link RDFS:label ?link_l " +
+			"}";
+
+			query = QueryFactory.create(queryString);
+			//		// Execute the query and obtain results
+			qe = QueryExecutionFactory.create(query, m);
+			try{
+				ResultSet rs = qe.execSelect();
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					String gene = rb.getLiteral("gene_l").getString();
+					String link = rb.getLiteral("link_l").getString();
+					if(nodups.add(gene+link)){
+						out+=(gene+"\t1\t"+link+"\tlink_out\t\n");
+					}
+				}
+			}finally{
+				qe.close();
+			}
+		}
+		if(ins){
+			queryString = "PREFIX ex: <http://example.org/> " +
+			"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
+			"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
+			"PREFIX RDF: <"+RDF.getURI()+"> "+
+			"PREFIX RDFS: <"+RDFS.getURI()+"> "+
+			"SELECT distinct ?gene_l ?link_l "+ 
+			"WHERE "+
+			" { ?gene RDF:type ex:Gene . " +
+			" ?gene ex:wikilink_in ?link . " +
+			" ?link RDF:type ex:wikiconcept . " +
+			" ?gene RDFS:label ?gene_l ." +
+			" ?link RDFS:label ?link_l " +
+			"}";
+
+			query = QueryFactory.create(queryString);
+			//		// Execute the query and obtain results
+			qe = QueryExecutionFactory.create(query, m);
+			try{
+				ResultSet rs = qe.execSelect();
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					String gene = rb.getLiteral("gene_l").getString();
+					String link = rb.getLiteral("link_l").getString();
+					if(nodups.add(gene+link)){
+						out+=(gene+"\t1\t"+link+"\tlink_in\t\n");
+					}
+				}
+			}finally{
+				qe.close();
+			}
+		}
+		return out;
 	}
 
 	public static Model extractLinksAsRDF(String title, Model m){
-		Property hlink = m.getProperty("http://example.org/hyperlink");
+		Property hlink_out = m.getProperty("http://example.org/wikilink_out");
+		Property hlink_in = m.getProperty("http://example.org/wikilink_in");
 		Resource genetype = m.getResource("http://example.org/Gene");
+		Resource wikiconcept = m.getResource("http://example.org/wikiconcept");
 
 		GeneWikiPage page = new GeneWikiPage(title);
-		page.defaultPopulate();
+		page.retrieveAllOutBoundWikiLinks(false);
 		page.retrieveAllInBoundWikiLinks(true, false);
-		
+
 		if(page!=null&&page.getGlinks()!=null&&page.getGlinks().size()>0){
 			String sourcetitle = page.getTitle();
 			try {
@@ -135,11 +394,9 @@ public class NetworkExtractor {
 				e.printStackTrace();
 			}
 			Resource genepage = m.createResource("http://dbpedia.org/resource/"+sourcetitle);
-			genepage.addProperty(RDF.type, genetype);
-			//add labels
-			for(String r : page.getWikisynset()){
-				genepage.addLiteral(RDFS.label, r);
-			}				
+			genepage.addProperty(RDF.type, genetype);	
+			genepage.addLiteral(RDFS.label, title);
+
 			for(GeneWikiLink link : page.getGlinks()){
 				String objecttitle = link.getTarget_page();
 				try{
@@ -149,7 +406,9 @@ public class NetworkExtractor {
 					e.printStackTrace();
 				}
 				Resource object = m.createResource("http://dbpedia.org/resource/"+objecttitle);
-				genepage.addProperty(hlink, object);
+				genepage.addProperty(hlink_out, object);
+				object.addProperty(RDF.type, wikiconcept);
+				object.addLiteral(RDFS.label, link.getTarget_page());
 			}
 			for(GeneWikiLink link : page.getInglinks()){
 				String subjecttitle = link.getTarget_page();
@@ -160,7 +419,9 @@ public class NetworkExtractor {
 					e.printStackTrace();
 				}
 				Resource linksource = m.createResource("http://dbpedia.org/resource/"+subjecttitle);
-				linksource.addProperty(hlink, genepage);
+				genepage.addProperty(hlink_in, linksource);
+				linksource.addProperty(RDF.type, wikiconcept);
+				linksource.addLiteral(RDFS.label, link.getTarget_page());
 			}
 
 		}else{
@@ -169,18 +430,21 @@ public class NetworkExtractor {
 		return m;
 	}
 
-	public static void outputEditorModelAsText(Model m){
+	public static String outputEditorModelAsText(Model m){
+		//gene	weight	target	targetType
 		String queryString = 
 			"PREFIX ex: <http://example.org/> " +
 			"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
-			"PREFIX FOAF: <http://xmlns.com/foaf/0.1/>" +
-			"SELECT ?gene ?user ?edits "+ 
+			"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
+			"PREFIX RDFS: <"+RDFS.getURI()+"> " +
+			"SELECT ?gene_l ?user ?edits "+ 
 			"WHERE "+
 			" { ?event DC:subject ?gene . " +
 			" ?event DC:contributor ?user . " +
-			" ?event ex:weight ?edits " +
+			" ?event ex:weight ?edits ." +
+			" ?gene RDFS:label ?gene_l" +
 			"} ";
-
+		String out = "";
 		Query query = QueryFactory.create(queryString);
 		//		// Execute the query and obtain results
 		QueryExecution qe = QueryExecutionFactory.create(query, m);
@@ -189,14 +453,15 @@ public class NetworkExtractor {
 			ResultSet rs = qe.execSelect();
 			while(rs.hasNext()){
 				QuerySolution rb = rs.nextSolution() ;
-				Resource gene = rb.getResource("gene");
+				String gene = rb.getLiteral("gene_l").getString();
 				Resource user = rb.getResource("user");
 				int edits = rb.getLiteral("edits").getInt();
-				System.out.println(gene.getLocalName()+"\t"+user.getLocalName()+"\t"+edits);
+				out+=(gene+"\t"+edits+"\t"+user.getLocalName()+"\teditor\t\n");
 			}
 		}finally{
 			qe.close();
 		}
+		return out;
 	}
 
 	public static Model extractRelatedEditors(Model m, String title, RevisionCounter rc){
@@ -215,6 +480,7 @@ public class NetworkExtractor {
 			Resource gene = m.createResource("http://dbpedia.org/resource/"+safegene);
 			Resource genetype = m.getResource("http://example.org/Gene");
 			gene.addProperty(RDF.type, genetype);
+			gene.addLiteral(RDFS.label, title);
 			Resource geneuser = m.getResource("http://example.org/page_edit_r");
 			Property weight = m.getProperty("http://example.org/weight");
 
@@ -259,10 +525,13 @@ public class NetworkExtractor {
 		Model m = ModelFactory.createDefaultModel();
 		Resource genetype = m.createResource("http://example.org/Gene");
 		genetype.addProperty(RDF.type, RDFS.Class);
+		Resource wikiconcept = m.createResource("http://example.org/WikiConcept");
+		wikiconcept.addProperty(RDF.type, RDFS.Class);
 		Resource edited_page = m.createResource("http://example.org/page_edit_r");
 		edited_page.addProperty(RDF.type, RDFS.Class);
 		Property weight = m.createProperty("http://example.org/weight");
-		Property hyperlink = m.createProperty("http://example.org/hyperlink");
+		Property hyperlink = m.createProperty("http://example.org/hyperlink_out");
+		Property hyperlink_ = m.createProperty("http://example.org/hyperlink_in");
 		return m;
 	}	
 

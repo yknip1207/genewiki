@@ -40,22 +40,22 @@ public class GeneWikiUtils {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-	//	System.out.println(toPlainText(" [[Protein-protein interaction|interact]]"));
+		//	System.out.println(toPlainText(" [[Protein-protein interaction|interact]]"));
 	}
 
-//	public static String toPlainText(String wikitext){
-//		WikiModel wikiModel = new WikiModel(
-//				Configuration.DEFAULT_CONFIGURATION, Locale.ENGLISH, "${image}", "${title}");
-//		wikiModel.setUp();
-//		String result = "";
-//		try {
-//			result = wikiModel.render(new PlainTextConverter(), wikitext);
-//		} finally {
-//			wikiModel.tearDown();
-//		}
-//		return result;
-//	}
-	
+	//	public static String toPlainText(String wikitext){
+	//		WikiModel wikiModel = new WikiModel(
+	//				Configuration.DEFAULT_CONFIGURATION, Locale.ENGLISH, "${image}", "${title}");
+	//		wikiModel.setUp();
+	//		String result = "";
+	//		try {
+	//			result = wikiModel.render(new PlainTextConverter(), wikitext);
+	//		} finally {
+	//			wikiModel.tearDown();
+	//		}
+	//		return result;
+	//	}
+
 	public static List<String> getTitlesfromNcbiGenes(List<String> ncbis){
 		Map<String, String> gene_wiki = new HashMap<String, String>();
 		File in = new File("./gw_data/gene_wiki_index.txt");
@@ -75,29 +75,31 @@ public class GeneWikiUtils {
 
 	public static Map<String, String> getGeneWikiGeneIndex(String index_file, boolean recalculate_all, Map<String, String> creds){
 		Map<String, String> old_gene_wiki = new HashMap<String, String>();
-		File in = new File(index_file);
-		if(in.canRead()){
-			try {
-				BufferedReader f = new BufferedReader(new FileReader(index_file));
-				String line = f.readLine().trim();
-				while(line!=null){
-					if(!line.startsWith("#")){
-						String[] item = line.split("\t");
-						if(item!=null&&item.length>1){
-							if(old_gene_wiki.get(item[0])!=null){
-								System.out.println(item[0]+" duplicated "+item[1]+" -- "+old_gene_wiki.get(item[1]));
+		if(index_file!=null){
+			File in = new File(index_file);
+			if(in.canRead()){
+				try {
+					BufferedReader f = new BufferedReader(new FileReader(index_file));
+					String line = f.readLine().trim();
+					while(line!=null){
+						if(!line.startsWith("#")){
+							String[] item = line.split("\t");
+							if(item!=null&&item.length>1){
+								if(old_gene_wiki.get(item[0])!=null){
+									System.out.println(item[0]+" duplicated "+item[1]+" -- "+old_gene_wiki.get(item[1]));
+								}
+								old_gene_wiki.put(item[0], item[1]);
 							}
-							old_gene_wiki.put(item[0], item[1]);
 						}
+						line = f.readLine();
 					}
-					line = f.readLine();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		WikiCategoryReader r = new WikiCategoryReader(creds);
@@ -113,12 +115,12 @@ public class GeneWikiUtils {
 				tmppage.setTitle(p.getTitle());
 				tmppage.retrieveWikiTextContent();
 				tmppage.parseAndSetNcbiGeneId();
-//				//check if its a replacement title
-//				if(old_gene_wiki.get(page.getNcbi_gene_id())!=null){
-//					System.out.println("Replacing "+old_gene_wiki.get(page.getNcbi_gene_id())+" with "+p.getTitle()+" for "+page.getNcbi_gene_id());
-//				}else{//or if its new
-//					System.out.println("Adding new gene wiki page for "+p.getTitle()+" for "+page.getNcbi_gene_id());
-//				}
+				//				//check if its a replacement title
+				//				if(old_gene_wiki.get(page.getNcbi_gene_id())!=null){
+				//					System.out.println("Replacing "+old_gene_wiki.get(page.getNcbi_gene_id())+" with "+p.getTitle()+" for "+page.getNcbi_gene_id());
+				//				}else{//or if its new
+				//					System.out.println("Adding new gene wiki page for "+p.getTitle()+" for "+page.getNcbi_gene_id());
+				//				}
 				//check if we have two pages for the same ncbi gene id
 				if(gene_wiki.get(tmppage.getNcbi_gene_id())!=null&&!recalculate_all){
 					System.out.println(" 2 pages for "+tmppage.getNcbi_gene_id()+" "+p.getTitle()+" & "+gene_wiki.get(tmppage.getNcbi_gene_id()));
