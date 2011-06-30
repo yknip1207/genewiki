@@ -1,7 +1,18 @@
 package org.gnf.ncbo;
 
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
 
 public class Ontologies {
 
@@ -21,9 +32,10 @@ public class Ontologies {
 	public static final String PRO_ONT = "1052";//"44133"; //ontology of proteins - source of gene names... http://pir.georgetown.edu/pro/pro.shtml 
 	public static final String OMIM_ONT = "1348";
 	public static final String OLD_HUMAN_DISEASE_ONT = "44172";
-	
+	public static final String CHEBI_ONT = "1007";
+
 	public Map<String, String> ont_names;
-	
+
 	public Ontologies() {
 		ont_names = new HashMap<String, String>();
 		ont_names.put(GO_ONT, "Gene Ontology");
@@ -37,9 +49,44 @@ public class Ontologies {
 		ont_names.put(SNOMED_ONT, "SNOMED");
 		ont_names.put(PRO_ONT, "Protein Ontology");
 		ont_names.put(OMIM_ONT, "OMIM");
+		ont_names.put(CHEBI_ONT, "CHEBI");
+		ont_names.put(NATIONAL_DRUG_FILE_ONT, "National Drug File");
+
+		try {
+			HttpClient client = new HttpClient();
+			client.getParams().setParameter(
+					HttpMethodParams.USER_AGENT,
+					"Java1.6"
+			);
+			GetMethod method = new GetMethod("http://rest.bioontology.org/obs/ontologies");
+			// Execute the GET method
+			int statusCode = client.executeMethod(method);
+			if( statusCode != -1 && statusCode != 500) {
+				String contents = method.getResponseBodyAsString();
+				method.releaseConnection();
+
+				SAXBuilder builder = new SAXBuilder();
+				Document doc = builder.build(new ByteArrayInputStream(contents.getBytes("UTF-8")));
+				Element root = doc.getRootElement();
+				Element data = root.getChild("data");
+				Element list = data.getChild("list");
+				List<Element> onts = list.getChildren("ontologyBean");
+				for(Element ont : onts){
+					ont_names.put(ont.getChildText("localOntologyId"), ont.getChildText("name"));
+					ont_names.put(ont.getChildText("virtualOntologyId"), ont.getChildText("name"));
+				}
+			}else{
+				System.out.println("bad response getting ontology info "+statusCode);
+				statusCode = -10;
+			}
+		}
+		catch( Exception e ) {
+			e.printStackTrace();
+		} 
+
 	}
-/**
- *       <ontologyBean>
+	/**
+	 *       <ontologyBean>
         <id>555</id>
         <localOntologyId>44806</localOntologyId>
         <name>Gene Ontology</name>
@@ -49,5 +96,5 @@ public class Ontologies {
         <virtualOntologyId>1070</virtualOntologyId>
         <format>OBO</format>
       </ontologyBean>
- */
+	 */
 }

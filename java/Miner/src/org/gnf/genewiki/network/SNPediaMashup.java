@@ -173,7 +173,7 @@ public class SNPediaMashup {
 			f.write("SNPedia_medical_condition\tdisease_ontology_or_OMIM_mappings\tSNPS");
 			for(Entry<String, HashSet<String>> disease_snp : disease_snps.entrySet()){
 				//get DO class if possible
-				List<NcboAnnotation> doas = AnnotatorClient.ncboAnnotateText(disease_snp.getKey(), true, false, true, false, false, true);
+				List<NcboAnnotation> doas = AnnotatorClient.ncboAnnotateText(disease_snp.getKey(), true, false, true, false, false, true, false);
 				String d = disease_snp.getKey();
 				if(doas!=null){
 					d+="\t";

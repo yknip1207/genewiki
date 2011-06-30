@@ -1,5 +1,7 @@
 package org.gnf.umls.metamap;
 
+import java.util.List;
+
 public class MMannotation {
 
 	int start;
@@ -9,6 +11,8 @@ public class MMannotation {
 	float score;
 	String inputText;
 	String evidence;
+	List<String> sources;
+	List<String> semanticTypes;
 	
 	public String toString(){
 		return cui+"\t"+termName+"\t"+score+"\t"+start+"\t"+stop;
@@ -61,6 +65,22 @@ public class MMannotation {
 
 	public void setEvidence(String evidence) {
 		this.evidence = evidence;
+	}
+
+	public List<String> getSources() {
+		return sources;
+	}
+
+	public void setSources(List<String> sources) {
+		this.sources = sources;
+	}
+
+	public List<String> getSemanticTypes() {
+		return semanticTypes;
+	}
+
+	public void setSemanticTypes(List<String> semanticTypes) {
+		this.semanticTypes = semanticTypes;
 	}
 	
 	

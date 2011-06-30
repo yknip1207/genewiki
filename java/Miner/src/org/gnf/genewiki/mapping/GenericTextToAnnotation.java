@@ -44,7 +44,7 @@ public class GenericTextToAnnotation {
 		for(Sentence s : sentences){
 			Heading heading = new Heading();
 			heading.setText("PubmedAbstract");
-			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, useGO, useDO, useFMA, usePRO, false);
+			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, useGO, useDO, useFMA, usePRO, false, false);
 			if(annos==null||annos.size()==0){
 				continue;
 			}

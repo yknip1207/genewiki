@@ -315,7 +315,7 @@ public class TextMapper {
 					if(text==null||text.length()<5){
 						continue;
 					}
-					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, true , true, true, true, false);
+					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(s.getPrettyText(), allowSynonyms, true , true, true, true, false, false);
 					if(annos==null||annos.size()==0){
 						continue;
 					}

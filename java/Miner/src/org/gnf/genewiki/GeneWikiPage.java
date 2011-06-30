@@ -577,7 +577,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 	 * Because transclusion can lead to a large number of links that can be of dubious relation to the source page this should be used with caution.
 	 */
 	public void retrieveAllOutBoundWikiLinks(boolean storeAllLinkedPageData){
-		int total = 1000;
+		int total = 10000;
 		int batch = 500;
 		List<String> a = new ArrayList<String>();
 		a.add(getTitle());

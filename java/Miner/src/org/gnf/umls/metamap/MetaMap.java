@@ -47,14 +47,28 @@ public class MetaMap {
 	 */
 	public static void main(String[] args) {
 
-		String input = "Some of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
+		String input = "The cerebellum is in the brain. The cell had a cell membrane and a nucleolus and was undergoing apoptosis. Schizophrenia is a disease, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";//"Butanediol supraclone cell membrane";//"Some of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
 		boolean singleterm = false;
-		List<MMannotation> cs = getCUIsFromText(input, "GO,FMA,SNOMEDCT", singleterm, input);
+		List<MMannotation> cs = getCUIsFromText(input, null, singleterm, input); //"GO,FMA,SNOMEDCT"
 		UmlsDb d = new UmlsDb();
 		for(MMannotation c : cs){
-			System.out.println(c);
-			System.out.println(d.getIdsFromSourceForCUI(c.getCui(), "GO"));
+			System.out.print(c.getTermName()+"\t");
+			for(String abbr : c.getSemanticTypes()){
+				String type = d.getSemanticTypeInfoFromAbbreviation(abbr);
+				System.out.print(abbr+"\t"+type+"\t"+d.getGroupForStype(type.split("\t")[1]));
+			}
+			System.out.println();
 		}
+		
+//		UmlsDb d = new UmlsDb();
+//		for(MMannotation c : cs){
+//			System.out.println(c);
+//			System.out.println(d.getIdsFromSourceForCUI(c.getCui(), "GO"));
+//		}
+//		for(MMannotation c : cs){
+//		System.out.println(c);
+//		System.out.println(d.getIdsFromSourceForCUI(c.getCui(), "GO"));
+//	}
 	}
 
 
@@ -160,6 +174,8 @@ public class MetaMap {
 									cui.setTermName(mapEv.getConceptName());
 									cui.setInputText(input);
 									cui.setEvidence(context);
+									cui.setSemanticTypes(mapEv.getSemanticTypes());
+									cui.setSources(mapEv.getSources());
 									u.add(mapEv.getConceptId());
 									cuis.add(cui);
 								}

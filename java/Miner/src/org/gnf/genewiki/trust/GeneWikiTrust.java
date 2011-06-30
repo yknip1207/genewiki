@@ -193,7 +193,7 @@ public class GeneWikiTrust {
 			boolean m = false;
 			String text = sentence.getPrettyText();
 			System.out.println(text);
-			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(text, false, true, false, false, false, false);
+			List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(text, false, true, false, false, false, false, false);
 			if(annos==null||annos.size()==0){
 				continue;
 			}

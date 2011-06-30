@@ -40,7 +40,7 @@ public class Tweetables {
 	 */
 	public Tweetables(GeneWikiPage p_t0, GeneWikiPage p_t1, RevisionCounter rc){
 		//for change summarization attempt using NCBO annotator...
-		boolean useGO = true; boolean useDO = true; boolean useFMA = true; boolean usePRO = true; boolean useOMIM = false;
+		boolean useGO = true; boolean useDO = true; boolean useFMA = true; boolean usePRO = true; boolean useOMIM = false; boolean useDrug = true;
 
 		tweets = new ArrayList<Tweetable>();
 		Tweetable base = new Tweetable(p_t0, p_t1);
@@ -185,7 +185,7 @@ public class Tweetables {
 			List<String> diffs = rc.getDiffBlocks(p_t1.getRevid(), p_t0.getRevid());
 			if(diffs!=null&&diffs.size()>0){
 				for(String diff : diffs){
-					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(diff, true, useGO, useDO, useFMA, usePRO, useOMIM);
+					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(diff, true, useGO, useDO, useFMA, usePRO, useOMIM, useDrug);
 					if(annos!=null){
 						for(NcboAnnotation anno : annos){
 							keywords.add(anno.getConcept().getPreferredName());

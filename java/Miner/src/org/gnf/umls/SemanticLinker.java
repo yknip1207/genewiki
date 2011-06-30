@@ -47,24 +47,24 @@ public class SemanticLinker {
 
 		Client c = new Client(args[0], args[1]);//username password
 		SemanticLinker s = new SemanticLinker();
-//		String umls_triples = c.getTabTriplesForSearchString("hippocampus");
-//		System.out.println(umls_triples);
-//		s.getUmlsForLinkedPages(c);
-		//s.getUmlsForGenes(c);
-	
-		try {
-			FileReader test = new FileReader("C:\\Users\\bgood\\data\\genewiki\\umls_tab\\Choriocarcinoma");
-			char[] r = new char[1000];
-			test.read(r);
-			System.out.println(r);
-			test.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String umls_triples = c.getTabTriplesForSearchString("hippocampus");
+		System.out.println(umls_triples);
+////		s.getUmlsForLinkedPages(c);
+//		//s.getUmlsForGenes(c);
+//	
+//		try {
+//			FileReader test = new FileReader("C:\\Users\\bgood\\data\\genewiki\\umls_tab\\Choriocarcinoma");
+//			char[] r = new char[1000];
+//			test.read(r);
+//			System.out.println(r);
+//			test.close();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		
 	}

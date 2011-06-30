@@ -22,19 +22,28 @@ public class AnnotatorClient {
 	public static final String PROD_URL = "http://rest.bioontology.org/obs/annotator?apikey=0d1e8183-6485-4866-8b8a-cbc35e8e77cc";
 
 	public static void main( String[] args ) {
-		String text ="The cerebellum is in the brain. The cell had a cell membrane and a nucleolus. Schizophrenia is a disease.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
-		boolean useGO = true; boolean useDO = true; boolean useFMA = true; boolean usePRO = true; boolean useOMIM = true;
-		List<NcboAnnotation> annos = ncboAnnotateText(text, true, useGO, useDO, useFMA, usePRO, useOMIM);
+		String text = "Butanediol supraclone cell membrane";//"The cerebellum is in the brain. The cell had a cell membrane and a nucleolus and was undergoing apoptosis. Schizophrenia is a disease, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
+		boolean useGO = true; boolean useDO = true; boolean useFMA = false; boolean usePRO = true; boolean useOMIM = false; boolean useDrug = true;
+		boolean allowSynonyms = true;
+		List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms, useGO, useDO, useFMA, usePRO, useOMIM, useDrug);
+		//List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms);
 		
 		for(NcboAnnotation anno : annos){
-			System.out.println(anno + " --- "+text.substring(anno.getContext().getFrom()-1, anno.getContext().getTo()+1));
-			System.out.println(anno + " --- "+anno.getContext().getMatched_text());
+			System.out.println(anno.getConcept().getId()+"\t"+anno.getConcept().getLocalConceptId()+"\t"+anno.getConcept().getPreferredName());
+//			System.out.println(anno + " --- "+text.substring(anno.getContext().getFrom()-1, anno.getContext().getTo()+1));
+//			System.out.println(anno + " --- "+anno.getContext().getMatched_text());
+////			System.out.print(anno.getContext().getTerm().getLocalConceptId()+"\t"+anno.getConcept().getPreferredName()+"\t");
+////			System.out.println();
 		}
 	}
-	
 
-	public static List<NcboAnnotation> ncboAnnotateText(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM){
-		Map<String, String> reqParams = getParametersNoMapping(text2annotate, allowSynonyms, useGO, useDO, useFMA, usePRO, useOMIM);
+	public static List<NcboAnnotation> ncboAnnotateText(String text2annotate, boolean allowSynonyms){
+		Map<String, String> reqParams = getParametersAllOnts(text2annotate, allowSynonyms);
+		return(ncboAnnotate(reqParams, text2annotate));
+	}
+
+	public static List<NcboAnnotation> ncboAnnotateText(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM, boolean useDrug){
+		Map<String, String> reqParams = getParametersNoMapping(text2annotate, allowSynonyms, useGO, useDO, useFMA, usePRO, useOMIM, useDrug);
 		return(ncboAnnotate(reqParams, text2annotate));
 	}
 
@@ -44,7 +53,33 @@ public class AnnotatorClient {
 	 * @param text2annotate
 	 * @return
 	 */
-	public static Map<String, String> getParametersNoMapping(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM){
+	public static Map<String, String> getParametersAllOnts(String text2annotate, boolean allowSynonyms){
+		Map<String, String> params = new HashMap<String,String>();
+		params.put("rqnum", "0");
+		params.put("textToAnnotate", text2annotate);
+		// Configure the request form parameters
+		params.put("filterNumber", "true");
+		params.put("minTermSize", "3");
+		if(allowSynonyms){
+			params.put("withSynonyms", "true");
+		}else{
+			params.put("withSynonyms", "false");
+		}
+	//	params.put("longestOnly", "true");
+		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
+		params.put("stopWords", "protein, gene, disease, disorder, syndromme, chromosome, receptor, cell");
+		params.put("withDefaultStopWords", "true");
+		params.put("scored", "true");
+		return params;
+	}
+	
+	/**
+	 * Hard coded parameter set
+	 * See: http://www.bioontology.org/wiki/index.php/Annotator_User_Guide
+	 * @param text2annotate
+	 * @return
+	 */
+	public static Map<String, String> getParametersNoMapping(String text2annotate, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO, boolean useOMIM, boolean useDrug){
 		Map<String, String> params = new HashMap<String,String>();
 		params.put("isVirtualOntologyId", "true");
 		params.put("rqnum", "0");
@@ -59,7 +94,7 @@ public class AnnotatorClient {
 		}
 	//	params.put("longestOnly", "true");
 		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
-		params.put("stopWords", "protein, gene");
+		params.put("stopWords", "protein, gene, disease, disorder, cell");
 		params.put("withDefaultStopWords", "true");
 		params.put("scored", "true");
 		params.put("mappingTypes", "null"); //null results in only ISA mappings (if any ontologies to expand)
@@ -87,6 +122,10 @@ public class AnnotatorClient {
 		}
 		if(useOMIM){
 			onts2use+=Ontologies.OMIM_ONT +",";
+		}
+		if(useDrug){
+			onts2use+=Ontologies.NATIONAL_DRUG_FILE_ONT +",";
+			onts2use+=Ontologies.CHEBI_ONT+",";
 		}
 		if(onts2use.endsWith(",")){
 			onts2use = onts2use.substring(0, onts2use.length()-1);
@@ -268,7 +307,10 @@ public class AnnotatorClient {
 				if(context.isDirect){
 					a.setConcept(c);
 				}else{
-					context.setLevel(Integer.parseInt(context_e.getChildText("level")));
+					if(context_e.getChildText("level")!=null){
+						context.setLevel(Integer.parseInt(context_e.getChildText("level")));
+					}
+					a.setConcept(c);
 					context.setConcept(c);
 				}
 				a.setContext(context);	
