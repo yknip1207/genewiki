@@ -43,6 +43,8 @@ import org.gnf.umls.UmlsDb;
 import org.gnf.umls.metamap.MMannotation;
 import org.gnf.umls.metamap.MetaMap;
 import org.gnf.util.FileFun;
+import org.gnf.util.MapFun;
+import org.gnf.util.NetworkFun;
 import org.gnf.util.TextFun;
 import org.gnf.wikiapi.Page;
 
@@ -66,6 +68,8 @@ import com.hp.hpl.jena.vocabulary.DC;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
+import edu.emory.mathcs.backport.java.util.Collections;
+
 
 /***
  * Class to handle extraction of structured representations (RDF) of the gene wiki
@@ -78,23 +82,330 @@ public class NetworkExtractor {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String datadir = "/Users/bgood/data/network/test/";
+		String datadir = "/Users/bgood/data/network/RDF/";
 		//getAllGeneWikiEditorsLinksAsRDF(datadir);
-		//outputRDFdirAsText(datadir, "/Users/bgood/data/network/all_gw_loops_editors.txt");
-		//typeLinksWithMetamap(datadir, "/Users/bgood/data/network/mapped_links.txt");
-		summarizeNetwork(datadir, "/Users/bgood/data/network/node_degrees.txt", "/Users/bgood/data/network/mapped_links.txt");
+		//	outputRDFdirAsText(datadir, "/Users/bgood/data/network/all_gw_links_editors.txt");
+		//		typeLinksWithMetamap(datadir, "/Users/bgood/data/network/mapped_links.txt");
+		//summarizeNetwork(datadir, "/Users/bgood/data/network/top100genes.txt", "/Users/bgood/data/network/mapped_links.txt");
+		getGeneCentricCircosData(datadir, "/Users/bgood/data/network/100genes_interestingFilter.txt", 
+				"/Users/bgood/data/network/mapped_links.txt", 100);
 
 	}
-//TODO rewrite this in a non stupid way..
+
+	public static void getGeneCentricCircosData(String rdfdir, String outfile, String link_type_file, int n){
+		File f = new File(rdfdir);
+		int limit = 100000; int c = 0;
+		int ngenes = n; int nlinks = 1000; int neditors = 1000;
+		Map<String, Integer> in_deg = new HashMap<String, Integer>();
+		Map<String, Integer> out_deg = new HashMap<String, Integer>();
+		Map<String, Set<String>> gene_users = new HashMap<String, Set<String>>();
+		Map<String, Set<String>> gene_links = new HashMap<String, Set<String>>();
+		Map<String, List<TypedTerm>> typed_links = getTypedLinks(link_type_file, 860);
+
+		for(File t: f.listFiles()){
+			if(t.getName().startsWith(".")){
+				continue;
+			}
+			if(c%100==0){
+				System.out.println("Finished processing: "+c);
+			}
+			if(c>=limit){
+				break;
+			}
+			c++;
+			Model m = getBaseModel();
+			m.read("file:"+t.getAbsolutePath());
+			Resource G = m.getResource("http://example.org/Gene");
+			ResIterator gs = m.listResourcesWithProperty(RDF.type, G);
+			while(gs.hasNext()){
+				Resource g = gs.next();
+				String guri = g.getURI();
+				guri = TextFun.makeCleanLowercaseUri(guri);
+				StmtIterator s = g.listProperties(m.getProperty("http://example.org/wikilink_out"));
+				int out = 0;
+				if(s!=null){
+					List<Statement> ss = s.toList();
+					out = ss.size();
+					if(out>0){
+						for(Statement st : ss){
+							Resource l = (Resource)st.getObject();
+							String uri = l.getURI();
+							uri = TextFun.makeCleanLowercaseUri(uri);
+							Integer link_d = in_deg.get("link\t"+uri);
+							if(link_d == null){
+								link_d = 0;
+							}
+							link_d++;
+							in_deg.put("link\t"+uri, link_d);
+							//save links
+							Set<String> links = gene_links.get(guri);
+							if(links==null){
+								links = new HashSet<String>();
+							}
+							links.add(uri);
+							gene_links.put(guri, links);
+						}
+					}
+				}
+				out_deg.put("gene\t"+guri, out);
+				//editors
+				String uri = g.getURI();
+				String queryString = 
+					"PREFIX ex: <http://example.org/> " +
+					"PREFIX DC: <http://purl.org/dc/elements/1.1/> " +
+					"PREFIX FOAF: <http://xmlns.com/foaf/0.1/> " +
+					"PREFIX RDFS: <"+RDFS.getURI()+"> " +
+					"SELECT ?user ?edits "+ 
+					"WHERE "+
+					" { ?event DC:subject <"+uri+"> . " +
+					" ?event DC:contributor ?user . " +
+					" ?event ex:weight ?edits ."+
+					"} ";
+				Query query = QueryFactory.create(queryString);
+				//		// Execute the query and obtain results
+				QueryExecution qe = QueryExecutionFactory.create(query, m);
+
+				try{
+					ResultSet rs = qe.execSelect();
+					while(rs.hasNext()){
+						QuerySolution rb = rs.nextSolution() ;
+						Resource user = rb.getResource("user");
+						String uuri = user.getURI();
+						uuri = TextFun.makeCleanLowercaseUri(uuri);
+						int edits = rb.getLiteral("edits").getInt();
+						
+						Integer user_edits = out_deg.get("user\t"+uuri);
+						if(user_edits==null){
+							user_edits = 0;
+						}
+						user_edits++;
+						
+						out_deg.put("user\t"+uuri, user_edits);
+						Set<String> users = gene_users.get(guri);
+						if(users==null){
+							users = new HashSet<String>();
+						}
+						users.add(uuri+"\t"+edits);
+						gene_users.put(guri, users);
+					}
+				}finally{
+					qe.close();
+				}
+			}
+		}
+		try {
+			//select genes and editors of interest
+			Set<String> keys = new HashSet<String>();
+			Map<String, Integer> genes = new HashMap<String, Integer>();
+			Set<String> masterusers = new HashSet<String>();
+			Map<String, Integer> users = new HashMap<String, Integer>();
+			for(String og : out_deg.keySet()){
+				if(og.startsWith("gene")){
+					genes.put(og, out_deg.get(og));
+				}else if(og.startsWith("user")){
+					users.put(og, out_deg.get(og));
+				}
+			}
+			//genes
+			int sumGoutLinks = 0;
+			List gkeys = MapFun.sortMapByValue(genes);
+			Collections.reverse(gkeys);
+			if(ngenes>gkeys.size()){
+				ngenes = gkeys.size()-1;
+			}
+			for(int i=0;i < ngenes; i++){
+				keys.add((String)gkeys.get(i));
+				sumGoutLinks += genes.get(gkeys.get(i));
+			}
+			//editors
+			List ukeys = MapFun.sortMapByValue(users);
+			Collections.reverse(ukeys);
+			if(neditors>ukeys.size()){
+				neditors = ukeys.size()-1;
+			}
+			for(int i=0;i < neditors; i++){
+				masterusers.add((String)ukeys.get(i));
+			}
+			//select links of interest
+			//in_deg.put("link\t"+l.getURI(), link_d);
+			Map<String, Integer> links = new HashMap<String, Integer>();		
+			for(String in : in_deg.keySet()){
+				if(in.startsWith("link")){
+					String l = in.substring(in.lastIndexOf("/")+1);
+					l = URLDecoder.decode(l, "UTF-8");
+//					if(l.contains("ategory")){
+//						System.out.println(l);
+//						System.out.println(l);
+//					}
+					if(!l.equalsIgnoreCase("gene")&&
+							!l.equalsIgnoreCase("protein")&&
+							!l.equalsIgnoreCase("Protein-protein_interaction")&&
+							!l.equalsIgnoreCase("1990")&&
+							!l.equalsIgnoreCase("1991")&&
+							!l.equalsIgnoreCase("1992")&&
+							!l.equalsIgnoreCase("1993")&&
+							!l.equalsIgnoreCase("1994")&&
+							!l.equalsIgnoreCase("1995")&&
+							!l.equalsIgnoreCase("1996")&&
+							!l.equalsIgnoreCase("1997")&&
+							!l.equalsIgnoreCase("1998")&&
+							!l.equalsIgnoreCase("1999")&&
+							!l.equalsIgnoreCase("2000")&&
+							!l.equalsIgnoreCase("2001")&&
+							!l.equalsIgnoreCase("2002")&&
+							!l.equalsIgnoreCase("2003")&&
+							!l.equalsIgnoreCase("2004")&&
+							!l.equalsIgnoreCase("2005")&&
+							!l.equalsIgnoreCase("PNAS")&&
+							!l.equalsIgnoreCase("Nature_(journal)")&&
+							!l.equalsIgnoreCase("Science_(journal)")&&
+							!l.equalsIgnoreCase("MEROPS")&&
+							!l.equalsIgnoreCase("amino_acid")&&
+							!l.equalsIgnoreCase("Nature_(journal)")&&
+							!l.equalsIgnoreCase("DNA")&&
+							!l.equalsIgnoreCase("human")&&
+							!l.equalsIgnoreCase("protein_domain")&&
+							!l.startsWith("Category")&&
+							!l.startsWith("category")){
+						List<TypedTerm> ttlist = typed_links.get(l.replaceAll("_", " "));
+						String typeinfo = "none\tnone";
+						if(ttlist!=null&&ttlist.size()>0){
+							typeinfo = "";
+							for(TypedTerm tt : ttlist){
+								if(tt!=null&&tt.getTypes()!=null&&tt.getTypes().size()>0){
+									for(SemanticType st : tt.getTypes()){
+										typeinfo+=st.getSgroup_name()+"\t"+st.getStype_name()+"\t";
+									}
+								}
+							}
+						}
+						//more filtering..
+						if(isInteresting(typeinfo)||typeinfo.startsWith("none")){
+							links.put(in, in_deg.get(in));
+						}
+
+					}
+				}
+			}
+			List lkeys = MapFun.sortMapByValue(links);
+			Collections.reverse(lkeys);
+			Set<String> masterlinks = new HashSet<String>();
+
+			for(int i=0;i < nlinks && i<lkeys.size(); i++){
+				masterlinks.add((String)lkeys.get(i));
+			}
+
+
+
+			FileWriter w = new FileWriter(outfile);
+			w.write("gene\tweight\ttarget\ttargetGroup\ttargetType\n");
+			for(String gene : keys){
+				String genout = gene.substring(gene.lastIndexOf("/")+1);
+				genout = URLDecoder.decode(genout, "UTF-8");
+				//String uri = gene.split("\t")[1];
+				//	String thing = uri.substring(uri.lastIndexOf("/")+1);
+				//	thing = URLDecoder.decode(thing, "utf-8");
+				gene = gene.substring(5);
+				for(String thing : gene_links.get(gene)){
+					//					if(thing.contains(("vasopressin"))){
+					//						System.out.println(thing);
+					//						System.out.println(masterlinks.contains("link\t"+thing));
+					//						System.out.println();
+					//					}
+					if(!masterlinks.contains("link\t"+thing)){
+						continue;
+					}
+					thing = thing.substring(thing.lastIndexOf("/")+1);
+					thing = URLDecoder.decode(thing, "utf-8");
+					List<TypedTerm> ttlist = typed_links.get(thing.replaceAll("_", " "));
+					String typeinfo = "none\tnone";
+					Set<String> groups = new HashSet<String>();
+					Set<String> types = new HashSet<String>();
+					if(ttlist!=null&&ttlist.size()>0){
+						typeinfo = "";
+						for(TypedTerm tt : ttlist){
+							if(tt!=null&&tt.getTypes()!=null&&tt.getTypes().size()>0){
+								for(SemanticType st : tt.getTypes()){
+
+									if(groups.add(st.getSgroup_name())){
+										typeinfo+=st.getSgroup_name()+" : ";
+									}
+									if(types.add(st.getStype_name())){
+										typeinfo+=st.getStype_name()+" : ";
+									}
+								}
+							}
+						}
+						//write all
+						//w.write(genout+"\t1\t"+thing+"\t"+typeinfo+"\t\n");
+						//write one group
+						if(groups.contains("Disorders")||groups.contains("disorder")){
+							w.write(genout+"\t1\t"+thing+"\tDisorders\t\n");
+						}else if(groups.contains("Chemicals & Drugs")){
+							w.write(genout+"\t1\t"+thing+"\tChemicals & Drugs\t\n");
+						}else{
+							w.write(genout+"\t1\t"+thing+"\t"+groups.iterator().next()+"\t\n");
+						}
+					}
+				}
+				for(String thing : gene_users.get(gene)){
+					String ucheck = "user\t"+thing.substring(0, thing.indexOf("\t"));
+					if(!masterusers.contains(ucheck)){
+						continue;
+					}
+					String[] bla = thing.split("\t");
+					thing = thing.substring(bla[0].lastIndexOf("/")+1);
+					thing = URLDecoder.decode(thing, "utf-8");
+					String typeinfo = "editor\teditor";
+					int edits = Integer.parseInt(bla[1]);
+					if(edits > 1){
+						//edits = Math.log(edits);
+						w.write(genout+"\t"+edits+"\t"+bla[0].substring(bla[0].lastIndexOf("/")+1)+"\t"+typeinfo+"\t\n");
+					}
+				}
+			}
+			w.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String matrix = outfile.substring(0,outfile.lastIndexOf("."))+"_table.txt";
+		NetworkFun.buildUmlsHeadedNet(outfile, matrix);
+	}
+
+	//takes a in a tab-delimited list of semantic groups and types and decides if they have anything interesting
+	private static boolean isInteresting(String typeinfo) {
+		boolean isinteresting = false;
+		for(String type : typeinfo.split("\t")){
+			//Chemicals & Drugs, the target types that would be interesting are 
+			if(type.equals("Antibiotic")||
+					type.equals("Eicosanoid")||
+					type.equals("Hazardous or Poisonous Substance")||
+					type.equals("Hormone")||
+					type.equals("Lipid")||
+					type.equals("Neuroreactive Substance or Biogenic Amine")||
+					type.equals("Organic Chemical")||
+					type.equals("Organophosphorus Compound")||
+					type.equals("Pharmacologic Substance")||
+					type.equals("Steroid")||
+					type.equals("Disorders")){
+				isinteresting = true;
+				break;
+			}
+		}
+		return isinteresting;
+	}
+
 	public static void summarizeNetwork(String rdfdir, String outfile, String link_type_file){
 		File f = new File(rdfdir);
 		int limit = 100000; int c = 0;
+		int ngenes = 100;
 		Map<String, Integer> in_deg = new HashMap<String, Integer>();
 		Map<String, Integer> out_deg = new HashMap<String, Integer>();
 		Map<String, List<TypedTerm>> typed_links = getTypedLinks(link_type_file, 860);
 		try {
 			FileWriter w = new FileWriter(outfile);
-			w.write("Type\turi\tin-degree\tout-degree\n");
+			w.write("Type\turi\tin-degree\tout-degree\tumls\n");
 			w.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -125,14 +436,7 @@ public class NetworkExtractor {
 								link_d = 0;
 							}
 							link_d++;
-							try {
-								String luri = URLDecoder.decode(l.getURI(), "UTF-8");
-								out_deg.put("link\t"+luri, link_d);
-							} catch (UnsupportedEncodingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-
+							out_deg.put("link\t"+l.getURI(), link_d);
 						}
 					}
 				}
@@ -150,13 +454,7 @@ public class NetworkExtractor {
 								link_d = 0;
 							}
 							link_d++;
-							try {
-								String luri = URLDecoder.decode(l.getURI(), "UTF-8");
-								in_deg.put("link\t"+luri, link_d);
-							} catch (UnsupportedEncodingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+							in_deg.put("link\t"+l.getURI(), link_d);
 						}
 					}
 				}
@@ -205,20 +503,32 @@ public class NetworkExtractor {
 			}
 		}
 		try {
+			/*	
+			Set<String> keys = new HashSet<String>();
+			Map<String, Integer> genes = new HashMap<String, Integer>();
+			for(String og : out_deg.keySet()){
+				if(og.startsWith("gene")){
+					genes.put(og, out_deg.get(og));
+				}
+			}
+			int sumGoutLinks = 0;
+			List gkeys = MapFun.sortMapByValue(genes);
+			Collections.reverse(gkeys);
+			for(int i=0;i < ngenes; i++){
+				keys.add((String)gkeys.get(i));
+				sumGoutLinks += genes.get(gkeys.get(i));
+			}
+			 */
+
 			FileWriter w = new FileWriter(outfile);
 			w.write("Type\turi\tin-degree\tout-degree\tsemantic_type\n");
 			Set<String> keys = new HashSet<String>(out_deg.keySet());
 			keys.addAll(in_deg.keySet());
 			for(String key : keys){
-				key = key.replaceAll("_", " ");
 				//skip links that are genes
 				String uri = key.split("\t")[1];
-				String thing = "";
-				if(uri.startsWith("http://db")){
-					thing = uri.substring("http://dbpedia.org/resource/".length());
-				}else if(key.startsWith("user")){
-					thing = uri.substring(uri.lastIndexOf("/"));
-				}
+				String thing = uri.substring(uri.lastIndexOf("/")+1);
+				thing = URLDecoder.decode(thing, "utf-8");
 				if(key.startsWith("link")){
 					String test = "gene\t"+uri;
 					if(keys.contains(test)){
@@ -233,7 +543,7 @@ public class NetworkExtractor {
 				if(out==null){
 					out = 0;
 				}
-				List<TypedTerm> ttlist = typed_links.get(thing);
+				List<TypedTerm> ttlist = typed_links.get(thing.replaceAll("_", " "));
 				String typeinfo = "none";
 				if(ttlist!=null){
 					for(TypedTerm tt : ttlist){
@@ -245,7 +555,7 @@ public class NetworkExtractor {
 						}
 					}
 				}
-				w.write(key.split("\t")[0]+"\t"+thing+"\t"+in+"\t"+out+"\t"+typeinfo+"\t\n");
+				w.write(key.split("\t")[0]+"\t"+thing.replaceAll("_", " ")+"\t"+in+"\t"+out+"\t"+typeinfo+"\t\n");
 
 			}
 			w.close();
@@ -254,7 +564,6 @@ public class NetworkExtractor {
 			e.printStackTrace();
 		}
 	}
-
 	public static void outputRDFdirAsText(String dir, String outfile){
 
 		File f = new File(dir);
@@ -274,7 +583,7 @@ public class NetworkExtractor {
 			c++;
 			Model m = getBaseModel();
 			m.read("file:"+t.getAbsolutePath());
-			boolean loops = true; boolean outs = false; boolean ins = false;
+			boolean loops = true; boolean outs = true; boolean ins = true;
 			String out = outputLinkModelAsText(m, loops, outs, ins);
 			out+=outputEditorModelAsText(m);
 			try {
@@ -441,7 +750,7 @@ public class NetworkExtractor {
 
 	public static void typeLinksWithMetamap(String dir, String outfile){
 		File f = new File(dir);
-		int limit = 10000; int c = 0;
+		int limit = 100000; int c = 0;
 
 		Set<String> linktext = new HashSet<String>();
 		for(File t: f.listFiles()){
@@ -455,13 +764,22 @@ public class NetworkExtractor {
 			StmtIterator stmt = m.listStatements((Resource)null, RDF.type, wikiconcept);
 			while(stmt.hasNext()){
 				Statement s = stmt.nextStatement();
-				String link = s.getSubject().getLocalName().replace("_", " ");
+				//
+				//String link = s.getSubject().getLocalName().replace("_", " ");
+				String uri = s.getSubject().getURI();
+				String link = uri.substring(uri.lastIndexOf("/")+1);
+				link = link.replaceAll("_", " ");
 				try {
 					link = URLDecoder.decode(link, "UTF-8");
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				//	if(link.contains("'")){
+				//		System.out.println("1 "+link);
+				//		System.out.println(s.getSubject().getURI());
+				//	}
+
 				if(link!=""&&link.length()>2){
 					linktext.add(link);
 				}
@@ -481,7 +799,7 @@ public class NetworkExtractor {
 		c = 0;
 		try {
 			Map<String,List<TypedTerm>> getTypedLinks = getTypedLinks(outfile, 860);
-			FileWriter out = new FileWriter(outfile);
+			FileWriter out = new FileWriter(outfile, true);
 			for(String link : linktext){
 				if(!getTypedLinks.containsKey(link)){
 					List<MMannotation> cs = mm.getCUIsFromText(link, null, true, link); //"GO,FMA,SNOMEDCT"		

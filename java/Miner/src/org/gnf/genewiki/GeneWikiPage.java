@@ -328,11 +328,11 @@ public class GeneWikiPage implements Serializable, Comparable{
 		if(useWikiTrust){
 			gotext = setPageContentToWikiTrust();
 			if(gotext==false){//in case we don't already have a revision id
-				retrieveWikiTextContent();
+				retrieveWikiTextContent(false);
 				gotext = setPageContentToWikiTrust();
 			}
 		}else{
-			gotext = retrieveWikiTextContent();
+			gotext = retrieveWikiTextContent(false);
 		}
 		if(!gotext){
 			return false;
@@ -532,7 +532,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 	/**
 	 * This goes and gets the WikiText that composes an article and sets the pageContent (and others)	
 	 */
-	public boolean retrieveWikiTextContent(){
+	public boolean retrieveWikiTextContent(boolean expandtemplates){
 		if(getTitle() == null){
 			System.out.println("Title not set");
 			return false;
@@ -543,8 +543,14 @@ public class GeneWikiPage implements Serializable, Comparable{
 		String[] contentQuery = { 
 				"prop", "revisions",
 				"redirects","true",
-				"rvprop", "content|user|timestamp|ids|size|flags" //timestamp|user|comment| 
+				"rvprop", "content|user|timestamp|ids|size|flags", //timestamp|user|comment| 
+				"",""
 		};
+		
+		if(expandtemplates){
+			contentQuery[6] = "rvexpandtemplates";
+			contentQuery[7] = "";
+		}
 
 		Connector connector = user.getConnector();
 		List<Page> pages = connector.query(user, a, contentQuery);
@@ -687,7 +693,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 							source.setTitle(link);
 							source.setRedirect();
 							source.setAllRedirects();
-							source.retrieveWikiTextContent();
+							source.retrieveWikiTextContent(false);
 							source.retrieveAllOutBoundWikiLinks(false);
 							source.retrieveAllOutBoundHyperLinks();
 						}

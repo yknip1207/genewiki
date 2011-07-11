@@ -21,6 +21,9 @@ import org.gnf.wikiapi.User;
  */
 public class WikiCategoryReader {
 	User user;
+	public WikiCategoryReader(){
+		
+	}
 	
 	public WikiCategoryReader(Map<String, String> creds){
 		init(creds.get("wpid"), creds.get("wppw"));
@@ -64,7 +67,7 @@ public class WikiCategoryReader {
 		List<Page> pages = getPagesWithPBB(max, batchsize);
 		for(Page page : pages){
 			GeneWikiPage p = new GeneWikiPage(page.getTitle());
-			p.retrieveWikiTextContent();
+			p.retrieveWikiTextContent(false);
 			p.parseAndSetNcbiGeneId();
 			System.out.println(p.getTitle()+"\t"+p.getNcbi_gene_id());
 		}

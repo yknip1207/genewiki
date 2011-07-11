@@ -51,7 +51,8 @@ public class RevisionStream {
 
 		Calendar latest = Calendar.getInstance();
 		Calendar earliest = Calendar.getInstance();
-		earliest.add(Calendar.MONTH, -1);
+		earliest.add(Calendar.SECOND, -1*100080);
+
 		List<String> titles = new ArrayList<String>();
 		//		//		Map<String, String> genes = GeneWikiUtils.read2columnMap("/Users/bgood/data/wikiportal/stream/test_genes.txt");
 		//		//		List<String> ncbis = new ArrayList<String>(genes.keySet());
@@ -67,7 +68,7 @@ public class RevisionStream {
 		//		titles.add("Human_chorionic_gonadotropin");
 		//		titles.add("MYH9"); 
 		//		titles.add("VAC14");
-		titles.add("CD117");
+		titles.add("PTF1A");
 		//		titles.add("Sonic hedgehog");
 		//		//	printTweetables(titles, earliest, latest, rc);
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";

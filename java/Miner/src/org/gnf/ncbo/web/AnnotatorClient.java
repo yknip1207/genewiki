@@ -19,10 +19,11 @@ import org.jdom.input.SAXBuilder;
 
 public class AnnotatorClient {
 
-	public static final String PROD_URL = "http://rest.bioontology.org/obs/annotator?apikey=0d1e8183-6485-4866-8b8a-cbc35e8e77cc";
-
+	public static final String PROD_URL = "http://rest.bioontology.org/obs/annotator";
+	//0d1e8183-6485-4866-8b8a-cbc35e8e77cc
 	public static void main( String[] args ) {
-		String text = "Butanediol supraclone cell membrane";//"The cerebellum is in the brain. The cell had a cell membrane and a nucleolus and was undergoing apoptosis. Schizophrenia is a disease, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
+		//String text = "breast cancer";// {{Rsnum |rsid = 10045431 |Orientation=plus |geno1=(A;A) |geno2=(A;C) |geno3=(C;C) |Chromosome=5 |position=158814533 |Assembly=GRCh37 |GenomeBuild=37.1 |dbSNPBuild=131 }}{{ population diversity | geno1=(A;A) | geno2=(A;C) | geno3=(C;C) | CEU | 5.3 | 38.1 | 56.6 | HCB | 1.5 | 22.6 | 75.9 | JPT | 0.0 | 12.4 | 87.6 | YRI | 1.4 | 10.2 | 88.4 | ASW | 0.0 | 24.6 | 75.4 | CHB | 1.5 | 22.6 | 75.9 | CHD | 0.0 | 22.0 | 78.0 | GIH | 6.9 | 20.8 | 72.3 | LWK | 0.0 | 9.1 | 90.9 | MEX | 3.4 | 29.3 | 67.2 | MKK | 0.6 | 19.4 | 80.0 | TSI | 5.9 | 54.9 | 39.2 | HapMapRevision=28 }} {{GWAS Summary |SNP=rs10045431 |PubMedID=18587394 |Condition=Crohn's disease |Gene=IL12B |Risk Allele=C |pValue=4.00E-013 |OR=1.11 |95CI= }}   {{PharmGKB |RSID=rs10045431 |Name_s= |Gene_s=- |Feature= |Evidence=PubMed ID:18587394; Web Resource:http://www.genome.gov/gwastudies/ |Annotation=GWAS Results: Genome-wide assocation defines more than 30 distinct susceptibility loci for Crohn's disease (Initial Sample Size: 3,230 cases 4,829 controls; Replication Sample Size: 2,325 cases 1,809 controls 1,339 affected trios; Risk Allele: rs10045431-C). |Drugs= |Drug Classes= |Diseases=Crohn Disease |Curation Level=Non-Curated |PharmGKB Accession ID=PA162356802 }} {{PMID Auto GWAS |PMID=20570966 |Trait=Crohn's disease |Title=Fucosyltransferase 2(FUT2) Non-Secretor Status is associated with Crohn's Disease |RiskAllele= |Pval=7E-8 |OR=1.45 |ORtxt=[1.27-1.64] }} DeCode reports that [[rs10045431]] affects susceptibility to [[Crohn's disease]].";//"The cerebellum is in the brain. The cell had a cell membrane and a nucleolus and was undergoing apoptosis. 
+		String text = "breast cancer and Schizophrenia is a disease, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
 		boolean useGO = true; boolean useDO = true; boolean useFMA = false; boolean usePRO = true; boolean useOMIM = false; boolean useDrug = true;
 		boolean allowSynonyms = true;
 		List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms, useGO, useDO, useFMA, usePRO, useOMIM, useDrug);
@@ -32,8 +33,8 @@ public class AnnotatorClient {
 			System.out.println(anno.getConcept().getId()+"\t"+anno.getConcept().getLocalConceptId()+"\t"+anno.getConcept().getPreferredName());
 //			System.out.println(anno + " --- "+text.substring(anno.getContext().getFrom()-1, anno.getContext().getTo()+1));
 //			System.out.println(anno + " --- "+anno.getContext().getMatched_text());
-////			System.out.print(anno.getContext().getTerm().getLocalConceptId()+"\t"+anno.getConcept().getPreferredName()+"\t");
-////			System.out.println();
+//			System.out.print(anno.getContext().getTerm().getLocalConceptId()+"\t"+anno.getConcept().getPreferredName()+"\t");
+//			System.out.println();
 		}
 	}
 
@@ -67,8 +68,8 @@ public class AnnotatorClient {
 		}
 	//	params.put("longestOnly", "true");
 		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
-		params.put("stopWords", "protein, gene, disease, disorder, syndromme, chromosome, receptor, cell");
-		params.put("withDefaultStopWords", "true");
+		params.put("stopWords", "protein, gene, disease, disorder, syndrome, chromosome, receptor, cell");
+		//params.put("withDefaultStopWords", "true");
 		params.put("scored", "true");
 		return params;
 	}
@@ -94,8 +95,9 @@ public class AnnotatorClient {
 		}
 	//	params.put("longestOnly", "true");
 		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
-		params.put("stopWords", "protein, gene, disease, disorder, cell");
-		params.put("withDefaultStopWords", "true");
+		//nothe that spaces in the list have meaning..  
+		params.put("stopWords", "protein,gene,disease,disorder,cell,syndrome,CAN");
+	//	params.put("withDefaultStopWords", "false");
 		params.put("scored", "true");
 		params.put("mappingTypes", "null"); //null results in only ISA mappings (if any ontologies to expand)
 	//	params.put("ontologiesToExpand", 
@@ -199,6 +201,7 @@ public class AnnotatorClient {
 	 * @return
 	 */
 	public static List<NcboAnnotation> ncboAnnotate(Map<String, String> params, String text2annotate){
+		params.put("apikey", "0d1e8183-6485-4866-8b8a-cbc35e8e77cc"); //77cc
 		List<NcboAnnotation> annos = new ArrayList<NcboAnnotation>();
 		//add matched_text
 		
@@ -221,7 +224,11 @@ public class AnnotatorClient {
 				String contents = method.getResponseBodyAsString();
 				method.releaseConnection();
 				if(!contents.startsWith("<HTML><HEAD>\n<TITLE>Network Error</TITLE>")){
-					annos = parseAnnotations(contents, text2annotate);
+					if(contents.contains("<errorStatus>")){
+						System.err.println(contents);
+					}else{
+						annos = parseAnnotations(contents, text2annotate);
+					}
 				}else{
 					statusCode = -10;
 				}
@@ -258,7 +265,7 @@ public class AnnotatorClient {
 	 * @return
 	 */
 	public static List<NcboAnnotation> parseAnnotations(String xml, String input_text){
-		//System.out.println(xml);
+	//	System.out.println(input_text+"\n"+xml);
 		List<NcboAnnotation> hits = new ArrayList<NcboAnnotation>();
 		SAXBuilder builder = new SAXBuilder();
 		try {

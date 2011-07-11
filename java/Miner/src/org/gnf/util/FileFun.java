@@ -46,4 +46,29 @@ public class FileFun {
 		}
 		return item;
 	}
+	public static Set<String> readOneColFromFile(String file, int colindex, int limit){
+		Set<String> item = new HashSet<String>();
+		try {
+			int n = 0;
+			BufferedReader f = new BufferedReader(new FileReader(file));
+			String line = f.readLine().trim();
+			while(line!=null&&n<limit){
+				n++;
+				int c = colindex;
+				if(line.startsWith("\t")){
+					c--;
+				}
+				String thing = line.trim().split("\t")[c];
+				item.add(thing);
+				line = f.readLine();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return item;
+	}
 }

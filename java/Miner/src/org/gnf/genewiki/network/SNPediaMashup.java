@@ -26,11 +26,16 @@ import org.gnf.dont.DOterm;
 import org.gnf.genewiki.GeneWikiLink;
 import org.gnf.genewiki.GeneWikiPage;
 import org.gnf.genewiki.GeneWikiUtils;
+import org.gnf.genewiki.Sentence;
 import org.gnf.genewiki.WikiCategoryReader;
+import org.gnf.genewiki.associations.CandidateAnnotation;
+import org.gnf.genewiki.mapping.GeneWikiPageMapper;
 import org.gnf.genewiki.metrics.RevisionCounter;
 import org.gnf.ncbo.web.AnnotatorClient;
 import org.gnf.ncbo.web.NcboAnnotation;
+import org.gnf.util.FileFun;
 import org.gnf.util.MapFun;
+import org.gnf.util.TextFun;
 import org.gnf.wikiapi.Category;
 import org.gnf.wikiapi.Page;
 import org.gnf.wikiapi.User;
@@ -60,20 +65,105 @@ public class SNPediaMashup {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//dumpTabTriples();
-		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
-		String outputdir = "/Users/bgood/data/SMW/dump3/";
+		//get data for ismb mashup paper
+		//getSNPDiseaseLinksFromSNPedia();
+		//loadSNPedia2disease();
+		//String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
+		//String outputdir = "/Users/bgood/data/SMW/dump3/";
 		//summarizeGeneDiseaseIntersection(rdf, outputdir);
 		//summarizeGeneDiseaseJustSnpedia(rdf, outputdir);
 		//summarizeGeneDiseaseJustGwiki(rdf, outputdir);
 		//summarizeGeneDiseaseUnion(rdf, outputdir);
-		measureOnSamples(rdf, outputdir);
+		//measureOnSamples(rdf, outputdir);
 
-		//getEditCountsForSNPedia()
-		//getSNPDiseaseLinksFromSNPedia()
-		//loadSNPedia2disease();
-		//load snp-disease from snpedia
+		//get data in a simple way..
+		String outfile = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
+		getSNPDiseaseLinksFromSNPediaViaSNPText(outfile);
+	}
 
+	public static void getSNPDiseaseLinksFromSNPediaViaSNPText(String outfile){
+		String snpedia = "http://www.snpedia.com/api.php";
+		WikiCategoryReader cats = new WikiCategoryReader();
+		cats.init("i9606", "2manypasswords", snpedia);
+		List<Page> snps = cats.listPagesByCategory(100000, 500, "Is_a_snp");
+		HashMap<String, HashSet<String>> disease_snps = new HashMap<String, HashSet<String>>();
+		System.out.println("Got "+snps.size()+" snps");
+		Set<String> donesnps = new HashSet<String>();
+		try {
+			FileWriter f = null;
+			File test = new File(outfile);
+			if(!test.exists()){
+				f = new FileWriter(outfile);		
+				f.write("#Entrez_gene\tArticle_title\tSection_header\tMost_recent_editor\tScore_from_Annotator\tNCBO_ont_id/Term_id\tTerm_name\tSurrounding_text\tInline-references");
+				f.close();
+			}else{
+				donesnps = FileFun.readOneColFromFile(outfile, 1, 1000000);
+				System.out.println("done with "+donesnps.size());
+			}
+			int i = 0;
+			for(Page page : snps){
+				//		Page page = new Page();
+				//		page.setTitle("Rs10045431");
+				i++;
+				System.out.println("Parsing: "+i+"\t"+page.getTitle());
+				String d_title = page.getTitle();
+				if(d_title!=null){
+					if(donesnps.contains(d_title)){
+						System.out.println("Have: "+i+"\t"+page.getTitle());
+					}else{
+						System.out.println("Don't have "+i+"\t"+page.getTitle());
+						GeneWikiPage d_page = new GeneWikiPage(cats.getUser());
+						d_page.setTitle(d_title);
+						boolean worked = d_page.retrieveWikiTextContent(false);
+						List<Sentence> sentences = new ArrayList<Sentence>();
+						String ptext = TextFun.removeNonalphanumeric(d_page.getPageContent());
+						String[] words = ptext.split(" ");
+						String block = "";
+						for(int w=0; w< words.length; w++){
+							if(w%250==0&&w>0){
+								Sentence s = new Sentence();
+								s.setText(block);
+								sentences.add(s);
+								block = "";
+							}else{
+								block += words[w]+" ";
+							}
+						}
+						Sentence s = new Sentence();
+						s.setText(block);
+						sentences.add(s);
+
+						d_page.setHeadings();
+						d_page.setSentences(sentences);
+						System.out.println("#Sentences:\t"+d_page.getSentences().size());
+						System.out.println("#Bytes:\t"+d_page.getSize());
+						boolean allowSynonyms = true; boolean useGO = false;  boolean useDO = true; boolean useFMA = false; boolean usePRO = false;
+						f = new FileWriter(outfile, true);		
+						if(worked){
+							System.out.println("#Processing text with NCBO Annotator...\n");
+							List<CandidateAnnotation> annos = GeneWikiPageMapper.annotateArticleNCBO(d_page, allowSynonyms, useGO, useDO, useFMA, usePRO);
+							if(annos!=null&&annos.size()>0){
+								System.out.println("#Entrez_gene\tArticle_title\tSection_header\tMost_recent_editor\tScore_from_Annotator\tNCBO_ont_id/Term_id\tTerm_name\tSurrounding_text\tInline-references");
+								for(CandidateAnnotation anno : annos){
+									System.out.println(anno.getEntrez_gene_id()+"\t"+anno.getSource_wiki_page_title()+"\t"+anno.getSection_heading()+"\t"+anno.getLink_author()+"\t"+anno.getAnnotationScore()+"\t"+anno.getTarget_accession()+"\t"+anno.getTarget_preferred_term()+"\t"+anno.getParagraph_around_link()+"\t"+anno.getPubmed_references());
+									f.write(anno.getEntrez_gene_id()+"\t"+anno.getSource_wiki_page_title()+"\t"+anno.getSection_heading()+"\t"+anno.getLink_author()+"\t"+anno.getAnnotationScore()+"\t"+anno.getTarget_accession()+"\t"+anno.getTarget_preferred_term()+"\t"+anno.getParagraph_around_link()+"\t"+anno.getPubmed_references()+"\n");
+								}
+							}else{
+								System.out.println("#No GO or DO annotations found for "+d_title);
+								f.write("none\t"+d_title+"\tnone\tnone\tnone\tnone\tnone\tnone\tnone\n");
+							}
+						}else{
+							System.out.println("#An error occurred when gathering data from SNPedia for "+d_title);
+						}
+						f.close();
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public static void loadSNPedia2disease(){
@@ -125,7 +215,7 @@ public class SNPediaMashup {
 			if(d_title!=null){
 				GeneWikiPage d_page = new GeneWikiPage(cats.getUser());
 				d_page.setTitle(d_title);
-				d_page.retrieveWikiTextContent();
+				d_page.retrieveWikiTextContent(false);
 				d_page.controlledPopulate(true, true, false, false, true, true, true, false);
 				//links out
 				for(GeneWikiLink glink : d_page.getGlinks()){
@@ -409,7 +499,7 @@ public class SNPediaMashup {
 					if(gene_id==null){
 						gwiki.setTitle(g);
 						gwiki.setTitleToRedirect();
-						gwiki.retrieveWikiTextContent();
+						gwiki.retrieveWikiTextContent(false);
 						gwiki.parseAndSetNcbiGeneId();
 						gene_id = gwiki.getNcbi_gene_id();
 						if(gene_id!=null&&gene_id.trim()!=""){
@@ -590,7 +680,7 @@ public class SNPediaMashup {
 					if(gene_id==null){
 						gwiki.setTitle(g);
 						gwiki.setTitleToRedirect();
-						gwiki.retrieveWikiTextContent();
+						gwiki.retrieveWikiTextContent(false);
 						gwiki.parseAndSetNcbiGeneId();
 						gene_id = gwiki.getNcbi_gene_id();
 						if(gene_id!=null&&gene_id.trim()!=""){
@@ -762,7 +852,7 @@ public class SNPediaMashup {
 					if(gene_id==null){
 						gwiki.setTitle(g);
 						gwiki.setTitleToRedirect();
-						gwiki.retrieveWikiTextContent();
+						gwiki.retrieveWikiTextContent(false);
 						gwiki.parseAndSetNcbiGeneId();
 						gene_id = gwiki.getNcbi_gene_id();
 						if(gene_id!=null&&gene_id.trim()!=""){
@@ -992,14 +1082,14 @@ public class SNPediaMashup {
 				}
 			}
 
-						System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps");
-						System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size());
+			System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps");
+			System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size());
 			//
-						System.out.println(gene_overlap.size());
+			System.out.println(gene_overlap.size());
 
 			List<String> gs = new ArrayList<String>(gene_overlap.keySet());
 			Collections.shuffle(gs);
-			
+
 			int group = 100;
 			DescriptiveStatistics stats = new DescriptiveStatistics();
 			for(int l=0; l<2000; l+=100){
@@ -1130,7 +1220,7 @@ public class SNPediaMashup {
 					if(gene_id==null){
 						gwiki.setTitle(g);
 						gwiki.setTitleToRedirect();
-						gwiki.retrieveWikiTextContent();
+						gwiki.retrieveWikiTextContent(false);
 						gwiki.parseAndSetNcbiGeneId();
 						gene_id = gwiki.getNcbi_gene_id();
 						if(gene_id!=null&&gene_id.trim()!=""){

@@ -113,7 +113,7 @@ public class GeneWikiUtils {
 			//check for new or changed titles
 			if(!t.contains(p.getTitle())||recalculate_all){
 				tmppage.setTitle(p.getTitle());
-				tmppage.retrieveWikiTextContent();
+				tmppage.retrieveWikiTextContent(false);
 				tmppage.parseAndSetNcbiGeneId();
 				//				//check if its a replacement title
 				//				if(old_gene_wiki.get(page.getNcbi_gene_id())!=null){
@@ -190,7 +190,7 @@ public class GeneWikiUtils {
 		for(Page p : pages){
 			i++;
 			GeneWikiPage page = new GeneWikiPage(p.getTitle());
-			page.retrieveWikiTextContent();
+			page.retrieveWikiTextContent(false);
 			page.parseAndSetNcbiGeneId();
 			String geneid = page.getNcbi_gene_id();
 			//if we have it, check for a revision

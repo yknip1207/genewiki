@@ -28,8 +28,10 @@ import gov.nih.nlm.nls.metamap.Position;
 import gov.nih.nlm.nls.metamap.Result;
 import gov.nih.nlm.nls.metamap.Utterance;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.rmi.RemoteException;
 import java.sql.SQLException;
 
@@ -47,12 +49,18 @@ public class MetaMap {
 	 */
 	public static void main(String[] args) {
 
-		String input = "The cerebellum is in the brain. The cell had a cell membrane and a nucleolus and was undergoing apoptosis. Schizophrenia is a disease, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";//"Butanediol supraclone cell membrane";//"Some of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
+		String input = "Category:Solute carrier family";//"Alzheimer's disease";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";//"Butanediol supraclone cell membrane";//"Some of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
+		try {
+			input = URLDecoder.decode(input, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		boolean singleterm = false;
 		List<MMannotation> cs = getCUIsFromText(input, null, singleterm, input); //"GO,FMA,SNOMEDCT"
 		UmlsDb d = new UmlsDb();
 		for(MMannotation c : cs){
-			System.out.print(c.getTermName()+"\t");
+			System.out.print(input+" mapped to "+c.getTermName()+"\t");
 			for(String abbr : c.getSemanticTypes()){
 				String type = d.getSemanticTypeInfoFromAbbreviation(abbr);
 				System.out.print(abbr+"\t"+type+"\t"+d.getGroupForStype(type.split("\t")[1]));
@@ -158,7 +166,18 @@ public class MetaMap {
 	//		api.setOptions(theOptions);
 	//	}
 	//	System.out.println(api.getOptions());
-		List<Result> resultList = api.processCitationsFromString(input);
+		String wikiinput = input;
+		wikiinput = wikiinput.replaceAll("category:", "");
+		wikiinput = wikiinput.replaceAll("Category:", "");
+		wikiinput = wikiinput.replaceAll("(gene)","");
+		wikiinput = wikiinput.replaceAll("(biology)","");
+		if(wikiinput.contains("/")){
+			wikiinput = wikiinput.substring(wikiinput.lastIndexOf("/")+1);
+		}
+//		if(wikiinput.contains(":")){
+//			wikiinput = wikiinput.substring(wikiinput.lastIndexOf(":")+1);
+//		}
+		List<Result> resultList = api.processCitationsFromString(wikiinput);
 		for(Result result : resultList){
 			try {
 				for (Utterance utterance: result.getUtteranceList()) {

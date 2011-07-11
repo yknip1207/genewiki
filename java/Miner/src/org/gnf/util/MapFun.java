@@ -38,6 +38,11 @@ public class MapFun {
 	        }
 	    }
 	
+	   /**
+	    * return the keys as a list sorted according to the associated value
+	    * @param m
+	    * @return
+	    */
 	 public static List sortMapByValue(final Map m) {
 	        List keys = new ArrayList();
 	        keys.addAll(m.keySet());
