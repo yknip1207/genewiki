@@ -1,0 +1,683 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia
+END
+commons_link.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/7345/trunk/pywikipedia/commons_link.py
+END
+delinker.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/6540/trunk/pywikipedia/delinker.py
+END
+standardize_interwiki.py
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/pywikipedia/!svn/ver/7015/trunk/pywikipedia/standardize_interwiki.py
+END
+cosmetic_changes.py
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/pywikipedia/!svn/ver/8122/trunk/pywikipedia/cosmetic_changes.py
+END
+featured.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/featured.py
+END
+catall.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8240/trunk/pywikipedia/catall.py
+END
+clean_sandbox.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/8206/trunk/pywikipedia/clean_sandbox.py
+END
+imagerecat.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/7256/trunk/pywikipedia/imagerecat.py
+END
+redirect.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8133/trunk/pywikipedia/redirect.py
+END
+checkimages.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/checkimages.py
+END
+config.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8081/trunk/pywikipedia/config.py
+END
+pagegenerators.py
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/pywikipedia/!svn/ver/8031/trunk/pywikipedia/pagegenerators.py
+END
+warnfile.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/6630/trunk/pywikipedia/warnfile.py
+END
+login.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/8114/trunk/pywikipedia/login.py
+END
+template.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8212/trunk/pywikipedia/template.py
+END
+spamremove.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/7299/trunk/pywikipedia/spamremove.py
+END
+standardize_notes.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/pywikipedia/!svn/ver/8161/trunk/pywikipedia/standardize_notes.py
+END
+basic.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/8240/trunk/pywikipedia/basic.py
+END
+testfamily.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/6540/trunk/pywikipedia/testfamily.py
+END
+followlive.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/followlive.py
+END
+gui.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pywikipedia/!svn/ver/6686/trunk/pywikipedia/gui.py
+END
+BeautifulSoup.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/6858/trunk/pywikipedia/BeautifulSoup.py
+END
+fixing_redirects.py
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/pywikipedia/!svn/ver/8229/trunk/pywikipedia/fixing_redirects.py
+END
+isbn.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svnroot/pywikipedia/!svn/ver/8187/trunk/pywikipedia/isbn.py
+END
+cfd.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pywikipedia/!svn/ver/8050/trunk/pywikipedia/cfd.py
+END
+extract_wikilinks.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/pywikipedia/!svn/ver/5846/trunk/pywikipedia/extract_wikilinks.py
+END
+catlib.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8175/trunk/pywikipedia/catlib.py
+END
+blockpageschecker.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/pywikipedia/!svn/ver/8219/trunk/pywikipedia/blockpageschecker.py
+END
+titletranslate.py
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/pywikipedia/!svn/ver/7565/trunk/pywikipedia/titletranslate.py
+END
+wiktionary.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/6744/trunk/pywikipedia/wiktionary.py
+END
+pagefromfile.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/8174/trunk/pywikipedia/pagefromfile.py
+END
+unlink.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/6844/trunk/pywikipedia/unlink.py
+END
+copyright_put.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/copyright_put.py
+END
+logindata.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/6574/trunk/pywikipedia/logindata.py
+END
+commonscat.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/8253/trunk/pywikipedia/commonscat.py
+END
+wikipedia.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/8242/trunk/pywikipedia/wikipedia.py
+END
+copyright.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/copyright.py
+END
+replace.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/7695/trunk/pywikipedia/replace.py
+END
+speedy_delete.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/8051/trunk/pywikipedia/speedy_delete.py
+END
+revertbot.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/7957/trunk/pywikipedia/revertbot.py
+END
+reflinks.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8180/trunk/pywikipedia/reflinks.py
+END
+date.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svnroot/pywikipedia/!svn/ver/8215/trunk/pywikipedia/date.py
+END
+category.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8246/trunk/pywikipedia/category.py
+END
+piper.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/piper.py
+END
+get.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pywikipedia/!svn/ver/5706/trunk/pywikipedia/get.py
+END
+imageharvest.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/7650/trunk/pywikipedia/imageharvest.py
+END
+splitwarning.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/7336/trunk/pywikipedia/splitwarning.py
+END
+family.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8236/trunk/pywikipedia/family.py
+END
+image.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/7301/trunk/pywikipedia/image.py
+END
+saveHTML.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/7650/trunk/pywikipedia/saveHTML.py
+END
+templatecount.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/7574/trunk/pywikipedia/templatecount.py
+END
+version.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/8085/trunk/pywikipedia/version.py
+END
+unusedfiles.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/5612/trunk/pywikipedia/unusedfiles.py
+END
+maintainer.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/5852/trunk/pywikipedia/maintainer.py
+END
+wikicomserver.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/5846/trunk/pywikipedia/wikicomserver.py
+END
+commons_category_redirect.py
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/pywikipedia/!svn/ver/7522/trunk/pywikipedia/commons_category_redirect.py
+END
+editarticle.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/8099/trunk/pywikipedia/editarticle.py
+END
+capitalize_redirects.py
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/pywikipedia/!svn/ver/7918/trunk/pywikipedia/capitalize_redirects.py
+END
+simple_family.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/7285/trunk/pywikipedia/simple_family.py
+END
+maintcont.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/7336/trunk/pywikipedia/maintcont.py
+END
+nowcommons.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/7336/trunk/pywikipedia/nowcommons.py
+END
+xmltest.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/2287/trunk/pywikipedia/xmltest.py
+END
+inline_images.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/inline_images.py
+END
+articlenos.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/8240/trunk/pywikipedia/articlenos.py
+END
+rciw.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svnroot/pywikipedia/!svn/ver/5852/trunk/pywikipedia/rciw.py
+END
+interwiki.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/interwiki.py
+END
+makecat.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/7336/trunk/pywikipedia/makecat.py
+END
+userlib.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/8194/trunk/pywikipedia/userlib.py
+END
+udp-log.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/5473/trunk/pywikipedia/udp-log.py
+END
+solve_disambiguation.py
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/solve_disambiguation.py
+END
+selflink.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8173/trunk/pywikipedia/selflink.py
+END
+pageimport.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/7600/trunk/pywikipedia/pageimport.py
+END
+copyright_clean.py
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/pywikipedia/!svn/ver/7131/trunk/pywikipedia/copyright_clean.py
+END
+daemonize.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/5846/trunk/pywikipedia/daemonize.py
+END
+djvutext.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8051/trunk/pywikipedia/djvutext.py
+END
+mysql_autoconnection.py
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/pywikipedia/!svn/ver/7588/trunk/pywikipedia/mysql_autoconnection.py
+END
+spellcheck.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/6744/trunk/pywikipedia/spellcheck.py
+END
+fixes.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/8228/trunk/pywikipedia/fixes.py
+END
+noreferences.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/8245/trunk/pywikipedia/noreferences.py
+END
+weblinkchecker.py
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/pywikipedia/!svn/ver/8256/trunk/pywikipedia/weblinkchecker.py
+END
+protect.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/protect.py
+END
+disambredir.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/7861/trunk/pywikipedia/disambredir.py
+END
+imagetransfer.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/imagetransfer.py
+END
+us-states.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/6540/trunk/pywikipedia/us-states.py
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svnroot/pywikipedia/!svn/ver/5846/trunk/pywikipedia/LICENSE
+END
+welcome.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/8196/trunk/pywikipedia/welcome.py
+END
+flickrripper.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/7888/trunk/pywikipedia/flickrripper.py
+END
+add_text.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svnroot/pywikipedia/!svn/ver/8244/trunk/pywikipedia/add_text.py
+END
+table2wiki.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/7924/trunk/pywikipedia/table2wiki.py
+END
+category_redirect.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/pywikipedia/!svn/ver/8115/trunk/pywikipedia/category_redirect.py
+END
+deledpimage.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/8257/trunk/pywikipedia/deledpimage.py
+END
+casechecker.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/8240/trunk/pywikipedia/casechecker.py
+END
+delete.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8210/trunk/pywikipedia/delete.py
+END
+watchlist.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/8105/trunk/pywikipedia/watchlist.py
+END
+censure.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svnroot/pywikipedia/!svn/ver/7348/trunk/pywikipedia/censure.py
+END
+query.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/7956/trunk/pywikipedia/query.py
+END
+CONTENTS
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/pywikipedia/!svn/ver/7021/trunk/pywikipedia/CONTENTS
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svnroot/pywikipedia/!svn/ver/8015/trunk/pywikipedia/README
+END
+generate_user_files.py
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svnroot/pywikipedia/!svn/ver/7687/trunk/pywikipedia/generate_user_files.py
+END
+statistics_in_wikitable.py
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svnroot/pywikipedia/!svn/ver/7356/trunk/pywikipedia/statistics_in_wikitable.py
+END
+rcsort.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/7426/trunk/pywikipedia/rcsort.py
+END
+imagecopy.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/7944/trunk/pywikipedia/imagecopy.py
+END
+imageuncat.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/8110/trunk/pywikipedia/imageuncat.py
+END
+diskcache.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/6872/trunk/pywikipedia/diskcache.py
+END
+match_images.py
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/pywikipedia/!svn/ver/7650/trunk/pywikipedia/match_images.py
+END
+lonelypages.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/7120/trunk/pywikipedia/lonelypages.py
+END
+xmlreader.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/8139/trunk/pywikipedia/xmlreader.py
+END
+upload.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svnroot/pywikipedia/!svn/ver/8105/trunk/pywikipedia/upload.py
+END
+interwiki_graph.py
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/pywikipedia/!svn/ver/8097/trunk/pywikipedia/interwiki_graph.py
+END
+misspelling.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svnroot/pywikipedia/!svn/ver/7336/trunk/pywikipedia/misspelling.py
+END
+movepages.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnroot/pywikipedia/!svn/ver/7246/trunk/pywikipedia/movepages.py
+END
+archivebot.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svnroot/pywikipedia/!svn/ver/8240/trunk/pywikipedia/archivebot.py
+END
+wikipediatools.py
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/pywikipedia/!svn/ver/6630/trunk/pywikipedia/wikipediatools.py
+END

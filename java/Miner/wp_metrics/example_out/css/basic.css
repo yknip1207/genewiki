@@ -1,0 +1,309 @@
+html {
+	color:#FFFFFF;
+	background: #5F5F5F repeat-x scroll 0 0;
+	-moz-background-clip:border;
+	-moz-background-inline-policy:continuous;
+	-moz-background-origin:padding;
+}
+
+a {
+	color:red;
+	text-decoration:none;
+	}
+
+a:visited {
+	color:red;
+	text-decoration:none;
+	}
+
+a:hover {
+	color:red;
+	border-bottom:2px solid #FF9C08;
+	}
+
+#top {
+	font-size: 90%;
+	line-height: 2;
+	padding:0 0 15px 0;
+	}
+
+#top a {
+	color:#FFFFFF;
+	text-decoration:none;
+}
+
+#top a:hover {
+	color:#FFFFFF;
+}
+
+#tl-top-nav ul {
+	float:right;
+	background:#666666;
+	}
+
+.tl-active-page-highlight a{
+	border-bottom:2px solid #FF9C08;
+	}
+
+.tl-left-top-panel{
+/*	border-bottom:1px dashed #666666; */
+	height:300px;
+	padding:10px;
+	}
+.tl-right-top-panel{
+/*	border-bottom:1px dashed #666666; */
+	height:300px;
+	}
+
+.tl-right-bottom-panel{
+	height:180px;
+	padding:10px;
+	}
+
+.tl-left-bottom-panel{
+	height:180px;
+	padding:10px;	
+	}
+
+.scrollable-area-short{
+	height:80px;
+	overflow:auto;
+}
+
+.scrollable-area-short li{
+	margin:0 1.5em; 
+	}
+
+.scrollable-area-medium{
+	height:110px;
+	overflow:auto;
+}
+
+.scrollable-area-medium li{
+	margin:0 1.5em; 
+	}
+
+.scrollable-area{
+	height:130px;
+	overflow:auto;
+	}
+
+.scrollable-area-long{
+	height:300px;
+	overflow:auto;
+	}
+
+.scrollable-area-long li{
+	margin:0 1.5em; 
+	}
+
+#top-message ul {
+	float:left;
+	background:black;
+	}
+
+#top-nav ul {
+	float:right;
+	background:black;
+	}
+
+#sub-top-nav ul {
+	float:right;
+	background:black;
+	padding:0 5px 0 6px;
+	}
+
+ul {
+	list-style-image:none;
+	list-style-position:outside;
+	list-style-type:none;
+	margin:0;
+	padding:0;
+	}
+
+.inlinelist li{
+	display:inline;
+	float:left;
+	padding:0 5px 0 6px;
+	}
+
+#banner {
+
+	}
+
+#main-icon {
+	background:transparent url(/images/trueid/small-square-logo-no-corners.png) no-repeat scroll 0 0;
+	height:120px;
+	width:120px;
+}
+
+
+
+.light-hr{
+	margin: 5px;
+	border-bottom:1px dotted white;
+	}
+
+.light-vertical-line{
+	margin: 5px;
+	height: 100px;
+	border-right:1px dotted white;
+	}
+
+#home-app-list-left p{
+	margin-left: 5px;
+	margin-right: 10px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	padding-top: 5px;
+	padding-bottom: 10px;
+	}
+	
+#home-app-list-left img{
+	float: left;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 0px;
+	padding-bottom: 5px;
+	}
+
+.orange {
+	color: orange;
+	}
+
+.grey {
+	color: grey;
+	}
+
+.plain-white {
+	background: white;
+	color: black;
+	padding: 10px;
+	/*margin: 10px;*/
+	}
+
+.dashed-box {
+	border: 1px dashed grey;
+	}
+
+.plain-white-text {
+	background: white;
+	color: black;
+	padding: 10px;
+	margin-top:10px;
+/*	margin-right:50px;
+	margin-left:50px; */
+	}
+
+.tint-on-plain-white-text {
+	background: #F2F2F2;
+	}
+
+.plain-white-text table { border-collapse: separate; border-spacing: 0; }
+.plain-white-text caption { 
+	text-align: center;
+	font-weight: bold; 
+	color: grey;
+	}
+.plain-white-text th{ 
+	text-align: center;
+	font-weight: normal; 
+	color: grey;
+	}
+
+.plain-white-text td { 
+	text-align: center;
+	font-weight: normal; 
+	color: black;
+	}
+.plain-white-text table, td, th { 
+	vertical-align: top; 
+	color: black;
+	}
+
+.group-rows td{
+	color:#0B615E;
+	}
+	
+.plain-white-text ul {
+	list-style-type:disc;
+	list-style-position:inside;
+	}
+
+.plain-white-text a {
+	color:blue;
+	}
+
+.plain-white-text a:hover {
+	border-bottom:2px solid blue;	
+	}
+
+.plain-white-text h1{
+	color:black;
+	}
+.plain-white-text h2{
+	color:black;
+	}
+.plain-white-text h3{
+	color:black;
+	}
+.plain-white-text h4{
+	color:black;
+	}
+.plain-white-text h5{
+	color:black;
+	}
+
+#udid-list-box {
+	height:100px;
+	padding:5px;
+	width:350px;
+}
+
+#about h1 {
+	color: black;
+	font-size: 18px;
+	
+	}
+
+#fixed-width-header-wrapper {
+	position:absolute; left:30px; top:5px;
+	height: 30px;
+	width: 920px;
+	}
+
+#fixed-width-banner {
+	position:absolute; left: 0px; top:50px;
+	height: 30px;
+	width: 920px;
+	}
+
+input.inline-button { 
+	display : inline;
+	margin : 10px;
+	}
+
+#results {
+  color: #222; 
+  background: #fff;
+}
+
+#footer p{
+	}
+
+#footer-notices {
+	font-size: 80%;
+	line-height: 2;
+	color: orange;
+	float: right;
+	}
+
+#footer-notices ul {
+	float: right;
+	}
+
+#fixed-width-footer-wrapper {
+	position:absolute; left:30px;
+	height: 30px;
+	width: 920px;
+	}
