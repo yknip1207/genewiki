@@ -77,8 +77,322 @@ public class SNPediaMashup {
 		//measureOnSamples(rdf, outputdir);
 
 		//get data in a simple way..
-		String outfile = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
-		getSNPDiseaseLinksFromSNPediaViaSNPText(outfile);
+		//String outfile = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
+		//getSNPDiseaseLinksFromSNPediaViaSNPText(outfile);
+		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
+		String outputdir = "/Users/bgood/data/SMW/take2/";
+		summarizeGeneDiseaseNewSNPtagging(rdf, outputdir);
+		//		
+		//		String snpdisease = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
+		//		Map<String, Set<String>> snp_doids = FileFun.loadMapFromTabD(snpdisease, 1, 5, true);
+		//		System.out.println(snp_doids.keySet().size()+" snps mapped 1");
+		//		Map<String, Set<String>> snp_diseases = FileFun.loadMapFromTabD(snpdisease, 1, 5, true);
+		//		System.out.println(snp_diseases.keySet().size()+" snps mapped 2");
+		//		int none = 0;
+		//		int some = 0;
+		//		for(Entry<String, Set<String>> snp_disease : snp_diseases.entrySet()){
+		//			if(snp_disease.getValue().size()==1&&snp_disease.getValue().contains("none")){
+		//				none++;
+		//			}else{
+		//				some++;
+		//			}
+		//		}
+		//		System.out.println(none+" "+some);
+	}
+
+
+	public static void summarizeGeneDiseaseNewSNPtagging(String rdffile, String outputdir){
+		//get snp-disease mappings from simple method
+		String snpdisease = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
+		Map<String, Set<String>> snp_doids = FileFun.loadMapFromTabD(snpdisease, 1, 5, true);
+
+		//get gene-disease from gw for compare
+		Map<String, Set<String>> gw_diseases = FileFun.loadMapFromTabD("/Users/bgood/data/SMW/dump3/gene2disease_onlygw.txt", 0, 3, true);
+		Map<String, Set<String>> disease_genes_gw = MapFun.flipMapStringSetStrings(gw_diseases);
+		
+		//get gene-disease from gw for compare
+		Map<String, Set<String>> snplink_diseases = FileFun.loadMapFromTabD("/Users/bgood/data/SMW/dump3/gene2diseasesnponly.txt", 0, 3, true);
+		Map<String, Set<String>> disease_genes_snplink = MapFun.flipMapStringSetStrings(snplink_diseases);
+		
+		//get snps linked to diseases for comparison
+//4
+		Set<String> snpsfromsnplink = FileFun.readOneColFromFile("/Users/bgood/data/SMW/dump3/gene2diseasesnponly.txt", 4, 10000000);
+		
+		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
+		//	RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"), snpedia);
+		GeneWikiPage gwiki = new GeneWikiPage(creds.get("wpid"), creds.get("wppw"));
+
+		String datafile = rdffile;
+		//load the disease ontology mappings for comparison
+		Map<String, Set<DOterm>> gene_dos = DOmapping.loadGeneRifs2DO();
+		DOowl dowl = new DOowl();
+		gene_dos = dowl.expandDoMap(gene_dos, false);
+
+		//load the gene wiki index to get the mappings to ncbi gene ids
+		String gindex = "./gw_data/gene_wiki_index_MANUAL.txt";
+		//	Map<String, String> gene_page = new HashMap<String, String>();
+		Map<String, String> page_gene = new HashMap<String, String>();
+		File in = new File(gindex);
+		if(in.canRead()){
+			try {
+				BufferedReader f = new BufferedReader(new FileReader(gindex));
+				String line = f.readLine().trim();
+				while(line!=null){
+					if(!line.startsWith("#")){
+						String[] item = line.split("\t");
+						if(item!=null&&item.length>1){
+							//		if(gene_page.get(item[0])!=null){
+							//			System.out.println(item[0]+" duplicated "+item[1]+" -- "+gene_page.get(item[1]));
+							//		}
+							//		gene_page.put(item[0], item[1].replaceAll(" ", "_"));
+							page_gene.put(item[1].replaceAll(" ", "_"), item[0]);
+						}
+					}
+					line = f.readLine();
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		Model model = ModelFactory.createDefaultModel();
+		model.read(datafile);
+		//		Property snp = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AHasSNP");
+		Property associated_with = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AIs-2Dassociated-2Dwith");
+		//		Property sameas = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3ASame-2Das");
+
+
+		////////////////////		
+		////  Get all gene-SNPs
+		///////////////////
+		String queryString = 
+			"PREFIX wiki: <http://184.72.42.242/mediawiki/index.php/Special:URIResolver/>" +
+			"SELECT ?gene ?disease ?do_term ?snp ?snpdisease "+ 
+			"WHERE { "+
+			" ?gene wiki:Property-3AHasSNP ?snp .  " +
+			"} ";
+
+		//////////////////////
+		////  Get all gene-disease, gene-snp relations
+		/////////////////////
+
+		Query query = QueryFactory.create(queryString);
+		// Execute the query and obtain results
+		QueryExecution qe = QueryExecutionFactory.create(query, model);
+
+		try{
+			ResultSet rs = qe.execSelect();
+			try {
+				FileWriter tab = new FileWriter(outputdir+"gene2snp2disease.txt");
+				tab.write("Gene\tTitle\tDisease\tDiseaseOntologyTerm\tSNP\tMatch2DOA\tmethods\n");
+				FileWriter tab2 = new FileWriter(outputdir+"gene2disease.txt");
+				tab2.write("Gene\tTitle\tDisease\tDiseaseOntologyTerm\tMatch2DOA\tmethods\n");
+				int parents = 0; int directs = 0; int total = 0;
+				Set<String> gene_disease = new HashSet<String>();
+				Set<String> gene_disease_snp = new HashSet<String>();
+				Set<String> genes = new HashSet<String>();
+				Set<String> diseases = new HashSet<String>();
+				Set<String> snps = new HashSet<String>();
+				Set<String> gene_disease_gw = new HashSet<String>();
+				int matches_snplink = 0;
+				int matches_gw = 0;
+				int matches_none = 0;
+				int matches_gd_all = 0;
+				int matches_snplink_gd = 0;
+				int matches_gw_gd = 0;
+				int matches_none_gd = 0;
+				int matches_snplink_gene = 0;
+				int matches_gw_gene = 0;
+				int matches_none_gene = 0;
+				int matches_snplink_disease = 0;
+				int matches_gw_disease = 0;
+				int matches_none_disease = 0;
+				int matches_snplink_snp = 0;
+				int matches_none_snp = 0;
+				
+				while(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					Resource gene = rb.getResource("gene");
+					Resource snp = rb.getResource("snp");				
+					String snpid = snp.getLocalName();
+
+					Set<String> snpdiseases = snp_doids.get(snpid);
+
+					for(String disease : snpdiseases){
+						String method = "snpText2DO";
+						if(disease.equals("none")){
+							continue;
+						}
+						disease = disease.substring(disease.lastIndexOf("/")+1);
+						String dlabel = "";
+						List<String> dlabels = dowl.getDoTermLabel("http://purl.org/obo/owl/DOID#"+disease.replace(":", "_"));
+						if(dlabels!=null&&dlabels.size()>0){
+							dlabel = dlabels.get(0);
+						}
+						
+						
+						String g = smwuriToText(gene);
+						String gene_id = page_gene.get(g);
+						
+						StmtIterator it = gene.listProperties(associated_with);
+						while(it.hasNext()){
+							Resource dd = it.nextStatement().getObject().as(Resource.class);
+							if(dd.getLocalName().equals(disease)){
+								gene_disease_gw.add(gene_id+disease);
+								break;
+							}
+						}
+
+
+						String doa_match = "none";
+						Set<DOterm> dos = null;
+
+						if(gene_id==null){
+							gwiki.setTitle(g);
+							gwiki.setTitleToRedirect();
+							gwiki.retrieveWikiTextContent(false);
+							gwiki.parseAndSetNcbiGeneId();
+							gene_id = gwiki.getNcbi_gene_id();
+							if(gene_id!=null&&gene_id.trim()!=""){
+								page_gene.put(g, gene_id);
+								FileWriter f = new FileWriter(gindex, true);
+								f.write(gene_id+"\t"+g+"\n");
+								f.close();
+							}else{
+								gene_id = null;
+							}
+						}
+
+						if(gene_id!=null){
+							if(genes.add(gene_id)){
+								boolean nt = true;
+								if(gw_diseases.get(gene_id)!=null){
+									matches_gw_gene++;
+									nt = false;
+								}
+								if(snplink_diseases.get(gene_id)!=null){
+									matches_snplink_gene++;
+									nt= false;
+								}
+								if(nt){
+									matches_none_gene++;
+								}
+							}
+							if(diseases.add(disease)){
+								boolean nt = true;
+								if(disease_genes_gw.get(disease)!=null){
+									matches_gw_disease++;
+									nt = false;
+								}
+								if(disease_genes_snplink.get(disease)!=null){
+									matches_snplink_disease++;
+									nt= false;
+								}
+								if(nt){
+									matches_none_disease++;
+								}
+							}
+							if(snps.add(snp.getLocalName())){
+								boolean nt = true;
+								if(snpsfromsnplink.contains(snp.getLocalName())){
+									matches_snplink_snp++;
+									nt = false;
+								}
+								if(nt){
+									matches_none_snp++;
+								}
+							}
+
+							if(gene_disease_snp.add(gene_id+" "+disease+" "+snp)){
+								if(gw_diseases.get(gene_id)!=null&&gw_diseases.get(gene_id).contains(disease)){
+									method+=" : gwtext";
+									matches_gw++;
+								}
+								if(snplink_diseases.get(gene_id)!=null&&snplink_diseases.get(gene_id).contains(disease)){
+									method+=" : snpLinks2DO";
+									matches_snplink++;
+								}
+								if(method.equals("snpText2DO")){
+									matches_none++;
+								}else if(method.equals("snpText2DO : gwtext : snpLinks2DO")){
+									matches_gd_all++;
+								}
+								
+								tab.write(gene_id+"\t"+g+"\t"+dlabel+"\t"+disease+"\t"+smwuriToText(snp)+"\t"+doa_match+"\t"+method+"\n");
+							}
+							if(gene_disease.add(gene_id+"_"+disease)){
+								total++;
+								dos = gene_dos.get(gene_id);
+								if(dos!=null){
+									for(DOterm dot : dos){
+										if(dot.getAccession().equals(disease)){
+											if(dot.isInferred_parent()){
+												doa_match = "parent";
+												parents++;
+											}else{
+												doa_match = "direct";
+												directs++;
+											}
+											break;
+										}
+									}
+								}
+								boolean nt = true;
+								if(gw_diseases.get(gene_id)!=null&&gw_diseases.get(gene_id).contains(disease)){
+									matches_gw_gd++;
+									nt = false;
+								}
+								if(snplink_diseases.get(gene_id)!=null&&snplink_diseases.get(gene_id).contains(disease)){
+									matches_snplink_gd++;
+									nt= false;
+								}
+								if(nt){
+									matches_none_gd++;
+								}
+								tab2.write(gene_id+"\t"+g+"\t"+dlabel+"\t"+disease+"\t"+doa_match+"\t"+method+"\n");
+							}else{
+								System.out.println(gene_id+"\t"+disease);
+							}
+						}else{
+							System.out.println("No gene mapped to "+g);
+						}
+					}
+				}
+				System.out.println("matches_snp_link_gene\tmatches_gw_gene\tnone\t");
+				System.out.println(matches_snplink_gene+"\t"+matches_gw_gene+"\t"+matches_none_gene+"\t");
+				
+				System.out.println("matches_snp_link_disease\tmatches_gw_disease\tnone\t");
+				System.out.println(matches_snplink_disease+"\t"+matches_gw_disease+"\t"+matches_none_disease+"\t");
+				
+				System.out.println("matches_snp_link_snp\tnone\t");
+				System.out.println(matches_snplink_snp+"\t"+matches_none_snp+"\t");
+				
+				System.out.println("matches_snp_link_gd\tmatches_gw_gd\tnone\t");
+				System.out.println(matches_snplink_gd+"\t"+matches_gw_gd+"\t"+matches_none_gd+"\t");
+				System.out.println("matches_snp_link\tmatches_gw\tnone\tall\t");
+				System.out.println(matches_snplink+"\t"+matches_gw+"\t"+matches_none+"\t"+matches_gd_all);
+				System.out.println("parents\tdirects\tnone\ttotal");
+				System.out.println(parents+"\t"+directs+"\t"+(total-parents-directs)+"\t"+total);
+				System.out.println("Genes\tDiseases\tSNPS\tGene_Disease_Pairs\tGene_Disease_Snps\tGene_Disease_also_inGW");
+				System.out.println(genes.size()+"\t"+diseases.size()+"\t"+snps.size()+"\t"+gene_disease.size()+"\t"+gene_disease_snp.size()+"\t"+gene_disease_gw.size());
+				tab.close();
+				tab2.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}finally{
+			// Important � free up resources used running the query
+			qe.close();
+		}
+
+
+
 	}
 
 	public static void getSNPDiseaseLinksFromSNPediaViaSNPText(String outfile){
