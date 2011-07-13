@@ -193,7 +193,7 @@ for gene in genesList:
 #===============================================================================
 # TODO: Improve exception handling.
  
-# There are still unhandled errors, so the loop above might break down and has to be restarted manually from the last imported page.
+# There are still unhandled errors, so the loop above might break down; to complete the process could be necessary to restart it manually from the last imported page.
 # To keep track of the process, run from the python interpreter or, alternatively: python SNPediaImporter.py > out 
 # 
 # To get the index of the last imported page:
