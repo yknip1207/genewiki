@@ -1,0 +1,2 @@
+Report finished generating at: 2011-02-14T14:36:11Z
+-f ./example_genes.txt -o ./example/ -L 10 -t0 20090101 -t1 20091231 -rv -vl -pv 

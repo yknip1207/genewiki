@@ -1,0 +1,1 @@
+SNPedia Mashup code as described in ISMB 2011, in here.
