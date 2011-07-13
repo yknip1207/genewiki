@@ -3,9 +3,9 @@
 #===============================================================================
 # GWImporter
 # 
-# Pull articles of the Gene Wiki from Wikipedia to the target wiki using the Mediawiki API.
+# Pulls articles of the Gene Wiki from Wikipedia to the target wiki using the Mediawiki API.
 # It uses urllib to query pages, and mwclient to handle the writeAPI at the target wiki.
-# To be run onto the target wiki.
+# Runs on the target wiki.
 #
 # Nov 12, 2010; Salvatore Loguercio
 #
@@ -145,7 +145,7 @@ NewList_obj.close()
 #===============================================================================
 # TODO: Improve exception handling.
  
-# The loop above is quite brittle; in case of unknown errors it breaks down and has to be restarted manually from the last imported page.
+# Unhandled error sources (unicode encode/decode, http timeouts, max requests at wikipedia) might breaks down the read/write loop; it could be necessary to restart it manually from the last imported page.
 #
 # To keep track of the process, run from the python interpreter or, alternatively: python GWImporter.py > out 
 # 
