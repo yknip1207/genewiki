@@ -22,6 +22,8 @@ params = {'action':'query',
 request = api.APIRequest(site, params)
 results = request.query(querycontinue=False)
 
+# Should be slightly more than 10,000... like 10,362 as of 7/13/11
+
 # print("Number of results found: %d" % len(results[u'query'][u'embeddedin']))
 # print('')
 
