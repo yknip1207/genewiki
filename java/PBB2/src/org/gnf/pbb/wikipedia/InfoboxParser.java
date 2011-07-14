@@ -53,7 +53,7 @@ public class InfoboxParser extends AbstractParser {
 	
 	public static InfoboxParser factory(String rawText) {
 		try {
-			return new InfoboxParser(rawText, Configs.GET.flag("strict"), 
+			return new InfoboxParser(rawText, Configs.GET.flag("strictChecking"), 
 					Configs.GET.flag("verbose"),
 					Configs.GET.str("templateName"),
 					PbbExceptionHandler.INSTANCE);		

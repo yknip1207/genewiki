@@ -14,6 +14,7 @@ import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.logs.GeneralTableManager;
 import org.gnf.pbb.util.Find;
 //import org.gnf.pbb.util.Find;
 
@@ -27,7 +28,7 @@ public class Launcher {
 
 	public static void main(String[] args) throws InterruptedException, IOException, SQLException {
 		Logger logger = Logger.getLogger(Launcher.class.getName());
-		Configs.GET.setConfigsFromFile("BotConfigs.json");
+		Configs.GET.setFromFile("bot.properties");
 		PbbExceptionHandler exHandler = PbbExceptionHandler.INSTANCE;
 		DatabaseManager dbManager = new DatabaseManager();
 		try {
@@ -39,7 +40,7 @@ public class Launcher {
 		
 		if (args.length < 1) {
 			System.out.println("Retrieving some gene ids to play with instead.");
-			inputs  = Find.updateCandidates(100, Configs.GET);
+			inputs  = GeneralTableManager.findPBBTargets(5);
 			Collections.shuffle(inputs);
 			System.out.println(inputs);
 			System.out.println("Press any key to continue.");

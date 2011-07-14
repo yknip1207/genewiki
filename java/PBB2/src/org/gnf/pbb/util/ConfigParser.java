@@ -4,8 +4,12 @@
 package org.gnf.pbb.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Properties;
 
 
 import org.codehaus.jackson.JsonNode;
@@ -18,6 +22,33 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  */
 public class ConfigParser {
+	
+	
+	public static LinkedHashMap<String, String> parseProperties(String filename) {
+		LinkedHashMap<String, String> properties = new LinkedHashMap<String, String>();
+		String[] keys = {"name", "dryRun", "useCache", "strictChecking", "verbose", "debug", 
+				"cache", "logs", "username", "password", "template_prefix", "template_name",
+				"api_root", "logger_level"};
+		Properties propertyFile = new Properties();
+		try {
+			propertyFile.load(new FileReader(filename));
+			for (String key : keys) {
+				if (propertyFile.containsKey(key)) {
+					properties.put(key, propertyFile.getProperty(key)); // Add the property to our map
+				} else {
+					throw new IOException("Property file missing key: "+key);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Fail gracefully
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Fail gracefully - show what error was encountered?
+			e.printStackTrace();
+		}
+		
+		return properties;
+	}
 
 	public static void parse(String filename, HashMap<String, Boolean> flags,
 			HashMap<String, String> strings) {
@@ -27,7 +58,7 @@ public class ConfigParser {
 			try {
 				// Parse the configuration file
 				JsonNode root = mapper.readValue(file, JsonNode.class);
-				
+				// TODO be consistent about names of parameters
 				JsonNode defaults = root.path("defaults");
 				flags.put("dryrun", defaults.path("dryrun").getBooleanValue());
 				flags.put("usecache", defaults.path("usecache").getBooleanValue());

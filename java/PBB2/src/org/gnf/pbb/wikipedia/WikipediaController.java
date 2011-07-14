@@ -53,12 +53,12 @@ public class WikipediaController {
 	public WikipediaController(ExceptionHandler exHandler, Configs configs) {
 		botState = exHandler;
 		try {
-			this.hostLocation = configs.str("hostLocation");
+			this.hostLocation = configs.str("api_root");
 			wpBot = new MediaWikiBot(new URL(hostLocation));
 			cacheDirectory = configs.str("cacheLocation");
-			usecache = configs.flag("usecache");
+			usecache = configs.flag("useCache");
 			verbose = configs.flag("verbose");
-			dryrun = configs.flag("dryrun");
+			dryrun = configs.flag("dryRun");
 			username = configs.str("username");
 			password = configs.str("password");
 			templatePrefix = configs.str("templatePrefix");

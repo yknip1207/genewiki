@@ -21,7 +21,7 @@ public class DatabaseManager {
 	public DatabaseManager() {
 		exHandler = PbbExceptionHandler.INSTANCE;
 		try {
-			dbName = Configs.GET.str("dbName");
+			dbName = "pbb.db";
 		} catch (ConfigException e) {
 			exHandler.pass(e, Severity.FATAL);
 		}
@@ -120,6 +120,13 @@ public class DatabaseManager {
 		close(dbconnect);
 	}
 	
+	/**
+	 * Makes a note of information missing from mygene.info in the table 'missing'
+	 * @param gene
+	 * @param field
+	 * @param wikiValue
+	 * @throws SQLException
+	 */
 	public void addMissingFromSource(String gene, String field, String wikiValue) throws SQLException {
 		Connection dbconnect = connect();
 		PreparedStatement prep = dbconnect.prepareStatement("insert into missing values (?, ?, ?);");
