@@ -11,6 +11,7 @@ import org.gnf.pbb.exceptions.NoBotsException;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.ProteinBox;
 import org.gnf.pbb.wikipedia.WikipediaController;
@@ -42,7 +43,7 @@ public abstract class AbstractBotController implements Runnable {
 		
 		this.wpControl = new WikipediaController(botState, Configs.GET);
 		
-		this.delay = 1;
+		this.delay = 0;
 		this.identifiers = identifiers;
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);
@@ -57,7 +58,7 @@ public abstract class AbstractBotController implements Runnable {
 		this.delay = delay;
 	}
 	
-	/* ---- Main run() method ---- */
+	/* ---- Main run() method (runs in thread) ---- */
 	public void run() {
 		for (String id : identifiers) {
 			try {
@@ -120,6 +121,9 @@ public abstract class AbstractBotController implements Runnable {
 			}
 		}
 		prepareReport();
+		for (String id : failed) {
+			DatabaseManager.updateDb("failed", id, "");
+		}
 		return;
 	}
 	
@@ -132,6 +136,7 @@ public abstract class AbstractBotController implements Runnable {
 	private boolean update(ProteinBox update) throws Exception {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
 			wpControl.putContent(update.toString(), update.getSingle("Hs_EntrezGene"), update.getSummary());
+			DatabaseManager.updateDb("true", update.getId(), update.getChangedFields());
 			return true;
 		} else {
 			logger.severe("Did not update Wikipedia due to errors encountered during processing. To force an update, turn strict checking off.");
@@ -144,8 +149,10 @@ public abstract class AbstractBotController implements Runnable {
 	 * and any data from the previous session is discarded.
 	 */
 	private void reset() {
-		sourceData.reset();
-		wikipediaData.reset();
+		if (sourceData != null && wikipediaData != null) {
+			sourceData.reset();
+			wikipediaData.reset();
+		}
 		botState.reset();
 		logger.info("Bot reset.");
 	}

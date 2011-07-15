@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.logs.DatabaseManager;
 
 /**
  * ProteinBox represents all possible fields in the GNF_Protein_box wikipedia template.
@@ -114,6 +115,7 @@ public class ProteinBox {
 	private String prependText;
 	private String appendText;
 	private String summary;
+	private List<String> fields_changed;
 	
 	private String id;		// The Entrez id for this gene
 	
@@ -213,6 +215,7 @@ public class ProteinBox {
 		multipleValueFields = builder.multipleValFields;
 		prependText = "";
 		appendText = "";
+		fields_changed = new ArrayList<String>(0);
 		id = builder.singleValFields.get("Hs_EntrezGene");
 		botState = PbbExceptionHandler.INSTANCE;
 	}
@@ -261,6 +264,15 @@ public class ProteinBox {
 		return summary;
 	}
 	
+	public String getChangedFields() {
+		String str = this.fields_changed.toString();
+		return str;
+	}
+	
+	public String getId() {
+		return this.id;
+	}
+	
 	/**
 	 * Returns a copy of this ProteinBox updated with data from another ProteinBox. 
 	 * If data is unique in this instance (i.e. the source is missing the information 
@@ -286,11 +298,11 @@ public class ProteinBox {
 			} else if (sourceValue == null) {
 				// Nothing to update.
 				System.out.println("WARNING: mygene.info potentially missing information in field "+ key);
-				try {
-					db.addMissingFromSource(entrez, key, thisValue);
-				} catch (SQLException e) {
-					botState.minor(e);
-				}
+//				try {
+//					db.addMissingFromSource(entrez, key, thisValue);
+//				} catch (SQLException e) {
+//					botState.minor(e);
+//				}
 				builder.add(key, thisValue);
 				
 			} else if (thisValue == null) {
@@ -305,12 +317,9 @@ public class ProteinBox {
 			} else {
 				updated++;
 				builder.add(key, sourceValue);
-				try {
-					db.addChange(entrez, key, thisValue, sourceValue);
-					//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
-				} catch (SQLException e) {
-					botState.minor(e);
-				}
+				DatabaseManager.addChange(entrez, key, thisValue, sourceValue);
+				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
+
 			}
 		}
 		
@@ -342,17 +351,17 @@ public class ProteinBox {
 				// etc)
 				updated++;
 				builder.add(key, sourceList);
-				try {
-					db.addChange(entrez, key, thisList.toString(), sourceList.toString());
-					//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
-				} catch (SQLException e) {
-					botState.minor(e);
-				}
+				
+				DatabaseManager.addChange(entrez, key, thisList.toString(), sourceList.toString());
+				fields_changed.add(key);
+				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
+				
 			}
 		}
 
-		System.out.printf("%d/%d fields updated.\n", updated, ALL_VALUES.size());
+		
 		ProteinBox pb = builder.build();
+		pb.setEditSummary(String.format("%d/%d fields updated.\n", updated, ALL_VALUES.size()));
 		pb.prepend(this.prependText);
 		pb.append(this.appendText);
 		
@@ -419,7 +428,7 @@ public class ProteinBox {
 //		ProteinBox pb = buildMe.build();
 //		pb.prepend("Something before");
 //		pb.append("Something after");
-//		
+//		pb.getChangedFields();
 //		//buildMe = new ProteinBox.Builder("LOL", "LOL1");
 //		buildMe.add("OMIM", "blahblah");
 //		buildMe.add("PDB", Arrays.asList(new String[]{"123", "jupiter"}));

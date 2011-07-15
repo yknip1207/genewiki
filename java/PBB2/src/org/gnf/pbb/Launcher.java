@@ -14,7 +14,7 @@ import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
-import org.gnf.pbb.logs.GeneralTableManager;
+import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.util.Find;
 //import org.gnf.pbb.util.Find;
 
@@ -30,18 +30,18 @@ public class Launcher {
 		Logger logger = Logger.getLogger(Launcher.class.getName());
 		Configs.GET.setFromFile("bot.properties");
 		PbbExceptionHandler exHandler = PbbExceptionHandler.INSTANCE;
-		DatabaseManager dbManager = new DatabaseManager();
-		try {
-			dbManager.init();
-		} catch (ValidationException e1) {
-			System.out.println("Database exists, not overwriting...");
-		}
+//		DatabaseManager dbManager = new DatabaseManager();
+//		try {
+//			dbManager.init();
+//		} catch (ValidationException e1) {
+//			System.out.println("Database exists, not overwriting...");
+//		}
 		List<String> inputs = new ArrayList<String>(0);
 		
 		if (args.length < 1) {
-			System.out.println("Retrieving some gene ids to play with instead.");
-			inputs  = GeneralTableManager.findPBBTargets(5);
-			Collections.shuffle(inputs);
+			System.out.println("Automatically querying general database for non-updated gene ids...");
+			inputs  = DatabaseManager.findPBBTargets(1000);
+//			Collections.shuffle(inputs);
 			System.out.println(inputs);
 			System.out.println("Press any key to continue.");
 			System.in.read();

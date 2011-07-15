@@ -74,26 +74,26 @@ public class PBBController extends AbstractBotController {
 		}
 		String report = sb.toString();
 		System.out.println(report);
-		try {
-			DatabaseManager db = new DatabaseManager();
-			String cachedir = Configs.GET.str("cacheLocation");
-			BufferedWriter writer = new BufferedWriter(new FileWriter(cachedir+"DB_CHANGES.csv"));
-			writer.write(db.printChanges());
-			writer.close();
-			writer = new BufferedWriter(new FileWriter(cachedir+"DB_ERRATA.csv"));
-			writer.write(db.printMissing());
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-			botState.recoverable(e);
-		}
-		wpControl.writeReport(report);
+//		try {
+//			DatabaseManager db = new DatabaseManager();
+//			String cachedir = Configs.GET.str("cacheLocation");
+//			BufferedWriter writer = new BufferedWriter(new FileWriter(cachedir+"DB_CHANGES.csv"));
+//			writer.write(db.printChanges());
+//			writer.close();
+//			writer = new BufferedWriter(new FileWriter(cachedir+"DB_ERRATA.csv"));
+//			writer.write(db.printMissing());
+//			writer.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			botState.recoverable(e);
+//		}
+//		wpControl.writeReport(report);
 		return report;
 	}
 
