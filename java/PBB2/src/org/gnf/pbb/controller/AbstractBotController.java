@@ -100,6 +100,7 @@ public abstract class AbstractBotController implements Runnable {
 //					System.out.println("Moving along...");
 				} else {
 					failed.add(id);
+					DatabaseManager.updateDb("failed", id, "");
 				}
 				reset();
 			} catch (InterruptedException e) {
@@ -121,9 +122,6 @@ public abstract class AbstractBotController implements Runnable {
 			}
 		}
 		prepareReport();
-		for (String id : failed) {
-			DatabaseManager.updateDb("failed", id, "");
-		}
 		return;
 	}
 	
