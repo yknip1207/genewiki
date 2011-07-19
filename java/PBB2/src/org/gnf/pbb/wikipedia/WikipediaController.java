@@ -120,7 +120,7 @@ public class WikipediaController {
 			content = retrieveArticleFromWikipedia(title, cachedFilename);			
 		}
 		if (content.length() == 0) {
-			logger.severe("Content length is zero; something went wrong retrieving the article.");
+			logger.severe("Content length is zero- page does not exist.");
 		}
 		return content;
 	}
@@ -185,6 +185,7 @@ public class WikipediaController {
 		}
 		return content;
 	}
+	
 
 	/**
 	 * Writes content to a directory specified by the cacheDirectory variable in

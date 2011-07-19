@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
+import org.gnf.pbb.exceptions.ImageNotFoundException;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
@@ -289,8 +290,6 @@ public class ProteinBox {
 		DatabaseManager db = new DatabaseManager();
 		
 		for (String key : SINGLE_VALUES) {
-//			if (key.equals("Hs_EntrezGene"))
-//				System.out.println("Start debugger.");
 			String thisValue = this.getSingle(key);
 			String sourceValue = source.getSingle(key);
 			if (sourceValue == null && thisValue == null) {
@@ -357,6 +356,26 @@ public class ProteinBox {
 				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
 				
 			}
+		}
+
+		/* Image insertion routine:
+		 * Conducted after update to use potentially updated PDB values
+		 */
+		try {
+			String pdb = builder.multipleValFields.get("PDB").get(0);
+			String previousImg = builder.singleValFields.get("image");
+			if ((pdb != null && !pdb.equals("")) 
+					&& (previousImg == null || previousImg.equals(""))){
+				String imgSrc = ImageFinder.imageForPDB(pdb.toLowerCase());
+				builder.add("image", imgSrc);
+				builder.add("image_source", "Constructed from {{PDB2|"+pdb+"}}");
+			} else {
+				System.out.println("Conditions failed.");
+			}
+		} catch (ImageNotFoundException e) {
+			System.out.println("Image not found.");
+		} catch (NullPointerException e) {
+			System.out.println("Some null value in the fields...");
 		}
 
 		
