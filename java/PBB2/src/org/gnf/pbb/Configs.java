@@ -1,40 +1,68 @@
 package org.gnf.pbb;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Properties;
 
 import org.gnf.pbb.exceptions.ConfigException;
-import org.gnf.pbb.util.ConfigParser;
+import org.gnf.pbb.exceptions.FatalException;
 
 public enum Configs {
-	GET;
-	private HashMap<String, Boolean> flags = new HashMap<String, Boolean>();
-	private HashMap<String, String> strings = new HashMap<String, String>();
 	
+	GET;	 // Not a method, this is the singleton instance of Config. Use it as such:
+			 // Config configs = Config.GET
+	
+	private HashMap<String, Boolean> flags   = new HashMap<String, Boolean>();
+	private HashMap<String, String>	 strings = new HashMap<String, String>();
+	
+	private final String[] keys = {"name", "dryRun", "useCache", "strictChecking", 
+			"verbose", "debug", "cacheLocation", "logs", "username", "password", 
+			"templatePrefix", "templateName", "api_root", "loggerLevel"};
+	
+
+	/* ---- Initialization Code ---- */
 	Configs() {
-		flags.put("initialized", false);
+		flags.put("initialized", false); // Unusable until initialized
 	}
+	
 	/**
-	 * Read a bot configuration file and set internal configuration state from it
+	 * Sets the bot properties from file 
 	 * @param filename
 	 */
-	public void setConfigsFromFile(String filename) {
-		ConfigParser.parse(filename, flags, strings);
+	public void setFromFile(String filename) {
+		Properties propFile = new Properties();
+		try {
+			propFile.load(new FileReader(filename));
+			for (String key : keys) {
+				
+				if (propFile.containsKey(key)) {
+					String value = propFile.getProperty(key);
+					if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+						flags.put(key, Boolean.valueOf(value));
+					} else {
+						strings.put(key, value);
+					}
+				} else {
+					throw new IOException("In property file \""+filename+"\", " +
+							"missing key \""+key+"\".");
+				}
+			}
+			flags.put("initialized", true);	// We've successfully loaded the bot properties
+		} catch (FileNotFoundException e) {
+			throw new FatalException("Configuration file not found.");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	/**
-	 * If the initialization state is true or false (should generally always be true;
-	 * use the {@link setConfigsFromFile} method to initialize 
-	 * @return
-	 */
+	/* ---- Public Code ---- */
 	public boolean initialized() {
 		return flags.get("initialized");
 	}
-
-	/**
-	 * Returns boolean state for specified flag
-	 * @param key name of flag
-	 * @return boolean state
-	 */
+	
 	public boolean flag(String key) {
 		Boolean flag = flags.get(key);
 		if (initialized() && flag != null) {
@@ -46,14 +74,9 @@ public enum Configs {
 		}
 	}
 	
-	/**
-	 * Returns the string associated for specified key
-	 * @param key name of the string
-	 * @return corresponding string
-	 */
 	public String str(String key) {
 		String str = strings.get(key);
-		if (initialized() && str != null) {
+		if (initialized() && str != (null)) {
 			return str;
 		} else if (initialized()) {
 			throw new ConfigException(key);
@@ -63,11 +86,10 @@ public enum Configs {
 	}
 	
 	public void set(String key, Boolean flag) {
-		if (!initialized()) {
-			flags.put(key, flag);
-		} else {
-			throw new ConfigException("Configuration has already been set.");
-		}
+		flags.put(key, flag);
 	}
 	
+	public void set(String key, String str) {
+		strings.put(key, str);
+	}
 }

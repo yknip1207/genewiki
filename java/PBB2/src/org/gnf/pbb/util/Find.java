@@ -35,7 +35,7 @@ public class Find {
 				List<Page> pages = wcr.getPagesWithPBB(count, batchsize);
 				for (Page page : pages) {
 					GeneWikiPage p = new GeneWikiPage(page.getTitle());
-					p.retrieveWikiTextContent();
+					p.retrieveWikiTextContent(true);
 					p.parseAndSetNcbiGeneId();
 					candidates.add(p.getNcbi_gene_id());
 				}
@@ -47,5 +47,6 @@ public class Find {
 			}
 		}
 	}
+	
 
 }

@@ -155,6 +155,9 @@ public class JsonParser {
 			builder.add("Hs_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("human").getTextValue());
 			builder.add("Mm_GenLoc_db", metadata.path("GENOME_ASSEMBLY").get("mouse").getTextValue());
 			
+		} catch (IndexOutOfBoundsException e) {
+			botState.recoverable(e);
+			return null;
 		} catch (Exception e) {
 			botState.recoverable(e);
 			return null;
@@ -230,27 +233,27 @@ public class JsonParser {
 		return uniprot;
 	}
 	
-	public static void main(String[] args) {
-		
-		
-		try {
-//			JsonNode root = JsonParser.getJsonForId("410");
-//			ArrayNode pdb = (ArrayNode) root.path("pdb");
-//			Iterator<JsonNode> it = pdb.getElements();
-//			while (it.hasNext()) {
-//				System.out.println(it.next().getTextValue());
-//			}
-			ProteinBox pb = JsonParser.newGeneFromId("410");
-			System.out.println(pb.toString());
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+//	public static void main(String[] args) {
+//		
+//		
+//		try {
+////			JsonNode root = JsonParser.getJsonForId("410");
+////			ArrayNode pdb = (ArrayNode) root.path("pdb");
+////			Iterator<JsonNode> it = pdb.getElements();
+////			while (it.hasNext()) {
+////				System.out.println(it.next().getTextValue());
+////			}
+//			ProteinBox pb = JsonParser.newGeneFromId("410");
+//			System.out.println(pb.toString());
+//		} catch (JsonParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (JsonMappingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 }
