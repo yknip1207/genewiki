@@ -13,6 +13,6 @@
 	<classpathentry kind="lib" path="lib/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/jwbf.jar"/>
-	<classpathentry kind="src" path="/info.bliki.wiki"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/bliki-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
