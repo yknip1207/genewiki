@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.gnf.genewiki;
+package org.gnf.genewiki.journal;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -41,7 +41,6 @@ public class Prioritizer {
 		for(String p : gene2pub.get(gene)){
 			pmids+=p+",";
 		}
-//		Map<String, List<String>> gene2pub = new HashMap<String, List<String>>();
 		List<String> ps = new ArrayList<String>();
 
 		BufferedReader f;
