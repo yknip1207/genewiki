@@ -313,7 +313,53 @@ public class DOowl {
 		return xrefs;
 	}
 
+/**
+ * <owl:Class rdf:about="#DOID_12140">
+    <oboInOwl:hasExactSynonym>
+      <oboInOwl:Synonym>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >chagas' disease with nervous system involvement</rdfs:label>
+      </oboInOwl:Synonym>
+    </oboInOwl:hasExactSynonym>
+ * @return
+ */
+	public List<String> getDoTermLabel(String do_acc_uri){
+		List<String> labels = new ArrayList<String>();
+		String getXref = 
+			"PREFIX DO: <http://purl.org/obo/owl/DOID#> "+
+			"PREFIX GOOWL: <http://www.geneontology.org/formats/oboInOwl#> "+
+			"PREFIX RDFS: <"+RDFS.getURI()+">"+
+			"SELECT ?label WHERE {" +
+//			"{"+
+//			"<"+do_acc_uri+"> GOOWL:hasExactSynonym ?bnode ."+ 
+//			"?bnode RDFS:label ?label }"+ 
+//			"UNION " +
+//			"{" +
+			"<"+do_acc_uri+"> RDFS:label ?label" +
+			"}" +
+//			"}"+
+			" ";
 
+		//	System.out.println(getXref);
+		Query query = QueryFactory.create(getXref);
+
+		// Execute the query and obtain results
+		QueryExecution qe = QueryExecutionFactory.create(query, doid);
+		try{
+			ResultSet rs = qe.execSelect();
+			while(rs.hasNext()){
+				QuerySolution rb = rs.nextSolution() ;
+				String x = rb.getLiteral("label").getString();
+				labels.add(x);
+			}
+			// Simple Output query results
+			//ResultSetFormatter.out(System.out, results, query);
+
+		}finally{
+			qe.close();
+		}
+		return labels;
+	}
 
 	public OntModel getDoid() {
 		return doid;

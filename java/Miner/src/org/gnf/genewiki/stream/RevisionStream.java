@@ -51,35 +51,13 @@ public class RevisionStream {
 
 		Calendar latest = Calendar.getInstance();
 		Calendar earliest = Calendar.getInstance();
-		earliest.add(Calendar.SECOND, -1*100080);
+		earliest.add(Calendar.SECOND, -1*1000080);
 
 		List<String> titles = new ArrayList<String>();
-		//		//		Map<String, String> genes = GeneWikiUtils.read2columnMap("/Users/bgood/data/wikiportal/stream/test_genes.txt");
-		//		//		List<String> ncbis = new ArrayList<String>(genes.keySet());
-		//		//		titles = GeneWikiUtils.getTitlesfromNcbiGenes(ncbis);
-		//
-		//		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
-		//		titles.addAll(gene_wiki.values());
-		//		Collections.sort(titles);
-		//
-		//		titles.add("RPL38"); titles.add("ERG_(gene)"); titles.add("FLNA");titles.add("Apoliprotein_E");titles.add("FLI1");titles.add("CYFIP2");
-		//		titles.add("VIPR2"); 
-		//		titles.add("VIPR1");
-		//		titles.add("Human_chorionic_gonadotropin");
-		//		titles.add("MYH9"); 
-		//		titles.add("VAC14");
-		titles.add("PTF1A");
-		//		titles.add("Sonic hedgehog");
-		//		//	printTweetables(titles, earliest, latest, rc);
+		titles.add("Vasopressin");
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-		//		//		dailyDose("./gw_data/gene_wiki_index.txt", "/Users/bgood/workspace/genewiki/genewikitools/static/gwrss.xml",
-		//		//				"/Users/bgood/workspace/genewiki/genewikitools/static/gwtweetsrss.xml", 5000, true, rc);
-		//		int interval = 120;
-		//		int max_times = -1;
-		//		int seconds2goback = 5000;
-		//		startWikiWatcher(interval, max_times, seconds2goback, titles, creds);
 
 
 		List<GWRevision> newones = rc.checkListForRevisionsInRange(latest, earliest, titles);

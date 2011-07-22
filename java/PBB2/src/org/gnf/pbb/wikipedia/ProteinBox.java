@@ -363,17 +363,18 @@ public class ProteinBox {
 		 */
 		try {
 			String pdb = builder.multipleValFields.get("PDB").get(0);
+			String sym = builder.singleValFields.get("Symbol");
 			String previousImg = builder.singleValFields.get("image");
 			if ((pdb != null && !pdb.equals("")) 
 					&& (previousImg == null || previousImg.equals(""))){
-				String imgSrc = ImageFinder.imageForPDB(pdb.toLowerCase());
+				String imgSrc = ImageFinder.getImage(sym, pdb.toLowerCase());
 				builder.add("image", imgSrc);
 				builder.add("image_source", "Constructed from {{PDB2|"+pdb+"}}");
 			} else {
-				System.out.println("Conditions failed.");
+				System.out.println("Image already present or no PDB values available.");
 			}
 		} catch (ImageNotFoundException e) {
-			System.out.println("Image not found.");
+			System.out.println("Image for "+this.id+" not found.");
 		} catch (NullPointerException e) {
 			System.out.println("Some null value in the fields...");
 		}

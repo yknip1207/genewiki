@@ -89,7 +89,7 @@ public class WikiCategoryReader {
 						"eititle", template_name, 
 						"eifilterredir", "nonredirects",
 						"eilimit", batch+"",
-						"einamespace", "0",
+						"einamespace", "0",  //namespace = 10 equals the template namespace.
 						"", ""
 						};
 				if(nextTitle!=null&&!nextTitle.equals("")){
