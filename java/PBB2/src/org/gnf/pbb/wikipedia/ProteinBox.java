@@ -358,8 +358,8 @@ public class ProteinBox {
 			}
 		}
 
-		/* Image insertion routine:
-		 * Conducted after update to use potentially updated PDB values
+		/* --- Image insertion routine --- */
+		/* Conducted after update to use potentially updated PDB values
 		 */
 		try {
 			String pdb = builder.multipleValFields.get("PDB").get(0);
@@ -367,9 +367,13 @@ public class ProteinBox {
 			String previousImg = builder.singleValFields.get("image");
 			if ((pdb != null && !pdb.equals("")) 
 					&& (previousImg == null || previousImg.equals(""))){
-				String imgSrc = ImageFinder.getImage(sym, pdb.toLowerCase());
-				builder.add("image", imgSrc);
-				builder.add("image_source", "Constructed from {{PDB2|"+pdb+"}}");
+				String img = ImageFinder.getImage(sym, pdb.toLowerCase());
+				String imgSrc = "Rendering of {{PDB2|"+pdb+"}}";
+				builder.add("image", img);
+				builder.add("image_source", "Rendering of {{PDB2|"+pdb+"}}");
+				DatabaseManager.addChange(entrez, "image", "", img);
+				DatabaseManager.addChange(entrez, "image_source", "", imgSrc);
+				updated += 2;
 			} else {
 				System.out.println("Image already present or no PDB values available.");
 			}

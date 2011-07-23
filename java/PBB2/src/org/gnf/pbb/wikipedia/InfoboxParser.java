@@ -211,6 +211,7 @@ public class InfoboxParser extends AbstractParser {
 		/* ---- Preprocessing directions ---- */
 		
 		// Note (and avoid) a reference tag. If there are more than one, the bot will skip this update.
+		// TODO: Write logic to accept fields inside <ref field="blah"> type tags, will throw SIOOB currently
 		// TODO: Write functionality to handle multiple ref tags.
 		int openRefTag = content.indexOf("<ref>");
 		int closeRefTag = content.lastIndexOf("</ref>");

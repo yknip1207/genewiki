@@ -13,8 +13,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
 import org.codehaus.jackson.JsonNode;
@@ -74,8 +76,9 @@ public class JsonParser {
 		} catch (IOException e) {
 			logger.severe("There was an error opening file "+ filename+ ".");
 			botState.recoverable(e);
+			return null;
 		}
-		return null;
+
 	}
 	
 	/**
@@ -117,8 +120,8 @@ public class JsonParser {
 					rootNode.path("go").path("BP").findValuesAsText("id")));
 			builder.add("Hs_EntrezGene", Integer.toString(rootNode.get("entrezgene").getIntValue()));
 			builder.add("Hs_Ensembl", rootNode.path("ensembl").path("gene").getTextValue());
-			builder.add("Hs_RefseqProtein", rootNode.path("refseq").findValuesAsText("protein").get(0)); // Only getting the first value 
-			builder.add("Hs_RefseqmRNA", rootNode.path("refseq").findValuesAsText("rna").get(0));
+			builder.add("Hs_RefseqProtein", safeGetFirstEntry(rootNode.path("refseq").findValuesAsText("protein"))); // Only getting the first value 
+			builder.add("Hs_RefseqmRNA", safeGetFirstEntry(rootNode.path("refseq").findValuesAsText("rna")));
 			builder.add("Hs_GenLoc_chr", rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
 			builder.add("Hs_GenLoc_start", Integer.toString(rootNode.path("genomic_pos").path("start").getIntValue()));
 			builder.add("Hs_GenLoc_end", Integer.toString(rootNode.path("genomic_pos").path("end").getIntValue()));
@@ -145,7 +148,7 @@ public class JsonParser {
 				rootNode = getJsonForId(mouseId);
 				builder.add("Mm_Ensembl", rootNode.path("ensembl").path("gene").getTextValue());
 				builder.add("Mm_RefseqProtein", safeGetFirstEntry(rootNode.path("refseq").findValuesAsText("protein"))); // Only getting the first value 
-				builder.add("Mm_RefseqmRNA", rootNode.path("refseq").findValuesAsText("rna").get(0));
+				builder.add("Mm_RefseqmRNA", safeGetFirstEntry(rootNode.path("refseq").findValuesAsText("rna")));
 				builder.add("Mm_GenLoc_chr", rootNode.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
 				builder.add("Mm_GenLoc_start", Integer.toString(rootNode.path("genomic_pos").path("start").getIntValue()));
 				builder.add("Mm_GenLoc_end", Integer.toString(rootNode.path("genomic_pos").path("end").getIntValue()));
@@ -178,10 +181,14 @@ public class JsonParser {
 	private static List<String> buildListFromArray(JsonNode arrayNode) {
 		List<String> outList = new ArrayList<String>();
 		Iterator<JsonNode> it = arrayNode.getElements();
-		while (it.hasNext()) {
-			outList.add(it.next().getTextValue());
+		try {
+			do {
+				outList.add(it.next().getTextValue());
+			} while (it.hasNext());
+			return outList;
+		} catch (NoSuchElementException e) {
+			return Collections.emptyList();			// I think this is better than returning null
 		}
-		return outList;
 	}
 	
 	private static List<String> buildOntologyList(List<String> terms, List<String> ids) {

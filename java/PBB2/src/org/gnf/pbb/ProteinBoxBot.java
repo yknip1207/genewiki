@@ -138,14 +138,16 @@ public class ProteinBoxBot {
 					controller.join();
 					print("Keyboard interrupt detected. \n");
 				}
-				if (exHandler.checkState().compareTo(Severity.FATAL) > 0) {
+				if (!exHandler.canRecover()) {
 					print("Bot failure.");
 					print(exHandler.printExceptionStackTraces(exHandler.getExceptionsOfSeverity(Severity.FATAL)));
 					controller.interrupt();
 					controller.join();
 					
 				}
-				Thread.sleep(500); // Don't want this loop to hog all the resources, have it wait
+				Thread.sleep(500); // Don't want this loop to hog all the resources. 
+								   // Adding a short sleep timer in here allows the JVM to do other stuff
+								   // - at least in theory.
 			}
 		} catch (InterruptedException ie) {
 			print("Bot interrupted. Returning to main menu....");

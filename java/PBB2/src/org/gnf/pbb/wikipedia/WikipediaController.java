@@ -276,10 +276,12 @@ public class WikipediaController {
 			logger.info(status);
 			
 		} catch (ActionException e) {
-			// TODO Auto-generated catch block
+			Thread.sleep(5000);
+			botState.recoverable(e);
 			e.printStackTrace();
 		} catch (ProcessException e) {
-			// TODO Auto-generated catch block
+			Thread.sleep(5000);
+			botState.recoverable(e);
 			e.printStackTrace();
 		}
 	}
