@@ -35,7 +35,7 @@ public class Prioritizer {
 		String pmids = "";
 //filterMegaGenePubs(
 		
-		Map<String, List<String>> gene2pub = getGene2pub("/Users/bgood/data/gene2pubmed");
+		Map<String, List<String>> gene2pub = getHumanGene2pub("/Users/bgood/data/gene2pubmed");
 		List<String> g2p_list = gene2pub.get(gene);
 		System.out.println(gene2pub.get(gene).size());
 		for(String p : gene2pub.get(gene)){
@@ -99,7 +99,7 @@ public class Prioritizer {
 
 
 	public static void getHighPriority(){
-		Map<String, List<String>> gene2pub = filterMegaGenePubs(getGene2pub("/Users/bgood/data/gene2pubmed"), 5);
+		Map<String, List<String>> gene2pub = filterMegaGenePubs(getHumanGene2pub("/Users/bgood/data/gene2pubmed"), 5);
 		HashMap<String, Set<GOterm>> gene2go = Annotation.readGene2GO("/Users/bgood/data/human_gene2go.txt", false);
 		Map<String, Float> gene2words = getGeneWiki2Words("/Users/bgood/data/genewiki_jan11_volume.txt");
 
@@ -169,7 +169,7 @@ public class Prioritizer {
 	}
 	
 	public static void getPriorityData(){
-		Map<String, List<String>> gene2pub = getGene2pub("/Users/bgood/data/gene2pubmed");
+		Map<String, List<String>> gene2pub = getHumanGene2pub("/Users/bgood/data/gene2pubmed");
 		HashMap<String, Set<GOterm>> gene2go = Annotation.readGene2GO("/Users/bgood/data/human_gene2go.txt", false);
 		Map<String, Float> gene2words = getGeneWiki2Words("/Users/bgood/data/genewiki_jan11_volume.txt");
 
@@ -345,7 +345,7 @@ public class Prioritizer {
 	}
 
 
-	public static Map<String, List<String>> getGene2pub(String gene2pubmed_file){
+	public static Map<String, List<String>> getHumanGene2pub(String gene2pubmed_file){
 		Map<String, List<String>> p2g = new HashMap<String, List<String>>();
 		BufferedReader f;
 		try {
