@@ -14,5 +14,6 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/jwbf.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bliki-core"/>
+	<classpathentry kind="lib" path="/Users/eclarke/Development/workspace/A genewiki/java/PBB2/lib/jopt-simple-3.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

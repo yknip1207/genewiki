@@ -180,8 +180,12 @@ public class WikipediaController {
 			logger.severe(e.getMessage());
 			e.printStackTrace();
 		} catch (ProcessException e) {
+			botState.fatal(e);
 			logger.severe(e.getMessage());
 			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			botState.fatal(e);
+			logger.severe(e.getMessage());
 		}
 		return content;
 	}
@@ -272,7 +276,7 @@ public class WikipediaController {
 			diff.diff_cleanupSemantic(diffs);
 			String htmlDiff = diff.diff_prettyHtml(diffs);
 			writeContentToCache(htmlDiff, "DIFFS_"+title+".html");
-			status = "Success writing new content to page " + live_title;
+			status = "Success writing new content to page " + live_title + ", " + changes;
 			logger.info(status);
 			
 		} catch (ActionException e) {

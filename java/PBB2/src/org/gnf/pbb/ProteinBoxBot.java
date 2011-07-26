@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
 import org.gnf.pbb.controller.PBBController;
 import org.gnf.pbb.exceptions.PbbExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
@@ -16,8 +19,30 @@ import org.gnf.pbb.logs.DatabaseManager;
 public class ProteinBoxBot {
 	static PbbExceptionHandler exHandler; // Bridge between the bot state and this controller
 	
-	public static void main(String args[]) {
-		showMenu();
+	public static void main(String[] args) {
+		OptionParser parser = new OptionParser();
+		parser.accepts("resume");
+		parser.accepts("ids");
+		parser.accepts("init");
+		parser.accepts("help");
+		
+		OptionSet options = parser.parse(args);
+		
+		if (options.has("resume")) {
+			resume();
+		} else if (options.has("ids")) {
+			specifyIds();
+		} else if (options.has("init")) {
+			initialize();
+		} else if (options.has("help")) {
+			try {
+				parser.printHelpOn(System.out);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			showMenu();
+		}
 	}
 
 	public static void showMenu() {
@@ -104,11 +129,11 @@ public class ProteinBoxBot {
 	}
 	
 	public static void initialize() {
-		
+		print("Delete the PbbGeneral.db sqlite database manually to reinitialize the bot.");
 	}
 	
 	public static void help() {
-		
+		print("Refer to documentation on http://code.google.com/p/genewiki");
 	}
 	
 	public static void quit() {

@@ -43,7 +43,7 @@ public abstract class AbstractBotController implements Runnable {
 		
 		this.wpControl = new WikipediaController(botState, Configs.GET);
 		
-		this.delay = 0;
+		this.delay = 3;
 		this.identifiers = identifiers;
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);

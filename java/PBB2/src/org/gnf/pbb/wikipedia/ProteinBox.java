@@ -318,7 +318,7 @@ public class ProteinBox {
 				builder.add(key, sourceValue);
 				DatabaseManager.addChange(entrez, key, thisValue, sourceValue);
 				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
-
+				this.fields_changed.add(key);
 			}
 		}
 		
@@ -352,7 +352,7 @@ public class ProteinBox {
 				builder.add(key, sourceList);
 				
 				DatabaseManager.addChange(entrez, key, thisList.toString(), sourceList.toString());
-				fields_changed.add(key);
+				this.fields_changed.add(key);
 				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
 				
 			}
@@ -373,7 +373,7 @@ public class ProteinBox {
 				builder.add("image_source", "Rendering of {{PDB2|"+pdb+"}}");
 				DatabaseManager.addChange(entrez, "image", "", img);
 				DatabaseManager.addChange(entrez, "image_source", "", imgSrc);
-				updated += 2;
+				updated += 2; 
 			} else {
 				System.out.println("Image already present or no PDB values available.");
 			}

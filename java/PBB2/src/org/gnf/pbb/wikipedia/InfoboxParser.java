@@ -122,6 +122,9 @@ public class InfoboxParser extends AbstractParser {
 	 * This method finds the template specified by the global TemplateName variable
 	 * and returns its content, omitting any other text in the source. Includes the 
 	 * opening and closing {{ }} in returned string.
+	 * This and other parsers in this class operate on a char-by-char basis, as the 
+	 * regular expressions were getting unwieldy and this is more immediately
+	 * understandable, and less brittle.
 	 * @param source string
 	 * @return extracted template content
 	 * @throws MalformedWikitextException
@@ -213,7 +216,7 @@ public class InfoboxParser extends AbstractParser {
 		// Note (and avoid) a reference tag. If there are more than one, the bot will skip this update.
 		// TODO: Write logic to accept fields inside <ref field="blah"> type tags, will throw SIOOB currently
 		// TODO: Write functionality to handle multiple ref tags.
-		int openRefTag = content.indexOf("<ref>");
+		int openRefTag = content.indexOf("<ref>");	// This only works if there are no fields in the angle brackets...
 		int closeRefTag = content.lastIndexOf("</ref>");
 		try {
 			if (openRefTag != -1 || closeRefTag != -1) {
