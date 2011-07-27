@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/jwbf/!svn/ver/272/trunk/jwbf/src/net/sourceforge/jwbf/core/bots/util
+END
+CacheHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/jwbf/!svn/ver/231/trunk/jwbf/src/net/sourceforge/jwbf/core/bots/util/CacheHandler.java
+END
+CachArticle.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/jwbf/!svn/ver/263/trunk/jwbf/src/net/sourceforge/jwbf/core/bots/util/CachArticle.java
+END
+JwbfException.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/jwbf/!svn/ver/272/trunk/jwbf/src/net/sourceforge/jwbf/core/bots/util/JwbfException.java
+END
+SimpleCache.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/jwbf/!svn/ver/231/trunk/jwbf/src/net/sourceforge/jwbf/core/bots/util/SimpleCache.java
+END

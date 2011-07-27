@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/static/main.css" />
+  </head>
+  <body>
+
+    <form action="/verifier/newanno" method="post">
+      <div>Gene<input name="gene"></input></div>
+      <div>Ontology<input name="ontology"></input></div>
+      <div>Term<input name="ontTerm"></input></div>
+      <div>Term Accession<input name="ontAcc"></input></div>
+      <div>First sentence<textarea name="firstSentence" rows="3" cols="60"></textarea></div>
+      <div>Context sentence<textarea name="contextSentence" rows="3" cols="60"></textarea></div>
+      <div><input type="submit" value="add annotation"></div>
+    </form>
+
+  </body>
+</html>

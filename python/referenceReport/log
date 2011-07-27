@@ -1,0 +1,14 @@
+wget "http://genewikitools.appspot.com/ListPages" -O PageList
+# now fix in vi to just get list of pages
+
+# set header line with page with no refs
+set page = P2RY14
+touch CitationReport.txt
+wget "http://genewikitools.appspot.com/ReferenceReport?article=$page" -O - >> CitationReport.txt
+
+# run through all refs
+foreach page ( `cat PageList`)
+    echo $page
+    wget "http://genewikitools.appspot.com/ReferenceReport?article=$page" -O - | grep -v '^Human Entrez Gene' >> CitationReport.txt
+    sleep 2
+end
