@@ -1,0 +1,6 @@
+1	1	\N	1	\N	1	\N
+13	1	\N	\N	\N	\N	\N
+14	\N	\N	\N	\N	\N	\N
+15	1	\N	\N	\N	\N	\N
+16	\N	\N	\N	\N	\N	\N
+17	\N	\N	\N	\N	\N	\N
