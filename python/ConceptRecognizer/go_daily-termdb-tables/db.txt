@@ -1,0 +1,225 @@
+1	AgBase	AgBase resource for functional analysis of agricultural plant and animal gene products	\N	http://www.agbase.msstate.edu/	http://www.agbase.msstate.edu/cgi-bin/getEntry.pl?db_pick=[ChickGO/MaizeGO]&uid=[example_id]	\N	\N
+2	AGI_LocusCode	Arabidopsis Genome Initiative	Locus identifier	http://www.arabidopsis.org	http://arabidopsis.org/servlets/TairObject?type=locus&name=[example_id]	http://arabidopsis.org/servlets/TairObject?type=locus&name=At2g17950	\N
+3	AGRICOLA_ID	AGRICultural OnLine Access	AGRICOLA call number	http://agricola.nal.usda.gov/	\N	\N	\N
+4	AGRICOLA_IND	AGRICultural OnLine Access	AGRICOLA IND number	http://agricola.nal.usda.gov/	\N	\N	\N
+5	ApiDB_PlasmoDB	PlasmoDB Plasmodium Genome Resource	PlasmoDB Gene ID	http://plasmodb.org/	http://www.plasmodb.org/gene/[example_id]	http://www.plasmodb.org/gene/PF11_0344	\N
+6	AraCyc	AraCyc metabolic pathway database for Arabidopsis thaliana	Identifier	http://www.arabidopsis.org/biocyc/index.jsp	http://www.arabidopsis.org:1555/ARA/NEW-IMAGE?type=NIL&object=[example_id]	http://www.arabidopsis.org:1555/ARA/NEW-IMAGE?type=NIL&object=PWYQT-62	\N
+7	ASAP	A Systematic Annotation Package for Community Analysis of Genomes	Feature identifier	https://asap.ahabs.wisc.edu/annotation/php/ASAP1.htm	https://asap.ahabs.wisc.edu/annotation/php/feature_info.php?FeatureID=[example_id]	https://asap.ahabs.wisc.edu/annotation/php/feature_info.php?FeatureID=ABE-0000008	\N
+8	ASPGD	Aspergillus Genome Database	Identifier for ASPGD Loci	http://www.aspergillusgenome.org/	http://www.aspergillusgenome.org/cgi-bin/locus.pl?dbid=[example_id]	http://www.aspergillusgenome.org/cgi-bin/locus.pl?dbid=ASPL0000067538	\N
+9	ASPGD_LOCUS	Aspergillus Genome Database	Gene name (gene symbol in mammalian nomenclature)	http://www.aspergillusgenome.org/	http://www.aspergillusgenome.org/cgi-bin/locus.pl?locus=[example_id]	http://www.aspergillusgenome.org/cgi-bin/locus.pl?locus=AN10942	\N
+10	ASPGD_REF	Aspergillus Genome Database	Literature Reference Identifier	http://www.aspergillusgenome.org/	http://www.aspergillusgenome.org/cgi-bin/reference/reference.pl?dbid=[example_id]	http://www.aspergillusgenome.org/cgi-bin/reference/reference.pl?dbid=90	\N
+11	BHF-UCL	Cardiovascular Gene Ontology Annotation Initiative; supported by the British Heart Foundation (BHF) at University College London (UCL)	\N	http://www.cardiovasculargeneontology.com	\N	\N	\N
+12	BIOMD	BioModels Database	Accession	http://www.ebi.ac.uk/biomodels/	http://www.ebi.ac.uk/compneur-srv/biomodels-main/publ-model.do?mid=[example_id]	http://www.ebi.ac.uk/compneur-srv/biomodels-main/publ-model.do?mid=BIOMD0000000045	\N
+13	bioPIXIE_MEFIT	biological Process Inference from eXperimental Interaction Evidence/Microarray Experiment Functional Integration Technology	\N	http://avis.princeton.edu/mefit/	\N	\N	\N
+14	BIOSIS	BIOSIS previews	Identifier	http://www.biosis.org/	\N	\N	\N
+15	BRENDA	BRENDA, The Comprehensive Enzyme Information System	EC enzyme identifier	http://www.brenda-enzymes.info	http://www.brenda-enzymes.info/php/result_flat.php4?ecno=[example_id]	http://www.brenda-enzymes.info/php/result_flat.php4?ecno=4.2.1.3	\N
+16	Broad	Broad Institute	\N	http://www.broad.mit.edu/	\N	\N	\N
+17	Broad_MGG	Magnaporthe grisea Database	Locus	http://www.broad.mit.edu/annotation/genome/magnaporthe_grisea/Home.html	http://www.broad.mit.edu/annotation/genome/magnaporthe_grisea/GeneLocus.html?sp=S[example_id]	http://www.broad.mit.edu/annotation/genome/magnaporthe_grisea/GeneLocus.html?sp=SMGG_05132	\N
+18	CASGEN	Catalog of Fishes genus database	Identifier	http://research.calacademy.org/research/ichthyology/catalog/fishcatsearch.html	http://research.calacademy.org/research/ichthyology/catalog/getname.asp?rank=Genus&id=[example_id]	http://research.calacademy.org/research/ichthyology/catalog/getname.asp?rank=Genus&id=1040	\N
+19	CASREF	Catalog of Fishes publications database	Identifier	http://research.calacademy.org/research/ichthyology/catalog/fishcatsearch.html	http://research.calacademy.org/research/ichthyology/catalog/getref.asp?id=[example_id]	http://research.calacademy.org/research/ichthyology/catalog/getref.asp?id=2031	\N
+20	CASSPC	Catalog of Fishes species database	Identifier	http://research.calacademy.org/research/ichthyology/catalog/fishcatsearch.html	http://research.calacademy.org/research/ichthyology/catalog/getname.asp?rank=Species&id=[example_id]	http://research.calacademy.org/research/ichthyology/catalog/getname.asp?rank=Species&id=1979	\N
+21	CBS	Center for Biological Sequence Analysis	prediction tool	http://www.cbs.dtu.dk/	\N	http://www.cbs.dtu.dk/services/[example_id]/	\N
+22	CDD	Conserved Domain Database at NCBI	Identifier	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=cdd	http://www.ncbi.nlm.nih.gov/Structure/cdd/cddsrv.cgi?uid=[example_id]	http://www.ncbi.nlm.nih.gov/Structure/cdd/cddsrv.cgi?uid=34222	\N
+23	CGD	Candida Genome Database	Identifier for CGD Loci	http://www.candidagenome.org/	http://www.candidagenome.org/cgi-bin/locus.pl?dbid=[example_id]	http://www.candidagenome.org/cgi-bin/locus.pl?dbid=CAL0005516	\N
+24	CGD_LOCUS	Candida Genome Database	Gene name (gene symbol in mammalian nomenclature)	http://www.candidagenome.org/	http://www.candidagenome.org/cgi-bin/locus.pl?locus=[example_id]	http://www.candidagenome.org/cgi-bin/locus.pl?locus=HWP1	\N
+25	CGD_REF	Candida Genome Database	Literature Reference Identifier	http://www.candidagenome.org/	http://www.candidagenome.org/cgi-bin/reference/reference.pl?dbid=[example_id]	http://www.candidagenome.org/cgi-bin/reference/reference.pl?dbid=1490	\N
+26	CGEN	Compugen Gene Ontology Gene Association Data	Identifier	http://www.cgen.com/	\N	\N	\N
+27	CGSC	CGSC: E.coli Genetic Stock Center	Gene symbol	http://cgsc.biology.yale.edu/	\N	http://cgsc.biology.yale.edu/Site.php?ID=315	\N
+28	ChEBI	Chemical Entities of Biological Interest	Identifier	http://www.ebi.ac.uk/chebi/	http://www.ebi.ac.uk/chebi/searchId.do?chebiId=ChEBI:[example_id]	http://www.ebi.ac.uk/chebi/searchId.do?chebiId=ChEBI:17234	\N
+29	CL	Cell Type Ontology	Identifier	https://lists.sourceforge.net/lists/listinfo/obo-cell-type	\N	\N	\N
+30	COG	NCBI Clusters of Orthologous Groups	\N	http://www.ncbi.nlm.nih.gov/COG/	\N	\N	\N
+31	COG_Cluster	NCBI COG cluster	Identifier	http://www.ncbi.nlm.nih.gov/COG/	http://www.ncbi.nlm.nih.gov/COG/new/release/cow.cgi?cog=[example_id]	http://www.ncbi.nlm.nih.gov/COG/new/release/cow.cgi?cog=COG0001	\N
+32	COG_Function	NCBI COG function	Identifier	http://www.ncbi.nlm.nih.gov/COG/	http://www.ncbi.nlm.nih.gov/COG/grace/shokog.cgi?fun=[example_id]	http://www.ncbi.nlm.nih.gov/COG/grace/shokog.cgi?fun=H	\N
+33	COG_Pathway	NCBI COG pathway	Identifier	http://www.ncbi.nlm.nih.gov/COG/	http://www.ncbi.nlm.nih.gov/COG/new/release/coglist.cgi?pathw=[example_id]	http://www.ncbi.nlm.nih.gov/COG/new/release/coglist.cgi?pathw=14	\N
+34	CORUM	CORUM - the Comprehensive Resource of Mammalian protein complexes	Identifier	http://mips.gsf.de/genre/proj/corum/	http://mips.gsf.de/genre/proj/corum/complexdetails.html?id=[example_id]	http://mips.gsf.de/genre/proj/corum/complexdetails.html?id=837	\N
+35	DDBJ	DNA Databank of Japan	Sequence accession	http://www.ddbj.nig.ac.jp/	http://arsa.ddbj.nig.ac.jp/arsa/ddbjSplSearch?KeyWord=[example_id]	http://arsa.ddbj.nig.ac.jp/arsa/ddbjSplSearch?KeyWord=AA816246	\N
+36	dictyBase	dictyBase	Identifier	http://dictybase.org	http://dictybase.org/gene/[example_id]	http://dictybase.org/gene/DDB_G0277859	\N
+37	dictyBase_gene_name	dictyBase	Gene name	http://dictybase.org	http://dictybase.org/gene/[example_id]	http://dictybase.org/gene/mlcE	\N
+38	dictyBase_REF	dictyBase literature references	Literature Reference Identifier	http://dictybase.org	http://dictybase.org/db/cgi-bin/dictyBase/reference/reference.pl?refNo=[example_id]	http://dictybase.org/db/cgi-bin/dictyBase/reference/reference.pl?refNo=10157	\N
+39	DFLAT	Developmental FunctionaL Annotation at Tufts	\N	\N	\N	\N	\N
+40	DOI	Digital Object Identifier	Identifier	http://dx.doi.org/	http://dx.doi.org/[example_id]	http://dx.doi.org/DOI:10.1016/S0963-9969(99)00021-6	\N
+41	EC	Enzyme Commission	\N	http://ww.expasy.org/enzyme/	http://www.expasy.org/enzyme/[example_id]	http://www.expasy.org/enzyme/1.4.3.6	\N
+42	EchoBASE	EchoBASE post-genomic database for Escherichia coli	Identifier	http://www.ecoli-york.org/	http://www.biolws1.york.ac.uk/echobase/Gene.cfm?recordID=[example_id]	http://www.biolws1.york.ac.uk/echobase/Gene.cfm?recordID=EB0231	\N
+43	ECK	EcoGene Database of Escherichia coli Sequence and Function	ECK accession (E. coli K-12 gene identifier)	http://www.ecogene.org/	http://www.ecogene.org/geneInfo.php?eck_id=[example_id]	http://www.ecogene.org/geneInfo.php?eck_id=ECK3746	\N
+44	EcoCyc	Encyclopedia of E. coli metabolism	Pathway identifier	http://ecocyc.org/	http://biocyc.org/ECOLI/NEW-IMAGE?type=PATHWAY&object=[example_id]	http://biocyc.org/ECOLI/NEW-IMAGE?type=PATHWAY&object=P2-PWY	\N
+45	EcoCyc_REF	Encyclopedia of E. coli metabolism	Reference identifier	http://ecocyc.org/	http://biocyc.org/ECOLI/reference.html?type=CITATION-FRAME&object=[example_id]	http://biocyc.org/ECOLI/reference.html?type=CITATION-FRAME&object=COLISALII	\N
+46	ECOGENE	EcoGene Database of Escherichia coli Sequence and Function	EcoGene accession	http://www.ecogene.org/	http://www.ecogene.org/geneInfo.php?eg_id=[example_id]	http://www.ecogene.org/geneInfo.php?eg_id=EG10818	\N
+47	ECOGENE_G	EcoGene Database of Escherichia coli Sequence and Function	EcoGene Primary Gene Name	http://www.ecogene.org/	\N	\N	\N
+48	EcoliWiki	EcoliWiki from EcoliHub	\N	http://ecoliwiki.net/	\N	\N	\N
+49	EMBL	EMBL Nucleotide Sequence Database	Sequence accession	http://www.ebi.ac.uk/embl/	http://www.ebi.ac.uk/cgi-bin/emblfetch?style=html&Submit=Go&id=[example_id]	http://www.ebi.ac.uk/cgi-bin/emblfetch?style=html&Submit=Go&id=AA816246	\N
+50	ENA	European Nucleotide Archive	Sequence accession	http://www.ebi.ac.uk/ena/	http://www.ebi.ac.uk/ena/data/view/[example_id]	http://www.ebi.ac.uk/ena/data/view/AA816246	\N
+51	ENSEMBL	Ensembl database of automatically annotated genomic data	Identifier	http://www.ensembl.org/	http://www.ensembl.org/id/[example_id]	http://www.ensembl.org/perl/protview?peptide=ENSP00000265949	\N
+52	ENZYME	Swiss Institute of Bioinformatics enzyme database	Identifier	http://www.expasy.ch/	http://www.expasy.ch/cgi-bin/nicezyme.pl?[example_id]	http://www.expasy.ch/cgi-bin/nicezyme.pl?1.1.1.1	\N
+53	Eurofung	Eurofungbase community annotation	\N	http://www.eurofung.net/option=com_content&task=section&id=3&Itemid=4	\N	\N	\N
+54	FB	FlyBase	Identifier	http://flybase.org/	http://flybase.org/reports/[example_id].html	http://flybase.org/reports/FBgn0000024.html	\N
+55	FMA	Foundational Model of Anatomy	Identifier	http://sig.biostr.washington.edu/projects/fm/index.html	\N	\N	\N
+56	GDB	Human Genome Database	Accession	http://www.gdb.org/	http://www.gdb.org/gdb-bin/genera/accno?accessionNum=GDB:[example_id]	http://www.gdb.org/gdb-bin/genera/accno?accessionNum=GDB:306600	\N
+57	GenBank	GenBank	Sequence accession	http://www.ncbi.nlm.nih.gov/Genbank/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nucleotide&val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nucleotide&val=AA816246	\N
+58	Gene3D	Domain Architecture Classification	\N	http://gene3d.biochem.ucl.ac.uk/Gene3D/	\N	\N	\N
+59	GeneDB_Gmorsitans	Glossina morsitans GeneDB	Gene identifier	http://www.genedb.org/genedb/glossina/	http://www.genedb.org/genedb/Search?organism=glossina&name=[example_id]	http://www.genedb.org/genedb/Search?organism=glossina&name=Gmm-0142	\N
+60	GeneDB_Lmajor	Leishmania major GeneDB	Gene identifier	http://www.genedb.org/genedb/leish/	http://www.genedb.org/genedb/Search?organism=leish&name=[example_id]	http://www.genedb.org/genedb/Search?organism=leish&name=LM5.32	\N
+61	GeneDB_Pfalciparum	Plasmodium falciparum GeneDB	Gene identifier	http://www.genedb.org/genedb/malaria/	http://www.genedb.org/genedb/Search?organism=malaria&name=[example_id]	http://www.genedb.org/genedb/Search?organism=malaria&name=PFD0755c	\N
+62	GeneDB_Spombe	Schizosaccharomyces pombe GeneDB	Gene identifier	http://old.genedb.org/genedb/pombe/index.jsp	http://old.genedb.org/genedb/Search?organism=pombe&name=[example_id]	http://old.genedb.org/genedb/Search?organism=pombe&name=SPAC890.04C	\N
+63	GeneDB_Tbrucei	Trypanosoma brucei GeneDB	Gene identifier	http://www.genedb.org/genedb/tryp/	http://www.genedb.org/genedb/Search?organism=tryp&name=[example_id]	http://www.genedb.org/genedb/Search?organism=tryp&name=Tb927.1.5250	\N
+64	GenProtEC	GenProtEC E. coli genome and proteome database	\N	http://genprotec.mbl.edu/	\N	\N	\N
+65	GermOnline	GermOnline	\N	http://www.germonline.org/	\N	\N	\N
+66	GO	Gene Ontology Database	Identifier	http://amigo.geneontology.org/	http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=GO:[example_id]	http://amigo.geneontology.org/cgi-bin/amigo/term-details.cgi?term=GO:0004352	\N
+67	GO_REF	Gene Ontology Database references	Accession (for reference)	http://www.geneontology.org/	http://www.geneontology.org/cgi-bin/references.cgi#GO_REF:[example_id]	http://www.geneontology.org/cgi-bin/references.cgi#GO_REF:0000001	\N
+68	GOA	GO Annotation at EBI	\N	http://www.ebi.ac.uk/goa/	\N	\N	\N
+69	GOA_REF	GO Annotation at EBI (UniProtKB-GOA) references	Identifier (for literature reference)	http://www.ebi.ac.uk/QuickGO	http://www.ebi.ac.uk/QuickGO/GAnnotation?ref=GOA%5FREF%3A[example_id]	http://www.ebi.ac.uk/QuickGO/GAnnotation?ref=GOA%5FREF%3APBT00118838	\N
+70	GOC	Gene Ontology Consortium	\N	http://www.geneontology.org/	\N	\N	\N
+71	GR	Gramene: A Comparative Mapping Resource for Grains	Identifier (any)	http://www.gramene.org/	http://www.gramene.org/db/searches/browser?search_type=All&RGN=on&query=[example_id]	http://www.gramene.org/db/searches/browser?search_type=All&RGN=on&query=sd1	\N
+72	GR_GENE	Gramene: A Comparative Mapping Resource for Grains	Gene identifier	http://www.gramene.org/	http://www.gramene.org/db/genes/search_gene?acc=[example_id]	http://www.gramene.org/db/genes/search_gene?acc=GR:0060198	\N
+73	GR_PROTEIN	Gramene: A Comparative Mapping Resource for Grains	Protein identifier	http://www.gramene.org/	http://www.gramene.org/db/protein/protein_search?acc=[example_id]	http://www.gramene.org/db/protein/protein_search?acc=Q6VSV0	\N
+74	GR_QTL	Gramene: A Comparative Mapping Resource for Grains	QTL identifier	http://www.gramene.org/	http://www.gramene.org/db/qtl/qtl_display?qtl_accession_id=[example_id]	http://www.gramene.org/db/qtl/qtl_display?qtl_accession_id=CQU7	\N
+75	GR_REF	Gramene: A Comparative Mapping Resource for Grains	Reference	http://www.gramene.org/	http://www.gramene.org/db/literature/pub_search?ref_id=[example_id]	http://www.gramene.org/db/literature/pub_search?ref_id=659	\N
+76	H-invDB	H-invitational Database	\N	http://www.h-invitational.jp/	\N	\N	\N
+77	H-invDB_cDNA	H-invitational Database	Accession	http://www.h-invitational.jp/	http://www.h-invitational.jp/hinv/spsoup/transcript_view?acc_id=[example_id]	http://www.h-invitational.jp/hinv/spsoup/transcript_view?acc_id=AK093149	\N
+78	H-invDB_locus	H-invitational Database	Cluster identifier	http://www.h-invitational.jp/	http://www.h-invitational.jp/hinv/spsoup/locus_view?hix_id=[example_id]	http://www.h-invitational.jp/hinv/spsoup/locus_view?hix_id=HIX0014446	\N
+79	HAMAP	High-quality Automated and Manual Annotation of microbial Proteomes	Identifier	http://us.expasy.org/sprot/hamap/	http://us.expasy.org/unirules/[example_id]	http://us.expasy.org/unirules/MF_00031	\N
+80	HGNC	HUGO Gene Nomenclature Committee	Identifier	http://www.genenames.org/	http://www.genenames.org/data/hgnc_data.php?hgnc_id=HGNC:[example_id]	http://www.genenames.org/data/hgnc_data.php?hgnc_id=HGNC:29	\N
+81	HGNC_gene	HUGO Gene Nomenclature Committee	Gene symbol	http://www.genenames.org/	http://www.genenames.org/data/hgnc_data.php?app_sym=[example_id]	http://www.genenames.org/data/hgnc_data.php?app_sym=ABCA1	\N
+82	HPA	Human Protein Atlas tissue profile information	Identifier	http://www.proteinatlas.org/	http://www.proteinatlas.org/tissue_profile.php?antibody_id=[example_id]	http://www.proteinatlas.org/tissue_profile.php?antibody_id=HPA000237	\N
+83	HPA_antibody	Human Protein Atlas antibody information	Identifier	http://www.proteinatlas.org/	http://www.proteinatlas.org/antibody_info.php?antibody_id=[example_id]	http://www.proteinatlas.org/antibody_info.php?antibody_id=HPA000237	\N
+84	HUGO	Human Genome Organisation	\N	http://www.hugo-international.org/	\N	\N	\N
+85	IMG	Integrated Microbial Genomes; JGI web site for genome annotation	Identifier	http://img.jgi.doe.gov	http://img.jgi.doe.gov/cgi-bin/pub/main.cgi?section=GeneDetail&page=geneDetail&gene_oid=[example_id]	http://img.jgi.doe.gov/cgi-bin/pub/main.cgi?section=GeneDetail&page=geneDetail&gene_oid=640008772	\N
+86	IMGT_HLA	IMGT/HLA human major histocompatibility complex sequence database	\N	http://www.ebi.ac.uk/imgt/hla	\N	\N	\N
+87	IMGT_LIGM	ImMunoGeneTics database covering immunoglobulins and T-cell receptors	\N	http://imgt.cines.fr	\N	\N	\N
+88	IntAct	IntAct protein interaction database	Accession	http://www.ebi.ac.uk/intact/	http://www.ebi.ac.uk/intact/search/do/search?searchString=[example_id]	http://www.ebi.ac.uk/intact/search/do/search?searchString=EBI-17086	\N
+89	InterPro	InterPro database of protein domains and motifs	Identifier	http://www.ebi.ac.uk/interpro/	http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[example_id]	http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=IPR000001	\N
+90	IPI	International Protein Index	Identifier	http://www.ebi.ac.uk/IPI/IPIhelp.html	\N	\N	\N
+91	ISBN	International Standard Book Number	Identifier	http://isbntools.com/	http://my.linkbaton.com/get?lbCC=q&nC=q&genre=book&item=[example_id]	http://my.linkbaton.com/get?lbCC=q&nC=q&genre=book&item=0781702534	\N
+92	ISSN	International Standard Serial Number	Identifier	http://www.issn.org/	\N	\N	\N
+93	IUPHAR	International Union of Pharmacology	\N	http://www.iuphar.org/	\N	\N	\N
+94	IUPHAR_GPCR	International Union of Pharmacology	G-protein-coupled receptor family identifier	http://www.iuphar.org/	http://www.iuphar-db.org/GPCR/ChapterMenuForward?chapterID=[example_id]	http://www.iuphar-db.org/GPCR/ChapterMenuForward?chapterID=1279	\N
+95	IUPHAR_RECEPTOR	International Union of Pharmacology	Receptor identifier	http://www.iuphar.org/	http://www.iuphar-db.org/GPCR/ReceptorDisplayForward?receptorID=[example_id]	http://www.iuphar-db.org/GPCR/ReceptorDisplayForward?receptorID=2205	\N
+96	JCVI	J. Craig Venter Institute	\N	http://www.jcvi.org/	\N	\N	\N
+97	JCVI_Ath1	Arabidopsis thaliana database at the J. Craig Venter Institute	Accession	http://www.tigr.org/tdb/e2k1/ath1/ath1.shtml	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=ath1&orf=[example_id]	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=ath1&orf=At3g01440	\N
+98	JCVI_CMR	Comprehensive Microbial Resource at the J. Craig Venter Institute	Locus	http://cmr.jcvi.org/	http://cmr.jcvi.org/cgi-bin/CMR/shared/GenePage.cgi?locus=[example_id]	http://cmr.jcvi.org/cgi-bin/CMR/shared/GenePage.cgi?locus=VCA0557	\N
+99	JCVI_EGAD	EGAD database at the J. Craig Venter Institute	Accession	http://cmr.jcvi.org/	http://cmr.jcvi.org/cgi-bin/CMR/EgadSearch.cgi?search_string=[example_id]	http://cmr.jcvi.org/cgi-bin/CMR/EgadSearch.cgi?search_string=74462	\N
+100	JCVI_GenProp	Genome Properties database at the J. Craig Venter Institute	Accession	http://cmr.jcvi.org/	http://cmr.jcvi.org/cgi-bin/CMR/shared/GenomePropDefinition.cgi?prop_acc=[example_id]	http://cmr.jcvi.org/cgi-bin/CMR/shared/GenomePropDefinition.cgi?prop_acc=GenProp0120	\N
+101	JCVI_Pfa1	Plasmodium falciparum database at the J. Craig Venter Institute	Accession	http://www.tigr.org/tdb/e2k1/pfa1/pfa1.shtml	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=pfa1&orf=[example_id]	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=pfa1&orf=PFB0010w	\N
+102	JCVI_REF	J. Craig Venter Institute	Reference locator	http://cmr.jcvi.org/	\N	http://cmr.jcvi.org/CMR/AnnotationSops.shtml	\N
+103	JCVI_Tba1	Trypanosoma brucei database at the J. Craig Venter Institute	Accession	http://www.tigr.org/tdb/e2k1/tba1/	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=tba1&orf=[example_id]	http://www.tigr.org/tigr-scripts/euk_manatee/shared/ORF_infopage.cgi?db=tba1&orf=25N14.10	\N
+104	JCVI_TIGRFAMS	TIGRFAMs HMM collection at the J. Craig Venter Institute	Accession	http://cmr.jcvi.org/	http://cmr.jcvi.org/cgi-bin/CMR/HmmReport.cgi?hmm_acc=[example_id]	http://cmr.jcvi.org/cgi-bin/CMR/HmmReport.cgi?hmm_acc=TIGR00254	\N
+105	KEGG	Kyoto Encyclopedia of Genes and Genomes	\N	http://www.genome.ad.jp/kegg/	\N	\N	\N
+106	KEGG_ENZYME	KEGG Enzyme Database	Enzyme ID	http://www.genome.jp/dbget-bin/www_bfind?enzyme	http://www.genome.jp/dbget-bin/www_bget?enzyme+[example_id]	http://www.genome.jp/dbget-bin/www_bget?enzyme+2.1.1.4	\N
+107	KEGG_LIGAND	KEGG LIGAND Database	Compound	http://www.genome.ad.jp/kegg/docs/upd_ligand.html	http://www.genome.ad.jp/dbget-bin/www_bget?cpd:[example_id]	http://www.genome.ad.jp/dbget-bin/www_bget?cpd:C00577	\N
+108	KEGG_PATHWAY	KEGG Pathways Database	Pathway	http://www.genome.ad.jp/kegg/docs/upd_pathway.html	http://www.genome.ad.jp/dbget-bin/www_bget?path:[example_id]	http://www.genome.ad.jp/dbget-bin/www_bget?path:ot00020	\N
+109	LIFEdb	lifedb	cDNA clone identifier	http://www.lifedb.de/	http://www.dkfz.de/LIFEdb/LIFEdb.aspx?ID=[example_id]	http://www.dkfz.de/LIFEdb/LIFEdb.aspx?ID=DKFZp564O1716	\N
+110	LOCSVMpsi	LOCSVMPSI: subcellular localization for eukayotic proteins based on SVM and PSI-BLAST	\N	http://bioinformatics.ustc.edu.cn/locsvmpsi/locsvmpsi.php	\N	\N	\N
+111	MA	Adult Mouse Anatomical Dictionary	Identifier	http://www.informatics.jax.org/	http://www.informatics.jax.org/searches/AMA.cgi?id=MA:[example_id]	http://www.informatics.jax.org/searches/AMA.cgi?id=MA:0000003	\N
+112	MaizeGDB	MaizeGDB	MaizeGDB Object ID Number	http://www.maizegdb.org	http://www.maizegdb.org/cgi-bin/id_search.cgi?id=[example_id]	http://www.maizegdb.org/cgi-bin/id_search.cgi?id=881225	\N
+113	MaizeGDB_Locus	MaizeGDB	Maize gene name	http://www.maizegdb.org	http://www.maizegdb.org/cgi-bin/displaylocusresults.cgi?term=[example_id]	http://www.maizegdb.org/cgi-bin/displaylocusresults.cgi?term=ZmPK1	\N
+114	MEDLINE	Medline literature database	Identifier	\N	\N	\N	\N
+115	MEROPS	MEROPS peptidase database	Identifier	http://merops.sanger.ac.uk/	http://merops.sanger.ac.uk/cgi-bin/pepsum?mid=[example_id]	http://merops.sanger.ac.uk/cgi-bin/pepsum?mid=A08.001	\N
+116	MEROPS_fam	MEROPS peptidase database	Peptidase family identifier	http://merops.sanger.ac.uk/	http://merops.sanger.ac.uk/cgi-bin/famsum?family=[example_id]	http://merops.sanger.ac.uk/cgi-bin/famsum?family=m18	\N
+117	MeSH	Medical Subject Headings	MeSH heading	http://www.nlm.nih.gov/mesh/2005/MBrowser.html	http://www.nlm.nih.gov/cgi/mesh/2005/MB_cgi?mode=&term=[example_id]	http://www.nlm.nih.gov/cgi/mesh/2005/MB_cgi?mode=&term=mitosis	\N
+118	MetaCyc	Metabolic Encyclopedia of metabolic and other pathways	Identifier (pathway or reaction)	http://metacyc.org/	http://biocyc.org/META/NEW-IMAGE?type=NIL&object=[example_id]	http://biocyc.org/META/NEW-IMAGE?type=NIL&object=GLUTDEG-PWY	\N
+119	MGD	Mouse Genome Database	Gene symbol	http://www.informatics.jax.org/	\N	\N	\N
+120	MGI	Mouse Genome Informatics	Accession	http://www.informatics.jax.org/	http://www.informatics.jax.org/searches/accession_report.cgi?id=[example_id]	http://www.informatics.jax.org/searches/accession_report.cgi?id=MGI:80863	\N
+121	MIPS_funcat	MIPS Functional Catalogue	Identifier	http://mips.gsf.de/proj/funcatDB/	http://mips.gsf.de/cgi-bin/proj/funcatDB/search_advanced.pl?action=2&wert=[example_id]	http://mips.gsf.de/cgi-bin/proj/funcatDB/search_advanced.pl?action=2&wert=11.02	\N
+122	MITRE	The MITRE Corporation	\N	http://www.mitre.org/	\N	\N	\N
+123	MO	MGED Ontology	ontology term	http://mged.sourceforge.net/ontologies/MGEDontology.php	http://mged.sourceforge.net/ontologies/MGEDontology.php#[example_id]	http://mged.sourceforge.net/ontologies/MGEDontology.php#Action	\N
+124	MultiFun	MultiFun cell function assignment schema	\N	http://genprotec.mbl.edu/files/MultiFun.html	\N	\N	\N
+125	NASC_code	Nottingham Arabidopsis Stock Centre Seeds Database	NASC code Identifier	http://arabidopsis.info	http://seeds.nottingham.ac.uk/NASC/stockatidb.lasso?code=[example_id]	http://seeds.nottingham.ac.uk/NASC/stockatidb.lasso?code=N3371	\N
+126	NC-IUBMB	Nomenclature Committee of the International Union of Biochemistry and Molecular Biology	\N	http://www.chem.qmw.ac.uk/iubmb/	\N	\N	\N
+127	NCBI	National Center for Biotechnology Information	Prefix	http://www.ncbi.nlm.nih.gov/	\N	\N	\N
+128	NCBI_Gene	NCBI Gene	Identifier	http://www.ncbi.nlm.nih.gov/	http://www.ncbi.nlm.nih.gov/sites/entrez?cmd=Retrieve&db=gene&list_uids=[example_id]	http://www.ncbi.nlm.nih.gov/sites/entrez?cmd=Retrieve&db=gene&list_uids=4771	\N
+129	NCBI_gi	NCBI databases	Identifier	http://www.ncbi.nlm.nih.gov/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=113194944	\N
+130	NCBI_GP	NCBI GenPept	Protein identifier	http://www.ncbi.nlm.nih.gov/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=protein&val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=protein&val=EAL72968	\N
+131	NCBI_locus_tag	NCBI locus tag	Identifier	http://www.ncbi.nlm.nih.gov/	\N	\N	\N
+132	NCBI_NM	NCBI RefSeq	mRNA identifier	http://www.ncbi.nlm.nih.gov/	\N	\N	\N
+133	NCBI_NP	NCBI RefSeq	Protein identifier	http://www.ncbi.nlm.nih.gov/	\N	\N	\N
+134	NIF_Subcellular	Neuroscience Information Framework Standard ontology, Subcellular hierarchy	ontology term	http://www.neurolex.org/wiki	http://www.neurolex.org/wiki/[example_id]	http://www.neurolex.org/wiki/sao1770195789	\N
+135	NMPDR	National Microbial Pathogen Data Resource	Identifier	http://www.nmpdr.org	http://www.nmpdr.org/linkin.cgi?id=[example_id]	http://www.nmpdr.org/linkin.cgi?id=fig|306254.1.peg.183	\N
+136	OMIM	Mendelian Inheritance in Man	Identifier	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=OMIM	http://www.ncbi.nlm.nih.gov/entrez/dispomim.cgi?id=[example_id]	http://www.ncbi.nlm.nih.gov/htbin-post/entrez/dispomim.cgi?id=190198	\N
+137	PAMGO	Plant-Associated Microbe Gene Ontology Interest Group	\N	http://pamgo.vbi.vt.edu/	\N	\N	\N
+138	PAMGO_GAT	Genome Annotation Tool (Agrobacterium tumefaciens C58); PAMGO Interest Group	Gene	http://agro.vbi.vt.edu/public/	http://agro.vbi.vt.edu/public/servlet/GeneEdit?&Search=Search&level=2&genename=[example_id]	http://agro.vbi.vt.edu/public/servlet/GeneEdit?&Search=Search&level=2&genename=atu0001	\N
+139	PAMGO_MGG	Magnaporthe grisea database	Locus	http://scotland.fgl.ncsu.edu/smeng/GoAnnotationMagnaporthegrisea.html	http://scotland.fgl.ncsu.edu/cgi-bin/adHocQuery.cgi?adHocQuery_dbName=smeng_goannotation&Action=Data&QueryName=Functional+Categorization+of+MGG+GO+Annotation&P_KeyWord=[example_id]	http://scotland.fgl.ncsu.edu/cgi-bin/adHocQuery.cgi?adHocQuery_dbName=smeng_goannotation&Action=Data&QueryName=Functional+Categorization+of+MGG+GO+Annotation&P_KeyWord=MGG_05132	\N
+140	PAMGO_VMD	Virginia Bioinformatics Institute Microbial Database	Gene identifier	http://phytophthora.vbi.vt.edu	http://vmd.vbi.vt.edu/cgi-bin/browse/go_detail.cgi?gene_id=[example_id]	http://vmd.vbi.vt.edu/cgi-bin/browse/go_detail.cgi?gene_id=109198	\N
+141	PANTHER	Protein ANalysis THrough Evolutionary Relationships	Protein family tree identifier	http://www.pantherdb.org/	http://www.pantherdb.org/panther/family.do?clsAccession=[example_id]	http://www.pantherdb.org/panther/family.do?clsAccession=PTHR22573	\N
+142	PATO	Phenotypic quality ontology	Identifier	http://www.bioontology.org/wiki/index.php/PATO:Main_Page	\N	\N	\N
+143	PATRIC	PathoSystems Resource Integration Center	Feature identifieer	http://patric.vbi.vt.edu	http://patric.vbi.vt.edu/gene/overview.php?fid=[example_id]	http://patric.vbi.vt.edu/gene/overview.php?fid=cds.000002.436951	\N
+144	PDB	Protein Data Bank	Identifier	http://www.rcsb.org/pdb/	http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=[example_id]	http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=1A4U	\N
+145	Pfam	Pfam database of protein families	Accession	http://www.sanger.ac.uk/Software/Pfam/	http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?[example_id]	http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?PF00046	\N
+146	PfamB	Pfam-B supplement to Pfam	Accession	http://www.sanger.ac.uk/Software/Pfam/	\N	\N	\N
+147	PharmGKB_PA	Pharmacogenetics and Pharmacogenomics Knowledge Base	\N	http://www.pharmgkb.org	http://www.pharmgkb.org/do/serve?objId=[example_id]	http://www.pharmgkb.org/do/serve?objId=PA267	\N
+148	PharmGKB_PGKB	Pharmacogenetics and Pharmacogenomics Knowledge Base	\N	http://www.pharmgkb.org	http://www.pharmgkb.org/do/serve?objId=[example_id]	http://www.pharmgkb.org/do/serve?objId=PA267	\N
+149	PINC	Proteome Inc.	\N	http://www.proteome.com/	\N	\N	\N
+150	PIR	Protein Information Resource	Accession	http://pir.georgetown.edu/	http://pir.georgetown.edu/cgi-bin/pirwww/nbrfget?uid=[example_id]	http://pir.georgetown.edu/cgi-bin/pirwww/nbrfget?uid=I49499	\N
+151	PIRSF	PIR Superfamily Classification System generic_urlobject: Identifier	\N	http://pir.georgetown.edu/pirsf/	http://pir.georgetown.edu/cgi-bin/ipcSF?id=[example_id]	http://pir.georgetown.edu/cgi-bin/ipcSF?id=SF002327	\N
+152	PMCID	Pubmed Central	Identifier	http://www.pubmedcentral.nih.gov/	http://www.ncbi.nlm.nih.gov/sites/entrez?db=pmc&cmd=search&term=[example_id]	http://www.ncbi.nlm.nih.gov/sites/entrez?db=pmc&cmd=search&term=PMC201377	\N
+153	PMID	PubMed	Identifier	http://www.ncbi.nlm.nih.gov/PubMed/	http://www.ncbi.nlm.nih.gov/pubmed/[example_id]	http://www.ncbi.nlm.nih.gov/pubmed/4208797	\N
+154	PO	Plant Ontology Consortium Database	Identifier	http://www.plantontology.org/	http://www.plantontology.org/amigo/go.cgi?action=query&view=query&search_constraint=terms&query=PO:[example_id]	http://www.plantontology.org/amigo/go.cgi?action=query&view=query&search_constraint=terms&query=PO:0009004	\N
+155	POC	Plant Ontology Consortium	\N	\N	\N	\N	\N
+156	Pompep	Schizosaccharomyces pombe protein data	Gene/protein identifier	ftp://ftp.sanger.ac.uk/pub/yeast/pombe/Protein_data/	\N	\N	\N
+157	PPI	Pseudomonas syringae community annotation project	\N	http://genome.pseudomonas-syringae.org/	\N	\N	\N
+158	PRINTS	PRINTS compendium of protein fingerprints	Accession	http://www.bioinf.manchester.ac.uk/dbbrowser/PRINTS/	http://www.bioinf.manchester.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&category=None&queryform=false&regexpr=off&prints_accn=[example_id]	http://www.bioinf.manchester.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&category=None&queryform=false&regexpr=off&prints_accn=PR00025	\N
+159	ProDom	ProDom protein domain families	Accession	http://prodom.prabi.fr/prodom/current/html/home.php	http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&query=[example_id]	http://prodom.prabi.fr/prodom/current/cgi-bin/request.pl?question=DBEN&query=PD000001	\N
+160	Prosite	Prosite database of protein families and domains	Accession	http://www.expasy.ch/prosite/	http://www.expasy.ch/cgi-bin/prosite-search-ac?[example_id]	http://www.expasy.ch/cgi-bin/prosite-search-ac?PS00365	\N
+161	protein_id	DDBJ / EMBL-Bank / GenBank	Identifier	\N	\N	\N	\N
+162	PROW	Protein Reviews on the Web	\N	http://www.ncbi.nlm.nih.gov/prow/	\N	\N	\N
+163	PseudoCAP	Pseudomonas Genome Project	Identifier	http://v2.pseudomonas.com/	http://v2.pseudomonas.com/getAnnotation.do?locusID=[example_id]	http://v2.pseudomonas.com/getAnnotation.do?locusID=PA4756	\N
+164	PSI-MI	Proteomic Standard Initiative for Molecular Interaction	Interaction identifier	http://psidev.sourceforge.net/mi/xml/doc/user/index.html	\N	\N	\N
+165	PSI-MOD	Proteomics Standards Initiative protein modification ontology	Protein modification identifier	http://psidev.sourceforge.net/mod/	http://www.ebi.ac.uk/ontology-lookup/?termId=MOD:[example_id]	http://www.ebi.ac.uk/ontology-lookup/?termId=MOD:00219	\N
+166	PSORT	PSORT protein subcellular localization databases and prediction tools for bacteria	\N	http://www.psort.org/	\N	\N	\N
+167	pTARGET	pTARGET Prediction server for protein subcellular localization	\N	http://bioinformatics.albany.edu/~ptarget/	\N	\N	\N
+168	PubChem_BioAssay	NCBI PubChem database of bioassay records	Identifier	http://pubchem.ncbi.nlm.nih.gov/	http://pubchem.ncbi.nlm.nih.gov/assay/assay.cgi?aid=[example_id]	http://pubchem.ncbi.nlm.nih.gov/assay/assay.cgi?aid=177	\N
+169	PubChem_Compound	NCBI PubChem database of chemical structures	Identifier	http://pubchem.ncbi.nlm.nih.gov/	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?CMD=search&DB=pccompound&term=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?CMD=search&DB=pccompound&term=2244	\N
+170	PubChem_Substance	NCBI PubChem database of chemical substances	Identifier	http://pubchem.ncbi.nlm.nih.gov/	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?CMD=search&DB=pcsubstance&term=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?CMD=search&DB=pcsubstance&term=4594	\N
+171	Reactome	Reactome - a curated knowledgebase of biological pathways	Identifier	http://www.reactome.org/	http://www.reactome.org/cgi-bin/eventbrowser?DB=gk_current&ID=[example_id]	http://www.reactome.org/cgi-bin/eventbrowser?DB=gk_current&ID=20536	\N
+172	REBASE	REBASE restriction enzyme database	Restriction enzyme name	http://rebase.neb.com/rebase/rebase.html	http://rebase.neb.com/rebase/enz/[example_id].html url_syntaxurl_example: http://rebase.neb.com/rebase/enz/EcoRI.html	\N	\N
+173	RefGenome	GO Reference Genomes	\N	\N	\N	\N	\N
+174	RefSeq	RefSeq	Identifier	http://www.ncbi.nlm.nih.gov/RefSeq/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=XP_001068954	\N
+175	RefSeq_NA	RefSeq (Nucleic Acid)	Identifier	http://www.ncbi.nlm.nih.gov/RefSeq/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=NC_000913	\N
+176	RefSeq_Prot	RefSeq (Protein)	Identifier	http://www.ncbi.nlm.nih.gov/RefSeq/	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=[example_id]	http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?val=YP_498627	\N
+177	RESID	RESID Database of Protein Modifications	Identifier	ftp://ftp.ncifcrf.gov/pub/users/residues/	\N	\N	\N
+178	RGD	Rat Genome Database	Accession	http://rgd.mcw.edu/	http://rgd.mcw.edu/generalSearch/RgdSearch.jsp?quickSearch=1&searchKeyword=[example_id]	http://rgd.mcw.edu/generalSearch/RgdSearch.jsp?quickSearch=1&searchKeyword=2004	\N
+179	RNAmods	RNA Modification Database	Identifier	http://medlib.med.utah.edu/RNAmods/	http://medlib.med.utah.edu/cgi-bin/rnashow.cgi?[example_id]	http://medlib.med.utah.edu/cgi-bin/rnashow.cgi?037	\N
+180	Roslin_Institute	Roslin Institute	\N	http://www.roslin.ac.uk/	\N	\N	\N
+181	Sanger	Wellcome Trust Sanger Institute	\N	http://www.sanger.ac.uk/	\N	\N	\N
+182	SEED	The SEED;	identifier	http://www.theseed.org	http://www.theseed.org/linkin.cgi?id=[example_id]	http://www.theseed.org/linkin.cgi?id=fig|83331.1.peg.1	\N
+183	SGD	Saccharomyces Genome Database	Identifier for SGD Loci	http://www.yeastgenome.org/	http://db.yeastgenome.org/cgi-bin/locus.pl?dbid=[example_id]	http://db.yeastgenome.org/cgi-bin/locus.pl?dbid=S000006169	\N
+184	SGD_LOCUS	Saccharomyces Genome Database	Gene name (gene symbol in mammalian nomenclature)	http://www.yeastgenome.org/	http://db.yeastgenome.org/cgi-bin/locus.pl?locus=[example_id]	http://db.yeastgenome.org/cgi-bin/locus.pl?locus=GAL4	\N
+185	SGD_REF	Saccharomyces Genome Database	Literature Reference Identifier	http://www.yeastgenome.org/	http://db.yeastgenome.org/cgi-bin/reference/reference.pl?dbid=[example_id]	http://db.yeastgenome.org/cgi-bin/reference/reference.pl?dbid=S000049602	\N
+186	SGN	Sol Genomics Network	Gene identifier	http://www.sgn.cornell.edu/	http://www.sgn.cornell.edu/phenome/locus_display.pl?locus_id=[example_id]	http://www.sgn.cornell.edu/phenome/locus_display.pl?locus_id=4476	\N
+187	SGN_ref	Sol Genomics Network	Reference identifier	http://www.sgn.cornell.edu/	http://www.sgn.cornell.edu/chado/publication.pl?pub_id=[example_id]	http://www.sgn.cornell.edu/chado/publication.pl?pub_id=861	\N
+188	SMART	Simple Modular Architecture Research Tool	Accession	http://smart.embl-heidelberg.de/	http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=DUMMY&DOMAIN=[example_id]	http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=DUMMY&DOMAIN=SM00005	\N
+189	SMD	Stanford Microarray Database	\N	http://genome-www.stanford.edu/microarray	\N	\N	\N
+190	SO	Sequence Ontology	Identifier	http://sequenceontology.org/	http://song.sourceforge.net/SOterm_tables.html#[example_id]	http://song.sourceforge.net/SOterm_tables.html#SO:0000195	\N
+191	SP_KW	UniProt Knowledgebase keywords	Identifier	http://www.uniprot.org/keywords/	http://www.uniprot.org/keywords/[example_id]	http://www.uniprot.org/keywords/KW-0812	\N
+192	SP_SL	UniProt Subcellular Location vocabulary	Identifier	http://beta.uniprot.org/docs/subcell	\N	\N	\N
+193	SUBTILIST	Bacillus subtilis Genome Sequence Project	Accession	http://genolist.pasteur.fr/SubtiList/	\N	\N	\N
+194	SUBTILISTG	Bacillus subtilis Genome Sequence Project	Gene symbol	http://genolist.pasteur.fr/SubtiList/	\N	\N	\N
+195	SUPERFAMILY	SUPERFAMILY protein annotation database generic_urldescription: A database of structural and functional protein annotations for completely sequenced genomes	\N	http://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/	\N	\N	\N
+196	Swiss-Prot	UniProtKB/Swiss-Prot	Accession	http://www.uniprot.org	http://www.uniprot.org/uniprot/[example_id]	http://www.uniprot.org/uniprot/P51587	\N
+197	TAIR	The Arabidopsis Information Resource	Accession	http://www.arabidopsis.org/	http://arabidopsis.org/servlets/TairObject?accession=[example_id]	http://arabidopsis.org/servlets/TairObject?accession=gene:2062713	\N
+198	taxon	NCBI Taxonomy	Identifier	http://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html/	http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=[example_id]	http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=3702	\N
+199	TC	Transport Protein Database	Identifier	http://www.tcdb.org/	http://www.tcdb.org/tcdb/index.php?tc=[example_id]	http://www.tcdb.org/tcdb/index.php?tc=9.A.4.1.1	\N
+200	TGD	Tetrahymena Genome Database	\N	http://www.ciliate.org/	\N	\N	\N
+201	TGD_LOCUS	Tetrahymena Genome Database	Gene name (gene symbol in mammalian nomenclature)	http://www.ciliate.org/	http://db.ciliate.org/cgi-bin/locus.pl?locus=[example_id]	http://db.ciliate.org/cgi-bin/locus.pl?locus=PDD1	\N
+202	TGD_REF	Tetrahymena Genome Database	Literature Reference Identifier	http://www.ciliate.org/	http://db.ciliate.org/cgi-bin/reference/reference.pl?dbid=[example_id]	http://db.ciliate.org/cgi-bin/reference/reference.pl?dbid=T000005818	\N
+203	TRAIT	TRAnscript Integrated Table	\N	http://muscle.cribi.unipd.it/	\N	\N	\N
+204	TRANSFAC	TRANSFAC database of eukaryotic transcription factors	\N	http://www.gene-regulation.com/pub/databases.html#transfac	\N	\N	\N
+205	TrEMBL	UniProtKB-TrEMBL protein sequence database	Accession	http://www.uniprot.org	http://www.uniprot.org/uniprot/[example_id]	http://www.uniprot.org/uniprot/O31124	\N
+206	UBERON	Uber-anatomy ontology	Identifier	http://berkeleybop.org/obo/UBERON	http://berkeleybop.org/obo/UBERON:[example_id]	http://berkeleybop.org/obo/UBERON:0000970	\N
+207	UM-BBD	University of Minnesota Biocatalysis/Biodegradation Database	Prefix	http://umbbd.msi.umn.edu/	\N	\N	\N
+208	UM-BBD_enzymeID	University of Minnesota Biocatalysis/Biodegradation Database	Enzyme identifier	http://umbbd.msi.umn.edu/	http://umbbd.msi.umn.edu/servlets/pageservlet?ptype=ep&enzymeID=[example_id]	http://umbbd.msi.umn.edu/servlets/pageservlet?ptype=ep&enzymeID=e0230	\N
+209	UM-BBD_pathwayID	University of Minnesota Biocatalysis/Biodegradation Database	Pathway identifier	http://umbbd.msi.umn.edu/	http://umbbd.msi.umn.edu/[example_id]/[example_id]_map.html	http://umbbd.msi.umn.edu/acr/acr_map.html	\N
+210	UM-BBD_reactionID	University of Minnesota Biocatalysis/Biodegradation Database	Reaction identifier	http://umbbd.msi.umn.edu/	http://umbbd.msi.umn.edu/servlets/pageservlet?ptype=r&reacID=[example_id]	http://umbbd.msi.umn.edu/servlets/pageservlet?ptype=r&reacID=r0129	\N
+211	UM-BBD_ruleID	University of Minnesota Biocatalysis/Biodegradation Database	Rule identifier	http://umbbd.msi.umn.edu/	http://umbbd.msi.umn.edu/servlets/rule.jsp?rule=[example_id]	http://umbbd.msi.umn.edu/servlets/rule.jsp?rule=bt0330	\N
+212	UniGene	UniGene	Identifier (for transcript cluster)	http://www.ncbi.nlm.nih.gov/UniGene	http://www.ncbi.nlm.nih.gov/UniGene/clust.cgi?ORG=[organism_abbreviation]&CID=[cluster_id]	http://www.ncbi.nlm.nih.gov/UniGene/clust.cgi?ORG=Hs&CID=212293	\N
+213	UniParc	UniProt Archive	Accession	http://www.uniprot.org/uniparc/	http://www.uniprot.org/uniparc/[example_id]	http://www.uniprot.org/uniparc/UPI000000000A	\N
+214	UniPathway	UniPathway, a metabolic door to UniProtKB/Swiss-Prot	Identifier	http://www.grenoble.prabi.fr/obiwarehouse/unipathway	http://www.grenoble.prabi.fr/obiwarehouse/unipathway/upa?upid=[example_id]	\N	\N
+215	UniProtKB	Universal Protein Knowledgebase	\N	http://www.uniprot.org	http://www.uniprot.org/uniprot/[example_id]	http://www.uniprot.org/uniprot/P51587	\N
+216	VBRC	Viral Bioinformatics Resource Center	Identifier	http://vbrc.org	http://vbrc.org/query.asp?web_id=VBRC:[example_id]	http://vbrc.org/query.asp?web_id=VBRC:F35742	\N
+217	VEGA	Vertebrate Genome Annotation database	Identifier	http://vega.sanger.ac.uk/index.html	http://vega.sanger.ac.uk/perl/searchview?species=all&idx=All&q=[example_id]	http://vega.sanger.ac.uk/perl/searchview?species=all&idx=All&q=OTTHUMP00000000661	\N
+218	VIDA	Virus Database at University College London	\N	http://www.biochem.ucl.ac.uk/bsm/virus_database/VIDA.html	\N	\N	\N
+219	VMD	Virginia Bioinformatics Institute Microbial Database	Gene identifier	http://phytophthora.vbi.vt.edu	http://vmd.vbi.vt.edu/cgi-bin/browse/browserDetail_new.cgi?gene_id=[example_id]	http://vmd.vbi.vt.edu/cgi-bin/browse/browserDetail_new.cgi?gene_id=109198	\N
+220	WB	WormBase database of nematode biology	Gene identifier	http://www.wormbase.org/	http://www.wormbase.org/db/gene/gene?name=[example_id]	http://www.wormbase.org/db/get?class=Gene;name=WBGene00003001	\N
+221	WB_REF	WormBase database of nematode biology	Literature Reference Identifier	http://www.wormbase.org/	http://www.wormbase.org/db/misc/paper?name=[example_id]	http://www.wormbase.org/db/misc/paper?name=WBPaper00004823	\N
+222	Wikipedia	Wikipedia	Page Reference Identifier	http://en.wikipedia.org/	http://en.wikipedia.org/wiki/[example_id]	http://en.wikipedia.org/wiki/Endoplasmic_reticulum	\N
+223	WP	Wormpep database of proteins of C. elegans	Identifier	http://www.wormbase.org/	http://www.wormbase.org/db/get?class=Protein;name=WP:[example_id]	http://www.wormbase.org/db/get?class=Protein;name=WP:CE15104	\N
+224	YeastFunc	Yeast Function	\N	http://func.med.harvard.edu/yeast/	\N	\N	\N
+225	ZFIN	Zebrafish Information Network	Accession ID	http://zfin.org/	http://zfin.org/cgi-bin/ZFIN_jump?record=[example_id]	http://zfin.org/cgi-bin/ZFIN_jump?record=ZDB-GENE-990415-103	\N

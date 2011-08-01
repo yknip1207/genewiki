@@ -1,0 +1,5 @@
+geneid	title	revid	timestamp	lasteditor	bytes	words	links_out	links_in	external_links	PubMed_references	redirects	sentences	media_files	
+2263	FGFR2	406321463	2011-01-06T18:23:43Z	Rjwilmsi	11184.0	623.0	50.0	534.0	0.0	11.0	21.0	33.0	0.0	
+2260	FGFR1	388682200	2010-10-04T13:59:56Z	Jcmurray24	10893.0	274.0	29.0	532.0	0.0	12.0	16.0	14.0	0.0	
+7157	P53	411285633	2011-02-01T01:07:45Z	Drphilharmonic	95018.0	2489.0	273.0	342.0	513.0	168.0	16.0	95.0	2.0	
+6662	SOX9	390932462	2010-10-15T19:37:10Z	Boghog	9583.0	127.0	17.0	744.0	88.0	5.0	1.0	8.0	0.0	
