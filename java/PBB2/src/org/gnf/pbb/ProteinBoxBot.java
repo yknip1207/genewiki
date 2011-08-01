@@ -12,12 +12,12 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.gnf.pbb.controller.PBBController;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.logs.DatabaseManager;
 
 public class ProteinBoxBot {
-	static PbbExceptionHandler exHandler; // Bridge between the bot state and this controller
+	static ExceptionHandler exHandler; // Bridge between the bot state and this controller
 	
 	public static void main(String[] args) {
 		OptionParser parser = new OptionParser();
@@ -85,7 +85,7 @@ public class ProteinBoxBot {
 	}
 	
 	public static void resume() {
-		exHandler = PbbExceptionHandler.INSTANCE;
+		exHandler = ExceptionHandler.INSTANCE;
 
 		System.out.println("Automatically querying general database for non-updated gene ids...");
 		List<String> inputs  = DatabaseManager.findPBBTargets(1000);

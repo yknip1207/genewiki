@@ -14,7 +14,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
 
@@ -27,7 +27,7 @@ import org.gnf.pbb.logs.DatabaseManager;
  */
 public class ProteinBox {
 	
-	private final PbbExceptionHandler botState;
+	private final ExceptionHandler botState;
 	
 	// Keys that may only correspond to one value
 	private static final List<String> SINGLE_VALUES = Arrays.asList(new String[]{
@@ -218,7 +218,7 @@ public class ProteinBox {
 		appendText = "";
 		fields_changed = new ArrayList<String>(0);
 		id = builder.singleValFields.get("Hs_EntrezGene");
-		botState = PbbExceptionHandler.INSTANCE;
+		botState = ExceptionHandler.INSTANCE;
 	}
 	
 	/* ---- Public Methods ---- */

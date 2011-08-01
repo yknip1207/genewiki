@@ -23,12 +23,12 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.wikipedia.ProteinBox;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
-	static PbbExceptionHandler botState = PbbExceptionHandler.INSTANCE;
+	static ExceptionHandler botState = ExceptionHandler.INSTANCE;
 	public static final String baseGeneURL = "http://mygene.info/gene/";
 	public static final String metadataLoc = "http://mygene.info/metadata";
 	public static final String uniprotURL = "http://www.uniprot.org/uniprot/";

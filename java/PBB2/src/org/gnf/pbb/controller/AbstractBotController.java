@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.NoBotsException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
@@ -50,7 +50,7 @@ public abstract class AbstractBotController implements Runnable {
 	}
 	
 	public AbstractBotController(List<String> identifiers) {
-		this(identifiers, PbbExceptionHandler.INSTANCE);
+		this(identifiers, ExceptionHandler.INSTANCE);
 	}
 	
 	public AbstractBotController(List<String> identifiers, int delay) {
