@@ -2,7 +2,7 @@ package org.gnf.util;
 
 import java.util.List;
 
-public class Gene {
+public class Gene implements Comparable{
 
 	String geneID;
 	String geneSymbol;
@@ -54,6 +54,18 @@ public class Gene {
 
 	public void setGenetype(String genetype) {
 		this.genetype = genetype;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		Gene other = (Gene)o;
+		return this.getGeneID().compareTo(other.getGeneID());
+	}
+	
+	@Override
+	public boolean equals(Object o){
+		Gene other = (Gene)o;
+		return this.getGeneID().equals(other.getGeneID());
 	}
 
 	
