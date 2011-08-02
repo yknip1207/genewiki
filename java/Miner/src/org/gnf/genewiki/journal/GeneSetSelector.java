@@ -132,29 +132,19 @@ public class GeneSetSelector {
 		///////////////////
 		//Identify interesting MeSH topics
 		//////////////////
-		String infile = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
-		String meshoutfile = "/Users/bgood/data/journal_collab/1st_edition_mesh_data_stypes.txt";
-		g.buildMeshProfiles(infile, meshoutfile);
+//		String infile = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
+//		String meshoutfile = "/Users/bgood/data/journal_collab/1st_edition_mesh_data_stypes.txt";
+//		g.buildMeshProfiles(infile, meshoutfile);
 
 		///////////////////
 		//build some specific reports
 		//////////////////		
-		//		String mesh = "Asperger Syndrome";//"Endocarditis, Bacterial"; //"Isoantigens";//Wounds and Injuries
-		//		String geneprofiles = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
-		//		String meshout = "/Users/bgood/data/journal_collab/Asperger_Syndrome.txt";
-		//		g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
-		//		mesh = "Wounds and Injuries";
-		//		meshout = "/Users/bgood/data/journal_collab/Wounds_and_Injuries.txt";
-		//		g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
-		//		mesh = "Social Perception";
-		//		meshout = "/Users/bgood/data/journal_collab/Social_Perception.txt";
-		//		g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
-		//		mesh = "Musculoskeletal Diseases";
-		//		meshout = "/Users/bgood/data/journal_collab/Musculoskeletal_Diseases.txt";
-		//		g.makeReportforMeSHterm(geneprofiles, mesh, meshout); 
-		//		mesh = "Glucose Metabolism Disorders";
-		//		meshout = "/Users/bgood/data/journal_collab/Glucose_Metabolism_Disorders.txt";
-		//		g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
+				String mesh = "Parasitemia";//"Endocarditis, Bacterial"; //"Isoantigens";//Wounds and Injuries
+				String geneprofiles = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
+				String meshout = "/Users/bgood/data/journal_collab/Parasitemia.txt";
+				g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
+				mesh = "Sleep";
+				meshout = "/Users/bgood/data/journal_collab/Sleep.txt";
 	}
 
 	/**

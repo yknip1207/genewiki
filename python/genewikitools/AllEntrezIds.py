@@ -16,7 +16,7 @@ params = {'action':'query',
           'list': 'embeddedin',
           'eititle':'Template:GNF_Protein_box',
           'eilimit':'12000',
-          'einamespace':'10'}   # The 'Template' namespace, finds
+          'einamespace':'10'}   # '10' is the 'Template' namespace, finds
                                 # the title only in Template: areas
                                 # (such as Template:PBB). 
 request = api.APIRequest(site, params)

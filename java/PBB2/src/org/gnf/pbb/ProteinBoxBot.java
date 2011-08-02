@@ -8,16 +8,41 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
 import org.gnf.pbb.controller.PBBController;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.logs.DatabaseManager;
 
 public class ProteinBoxBot {
-	static PbbExceptionHandler exHandler; // Bridge between the bot state and this controller
+	static ExceptionHandler exHandler; // Bridge between the bot state and this controller
 	
-	public static void main(String args[]) {
-		showMenu();
+	public static void main(String[] args) {
+		OptionParser parser = new OptionParser();
+		parser.accepts("resume");
+		parser.accepts("ids");
+		parser.accepts("init");
+		parser.accepts("help");
+		
+		OptionSet options = parser.parse(args);
+		
+		if (options.has("resume")) {
+			resume();
+		} else if (options.has("ids")) {
+			specifyIds();
+		} else if (options.has("init")) {
+			initialize();
+		} else if (options.has("help")) {
+			try {
+				parser.printHelpOn(System.out);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			showMenu();
+		}
 	}
 
 	public static void showMenu() {
@@ -60,7 +85,7 @@ public class ProteinBoxBot {
 	}
 	
 	public static void resume() {
-		exHandler = PbbExceptionHandler.INSTANCE;
+		exHandler = ExceptionHandler.INSTANCE;
 
 		System.out.println("Automatically querying general database for non-updated gene ids...");
 		List<String> inputs  = DatabaseManager.findPBBTargets(1000);
@@ -104,11 +129,11 @@ public class ProteinBoxBot {
 	}
 	
 	public static void initialize() {
-		
+		print("Delete the PbbGeneral.db sqlite database manually to reinitialize the bot.");
 	}
 	
 	public static void help() {
-		
+		print("Refer to documentation on http://code.google.com/p/genewiki");
 	}
 	
 	public static void quit() {
@@ -138,14 +163,16 @@ public class ProteinBoxBot {
 					controller.join();
 					print("Keyboard interrupt detected. \n");
 				}
-				if (exHandler.checkState().compareTo(Severity.FATAL) > 0) {
+				if (!exHandler.canRecover()) {
 					print("Bot failure.");
 					print(exHandler.printExceptionStackTraces(exHandler.getExceptionsOfSeverity(Severity.FATAL)));
 					controller.interrupt();
 					controller.join();
 					
 				}
-				Thread.sleep(500); // Don't want this loop to hog all the resources, have it wait
+				Thread.sleep(500); // Don't want this loop to hog all the resources. 
+								   // Adding a short sleep timer in here allows the JVM to do other stuff
+								   // - at least in theory.
 			}
 		} catch (InterruptedException ie) {
 			print("Bot interrupted. Returning to main menu....");

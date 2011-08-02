@@ -75,6 +75,7 @@ public class WikiCategoryReader {
 	
 	
 	/**
+	 * Template:GNF_Protein_box
 	 * Retrieve (mostly unpopulated) Pages that use the PBB template.  A page is 'in' in the Gene Wiki if it uses this template.
 	 */
 	public  List<Page> getPagesWithTemplate(String template_name, int total, int batch){

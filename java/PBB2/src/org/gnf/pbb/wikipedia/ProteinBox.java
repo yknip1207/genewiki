@@ -14,7 +14,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
+import org.gnf.pbb.images.PdbImage;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
 
@@ -27,7 +28,7 @@ import org.gnf.pbb.logs.DatabaseManager;
  */
 public class ProteinBox {
 	
-	private final PbbExceptionHandler botState;
+	private final ExceptionHandler botState;
 	
 	// Keys that may only correspond to one value
 	private static final List<String> SINGLE_VALUES = Arrays.asList(new String[]{
@@ -218,7 +219,7 @@ public class ProteinBox {
 		appendText = "";
 		fields_changed = new ArrayList<String>(0);
 		id = builder.singleValFields.get("Hs_EntrezGene");
-		botState = PbbExceptionHandler.INSTANCE;
+		botState = ExceptionHandler.INSTANCE;
 	}
 	
 	/* ---- Public Methods ---- */
@@ -318,7 +319,7 @@ public class ProteinBox {
 				builder.add(key, sourceValue);
 				DatabaseManager.addChange(entrez, key, thisValue, sourceValue);
 				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisValue, sourceValue);
-
+				this.fields_changed.add(key);
 			}
 		}
 		
@@ -352,28 +353,45 @@ public class ProteinBox {
 				builder.add(key, sourceList);
 				
 				DatabaseManager.addChange(entrez, key, thisList.toString(), sourceList.toString());
-				fields_changed.add(key);
+				this.fields_changed.add(key);
 				//System.out.printf("Gene %s \t Field %s \t Old %s \t New %s \n", entrez, key, thisList.toString(), sourceList.toString());
 				
 			}
 		}
 
-		/* Image insertion routine:
-		 * Conducted after update to use potentially updated PDB values
+		/* --- Image insertion routine --- */
+		/* Conducted after update to use potentially updated PDB values
 		 */
+		String pdb = builder.multipleValFields.get("PDB").get(0);
+		String sym = builder.singleValFields.get("Symbol");
+		String previousImg = builder.singleValFields.get("image");
 		try {
-			String pdb = builder.multipleValFields.get("PDB").get(0);
-			String previousImg = builder.singleValFields.get("image");
+			
 			if ((pdb != null && !pdb.equals("")) 
 					&& (previousImg == null || previousImg.equals(""))){
-				String imgSrc = ImageFinder.imageForPDB(pdb.toLowerCase());
-				builder.add("image", imgSrc);
-				builder.add("image_source", "Constructed from {{PDB2|"+pdb+"}}");
+				String img = ImageFinder.getImage(sym, pdb.toLowerCase());
+				String imgSrc = "Rendering of {{PDB2|"+pdb+"}}";
+				builder.add("image", img);
+				builder.add("image_source", "Rendering of {{PDB2|"+pdb+"}}");
+				DatabaseManager.addChange(entrez, "image", "", img);
+				DatabaseManager.addChange(entrez, "image_source", "", imgSrc);
+				updated += 2; 
 			} else {
-				System.out.println("Conditions failed.");
+				System.out.println("Image already present or no PDB values available.");
 			}
 		} catch (ImageNotFoundException e) {
-			System.out.println("Image not found.");
+			System.out.println("Image for "+this.id+" not found.");
+			try {
+				PdbImage img = new PdbImage(pdb, sym);
+				img.uploadPdbImg();
+				builder.add("image", img.getImage());
+				builder.add("image_source", img.getCaption());
+				DatabaseManager.addChange(entrez, "image", "", img.getImage());
+				DatabaseManager.addChange(entrez, "image_source", "", img.getCaption());
+				updated += 2; 
+			} catch (IOException ie) {
+				System.out.println("Could not create image... ensure that PyMOL is configured correctly.");
+			}
 		} catch (NullPointerException e) {
 			System.out.println("Some null value in the fields...");
 		}
