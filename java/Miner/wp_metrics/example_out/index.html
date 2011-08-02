@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Wikipedia article collection stats</title>
+	<!-- CSS -->
+<!-- Framework CSS -->
+<link rel="stylesheet" href="./css/screen.css" type="text/css" media="screen, projection"/>
+<link rel="stylesheet" href="./css/print.css" type="text/css" media="print"/>
+
+<!-- base layout css -->
+<link rel="stylesheet" type="text/css" media="screen" href="./css/basic.css" />
+
+    <script src="jquery-1.5.min.js"></script>
+
+    <script>
+    $(document).ready(function(){
+    	$.getJSON("views.json", function(views) {   		
+    		var viewtable = "<table><caption>Page View Summary | <a href=\"all_views.txt\">page view data</a></caption><tr><th>Timespan</th><th>Total Page Views</th><th>Median/day</th> </tr>"; 		
+    		jQuery.each(views, function(i, v) {
+    			 viewtable = viewtable+"<tr><td>"+v.timespan+"</td><td>"+v.total_views+"</td><td>"+v.median_day+"</td></tr>";
+    		   });    		
+    		viewtable = viewtable+"</table>";
+    		$("#views").html(viewtable);
+
+    	});   
+    	$.getJSON("edits.json", function(edits) {   		
+    		var edittable = "<table><caption>Edit Summary | <a href=\"edit_report_all.txt\">edits by page</a> | <a href=\"edit_report_editors.txt\">editors</a></caption><tr><th>Timespan</th><th>Distinct editors</th><th>Distinct articles edited</th><th>total edits</th><th>total bytes added</th></tr>"; 		
+    		jQuery.each(edits, function(i, v) {
+      			 edittable = edittable+"<tr><td>"+v.timespan+"</td><td>"+v.distinct_editors+"</td><td>"+v.distinct_articles+"</td><td>"+v.total_edits+"</td><td>"+v.total_bytes_added+"</td></tr>";
+       
+    		});    		
+    		edittable = edittable+"</table>";
+    		$("#edits").html(edittable);
+
+    	});
+    	
+    	$.getJSON("volume.json", function(volume) {   		
+    		var vtable = "<table><caption>Volume Summary | <a href=\"volume.txt\">volume data</a> | <a href=\"volume_sum.txt\">more volume stats</a></caption><tr><th>Timestamp</th><th>N articles</th><th>Bytes</th><th>Words</th><th>Sentences</th><th>in_links</th><th>out_links</th><th>Pubmed refs</th><th>Media files</th></tr>"; 		
+    		jQuery.each(volume, function(i, v) {
+      			 vtable = vtable+"<tr><td>"+v.timestamp+"</td><td>"+v.n+"</td><td>"+v.bytes+"</td><td>"+v.words+"</td><td>"+v.sentences+"</td><td>"+v.links_in+"</td><td>"+v.links_out+"</td><td>"+v.pubmed_refs+"</td><td>"+v.media_files+"</td></tr>";
+    		});    		
+    		vtable = vtable+"</table>";
+    		$("#volume").html(vtable);
+
+    	}); 
+      });
+    
+    </script>
+</head>
+<body>
+
+<div class="container">
+<div class="span-25 last" id="wrapper"> 
+     
+    <div class="clear prepend-0 span-23 " id="banner">
+	    	<div class="span-16 prepend-0 last" id="home-banner-message">
+    	    Wikipedia article collection info.
+			</div>
+    </div>
+    <div class="clear prepend-4 span-16">
+    	<div class="light-hr"></div>
+    </div>
+    <div class="clear prepend-0 span-26" id="content">
+       	<div class="prepend-0 span-25 plain-white-text tint-on-plain-white-text" id="views">        	
+       	Page View Data Here.       
+       	</div>
+       	<div class="prepend-0 span-25 plain-white-text tint-on-plain-white-text" id="edits">        	
+       	Edit Data Here.       
+       	</div>
+       	<div class="prepend-0 span-25 plain-white-text tint-on-plain-white-text" id="volume">        	
+       	Volume Data Here.       
+       	</div>
+	</div>
+</div>
+</div>
+	
+</body>
+</html>
