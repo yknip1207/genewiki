@@ -182,12 +182,14 @@ public class JsonParser {
 		List<String> outList = new ArrayList<String>();
 		Iterator<JsonNode> it = arrayNode.getElements();
 		try {
-			do {
+			outList.add(it.next().getTextValue());
+			while (it.hasNext()) {
 				outList.add(it.next().getTextValue());
-			} while (it.hasNext());
+			}
 			return outList;
 		} catch (NoSuchElementException e) {
-			return Collections.emptyList();			// I think this is better than returning null
+			outList.add(arrayNode.getTextValue());
+			return outList;
 		}
 	}
 	

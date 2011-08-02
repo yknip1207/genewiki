@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
+import org.gnf.pbb.images.PdbImage;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
 
@@ -361,10 +362,11 @@ public class ProteinBox {
 		/* --- Image insertion routine --- */
 		/* Conducted after update to use potentially updated PDB values
 		 */
+		String pdb = builder.multipleValFields.get("PDB").get(0);
+		String sym = builder.singleValFields.get("Symbol");
+		String previousImg = builder.singleValFields.get("image");
 		try {
-			String pdb = builder.multipleValFields.get("PDB").get(0);
-			String sym = builder.singleValFields.get("Symbol");
-			String previousImg = builder.singleValFields.get("image");
+			
 			if ((pdb != null && !pdb.equals("")) 
 					&& (previousImg == null || previousImg.equals(""))){
 				String img = ImageFinder.getImage(sym, pdb.toLowerCase());
@@ -379,6 +381,17 @@ public class ProteinBox {
 			}
 		} catch (ImageNotFoundException e) {
 			System.out.println("Image for "+this.id+" not found.");
+			try {
+				PdbImage img = new PdbImage(pdb, sym);
+				img.uploadPdbImg();
+				builder.add("image", img.getImage());
+				builder.add("image_source", img.getCaption());
+				DatabaseManager.addChange(entrez, "image", "", img.getImage());
+				DatabaseManager.addChange(entrez, "image_source", "", img.getCaption());
+				updated += 2; 
+			} catch (IOException ie) {
+				System.out.println("Could not create image... ensure that PyMOL is configured correctly.");
+			}
 		} catch (NullPointerException e) {
 			System.out.println("Some null value in the fields...");
 		}

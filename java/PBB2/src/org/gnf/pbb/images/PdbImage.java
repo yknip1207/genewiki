@@ -16,9 +16,7 @@ import net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile;
 
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.util.FileHandler;
-import org.gnf.pbb.wikipedia.WikipediaController;
-
-import com.google.common.io.Files;
+import org.joda.time.DateTime;
 
 public class PdbImage {
 	private FileHandler filer;
@@ -26,17 +24,50 @@ public class PdbImage {
 	private String entrez;
 	private String pdbFile;
 	private String pdbImage;
+	private String description;
 	private String caption;
 	
-	public PdbImage(String pdbId, String entrez) throws IOException {
-		this.pdbId = pdbId;
-		this.entrez = entrez;
+	public PdbImage(String pdbId, String symbol) throws IOException {
 		filer = new FileHandler("pdb");
-		pdbFile = downloadPdbFile(pdbId);
-		String pdbImgPath = renderPdbFile(pdbFile);
-		this.pdbImage = pdbImgPath;
-		this.caption = "Rendering based on {{PDB2|"+pdbId+"}}";
+		this.pdbId = pdbId;
+		this.entrez = symbol;
+		this.pdbFile = downloadPdbFile(this.pdbId);
+		this.pdbImage = renderPdbFile(this.pdbFile);
+		DateTime dt = new DateTime();
+		String date = dt.getYear()+"-"+dt.getMonthOfYear()+"-"+dt.getDayOfMonth();
+		this.description = 
+				"== {{int:filedesc}} == " +
+				"{{Information " +
+				"| Description={{en | 1=Structure of protein "+symbol+"." +
+						"Based on [[w:PyMOL | PyMOL]] rendering of PDB {{PDB2|"+pdbId+"}}.}} " +
+				"| Source = {{own}} n" +
+				"| Author = [[User:Pleiotrope | Pleiotrope]] n" +
+				"| Date = "+ date + "n" +
+				"| Permission = n" +
+				"| other_versions = n" +
+				"}}" +
+				"{{PD-self}}" +
+				"{{Category:Protein_structures}}";
+		this.caption = "Rendering based on [[Protein_Data_Bank | PDB]] {{PDB2|"+pdbId+"}}.";
 	}
+	
+	public String getImage() {
+		return pdbImage;
+	}
+	
+	public String getCaption() {
+		return caption;
+	}
+	
+//	public PdbImage(String pdbId, String entrez) throws IOException {
+//		this.pdbId = pdbId;
+//		this.entrez = entrez;
+//		filer = new FileHandler("pdb");
+//		pdbFile = downloadPdbFile(pdbId);
+//		String pdbImgPath = renderPdbFile(pdbFile);
+//		this.pdbImage = pdbImgPath;
+//		this.caption = "Rendering based on {{PDB2|"+pdbId+"}}";
+//	}
 	
 	private String downloadPdbFile(String pdbId) {
 		System.out.print("Downloading pdb file from RCSB... ");
@@ -49,6 +80,11 @@ public class PdbImage {
 
 	private String renderPdbFile(String pdbFile) throws IOException {
 		String filename = "Protein_"+entrez+"_PDB_"+pdbId+".png";
+		
+		/*
+		 * These strings form the prep commands to orient and color
+		 * the PDB molecule appropriately.
+		 */
 		String[] commands = new String[] {
 				"hide everything, all",
 				"show cartoon, all",
@@ -60,15 +96,11 @@ public class PdbImage {
 				"set ray_trace_fog=0",
 				"orient",
 				"ray 1200, 1000",
-				"png pdb/"+filename,
+				"png pdb/"+filename, 	// If changed, make sure this matches up with the FileHandler root
 				"quit"
 		};
 		
-		/* 
-		 * Runs pymol without a GUI or splash. The commands in renderprep.py export a
-		 * ray-trace render of a ribbon-style protein representation. See renderprep.py
-		 * for details. Renderprep.py based on pymolProcessor.py in PDBBot.
-		 */
+		
 		System.out.print("Rendering image for "+this.pdbId+"... ");
 		
 		String pymol = "/opt/local/bin/pymol -p -i -x pdb/"+this.pdbId+".pdb";
@@ -77,14 +109,9 @@ public class PdbImage {
 		
 		OutputStream stdin = process.getOutputStream();
 		InputStream stout = process.getInputStream();
-//		try {
-//			Thread.sleep(5000);
-//		} catch (Exception e) {
-//			// do nothing
-//		}
 		
 		for (String command : commands) {
-			System.out.println("Issuing command "+command);
+			// System.out.println("Pymol: "+command);
 			//try {Thread.sleep(5000);} catch (Exception e) {}
 			stdin.write(command.getBytes());
 			stdin.write('\n');
@@ -94,7 +121,7 @@ public class PdbImage {
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
-			// do nothing?
+			// do nothing
 		}
 		
 		
@@ -109,11 +136,12 @@ public class PdbImage {
 			MediaWikiBot wmBot = new MediaWikiBot(new URL("http://commons.wikimedia.org/w/"));
 			// wmBot.login(Configs.GET.str("username"), Configs.GET.str("password"));
 			wmBot.login("Pleiotrope", "Cynosura42");
-			SimpleFile file = new SimpleFile(new File(filer.getRoot(), "img/"+this.pdbImage));
-			String caption = "Structure for "+this.entrez+" rendered from {{PDB2|"+this.pdbId+"}}.";
-			file.addText(caption);
+			SimpleFile file = new SimpleFile(new File(filer.getRoot(), this.pdbImage));
+			file.addText(this.description);
 			FileUpload fu = new FileUpload(file, wmBot);
+			System.out.print("Uploading file... ");
 			wmBot.performAction(fu);
+			System.out.println(this.pdbImage+" uploaded to Wikimedia Commons.");
 		} catch (MalformedURLException e) {
 			// It's not malformed.
 		} catch (ActionException e) {
@@ -132,7 +160,8 @@ public class PdbImage {
 		try {
 			Configs.GET.setFromFile("bot.properties");
 			PdbImage img = new PdbImage("1B09", "1401");
-			//img.uploadPdbImg();
+			System.out.println(img.description);
+			img.uploadPdbImg();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
