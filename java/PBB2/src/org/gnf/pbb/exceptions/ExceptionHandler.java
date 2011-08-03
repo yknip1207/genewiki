@@ -5,6 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * ExceptionHandler monitors the exceptions that may arise during the bot's 
+ * operation and ranks them in order of severity. Any process, such
+ * as a parent thread, can query ExceptionHandler for any errors above a certain
+ * threshold and take appropriate action (i.e. in case of a "fatal" error, shut down
+ * the bot cleanly, or in a "recoverable" error, gracefully abort and move on 
+ * to the next update).
+ * @author eclarke
+ *
+ */
 public enum ExceptionHandler {
 	INSTANCE;
 	Logger logger = Logger.getLogger(ExceptionHandler.class.getName());
@@ -34,10 +44,19 @@ public enum ExceptionHandler {
 		setSeverity(s);
 	}
 	 
+	
+	/**
+	 * Indicates an unrecoverable error and causes the whole process to quit.
+	 * @param fatal exception
+	 */
 	public void fatal(Exception e){
 		pass(e, Severity.FATAL);
 	}
 	 
+	/**
+	 * Causes the bot to abort this current update and move on to the next.
+	 * @param recoverable exception 
+	 */
 	public void recoverable(Exception e) {
 		pass(e, Severity.RECOVERABLE);
 	}

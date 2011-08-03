@@ -15,10 +15,17 @@ import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
 import net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile;
 
 import org.gnf.pbb.Configs;
+import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.util.FileHandler;
 import org.joda.time.DateTime;
 
+import com.google.common.base.Preconditions;
+
 public class PdbImage {
+	private String pymol;
+	private String username;
+	private String password;
+	private String commonsRoot;
 	private FileHandler filer;
 	private String pdbId;
 	private String entrez;
@@ -27,7 +34,25 @@ public class PdbImage {
 	private String description;
 	private String caption;
 	
+	/**
+	 * Downloads and renders an image from a PDB file, and stores
+	 * the title and caption as fields. Upload the file to WM Commons
+	 * by calling the uploadPdbImg() method, then use the pdbImage and
+	 * caption fields to reference it on Wikipedia.
+	 * After the render has successfully completed, a .png file with
+	 * the filename <code>Protein_[symbol]_PDB_[pdbId].png</code> is created with
+	 * default dimensions 1200,1000 and a transparent background.
+	 * Specific changes to the rendering process can be made by changing
+	 * the pym script written out in renderPdbFile().
+	 * @param pdbId
+	 * @param symbol
+	 * @throws IOException
+	 */
 	public PdbImage(String pdbId, String symbol) throws IOException {
+		pymol = Configs.GET.str("pymol");
+		username = Configs.GET.str("commonsUsername");
+		password = Configs.GET.str("commonsPassword");
+		commonsRoot = Configs.GET.str("commonsRoot");
 		filer = new FileHandler("pdb");
 		this.pdbId = pdbId;
 		this.entrez = symbol;
@@ -40,35 +65,39 @@ public class PdbImage {
 				"{{Information " +
 				"| Description={{en | 1=Structure of protein "+symbol+"." +
 						"Based on [[w:PyMOL | PyMOL]] rendering of PDB {{PDB2|"+pdbId+"}}.}} " +
-				"| Source = {{own}} n" +
-				"| Author = [[User:Pleiotrope | Pleiotrope]] n" +
-				"| Date = "+ date + "n" +
-				"| Permission = n" +
-				"| other_versions = n" +
+				"| Source = {{own}} " +
+				"| Author = [[User:"+username+" | "+username+"]] " +
+				"| Date = "+ date + "" +
+				"| Permission = " +
+				"| other_versions = " +
 				"}}" +
 				"{{PD-self}}" +
 				"{{Category:Protein_structures}}";
 		this.caption = "Rendering based on [[Protein_Data_Bank | PDB]] {{PDB2|"+pdbId+"}}.";
 	}
 	
+	/**
+	 * Returns image title if set
+	 * @throws NullPointerException if title is null
+	 */
 	public String getImage() {
-		return pdbImage;
+		return Preconditions.checkNotNull(this.pdbImage);
 	}
 	
+	/**
+	 * Returns image caption if set
+	 * @throws NullPointerException if caption is null
+	 * @return
+	 */
 	public String getCaption() {
-		return caption;
+		return Preconditions.checkNotNull(this.caption);
 	}
 	
-//	public PdbImage(String pdbId, String entrez) throws IOException {
-//		this.pdbId = pdbId;
-//		this.entrez = entrez;
-//		filer = new FileHandler("pdb");
-//		pdbFile = downloadPdbFile(pdbId);
-//		String pdbImgPath = renderPdbFile(pdbFile);
-//		this.pdbImage = pdbImgPath;
-//		this.caption = "Rendering based on {{PDB2|"+pdbId+"}}";
-//	}
-	
+	/**
+	 * Downloads pdb file from RCSB.
+	 * @param pdbId
+	 * @return
+	 */
 	private String downloadPdbFile(String pdbId) {
 		System.out.print("Downloading pdb file from RCSB... ");
 		filer.wget("http://www.rcsb.org/pdb/files/"+pdbId+".pdb", pdbId+".pdb");
@@ -77,7 +106,14 @@ public class PdbImage {
 	}
 	
 
-
+	/**
+	 * Renders the PDB file passed to it using PyMOL and the commands specified
+	 * in the commands[] array. Requires a working pymol binary on the host
+	 * with the appropriate path to the binary set in bot.properties.
+	 * @param pdbFile
+	 * @return
+	 * @throws IOException
+	 */
 	private String renderPdbFile(String pdbFile) throws IOException {
 		String filename = "Protein_"+entrez+"_PDB_"+pdbId+".png";
 		
@@ -103,25 +139,33 @@ public class PdbImage {
 		
 		System.out.print("Rendering image for "+this.pdbId+"... ");
 		
-		String pymol = "/opt/local/bin/pymol -p -i -x pdb/"+this.pdbId+".pdb";
+		// -p: accept input from stdin
+		// -i: no openGL interface
+		// -x: no external interface
+		// -c should have worked but program aborts immediately...? YMMV.
+		String pymol = this.pymol+" -p -i -x pdb/"+this.pdbId+".pdb";
 		Runtime rt = Runtime.getRuntime();
 		Process process = rt.exec(pymol);
 		
 		OutputStream stdin = process.getOutputStream();
 		InputStream stout = process.getInputStream();
 		
+		// Sends the process the commands specified in commands[] iteratively.
 		for (String command : commands) {
-			// System.out.println("Pymol: "+command);
-			//try {Thread.sleep(5000);} catch (Exception e) {}
+			System.out.println("Pymol: "+command);
 			stdin.write(command.getBytes());
 			stdin.write('\n');
 			stdin.flush();
 			
 		}
+		
+		// Wait for PyMOL to finish before continuing
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
-			// do nothing
+			// not clear what would interrupt it but safe to assume
+			// it wouldn't finish the render, thus, no filename to return.
+			return null;
 		}
 		
 		
@@ -131,27 +175,37 @@ public class PdbImage {
 	}
 	
 
+	/**
+	 * Uploads the generated PDB image to Wikimedia Commons. You need to call
+	 * this method after initializing your PdbImage object, and requires valid
+	 * usernames and passwords set in the bot.properties file, and valid
+	 * Wikimedia Commons base URL.
+	 * @throws ConfigException if URL or credentials are invalid
+	 */
 	public void uploadPdbImg() {
 		try {
-			MediaWikiBot wmBot = new MediaWikiBot(new URL("http://commons.wikimedia.org/w/"));
-			// wmBot.login(Configs.GET.str("username"), Configs.GET.str("password"));
-			wmBot.login("Pleiotrope", "Cynosura42");
+			MediaWikiBot commonsBot = new MediaWikiBot(new URL(commonsRoot));
+			commonsBot.login(this.username, this.password);
+			
 			SimpleFile file = new SimpleFile(new File(filer.getRoot(), this.pdbImage));
-			file.addText(this.description);
-			FileUpload fu = new FileUpload(file, wmBot);
+			file.addText(this.description); // Forms the 
+			FileUpload fu = new FileUpload(file, commonsBot);
+			
 			System.out.print("Uploading file... ");
-			wmBot.performAction(fu);
+			commonsBot.performAction(fu);
 			System.out.println(this.pdbImage+" uploaded to Wikimedia Commons.");
+			
 		} catch (MalformedURLException e) {
-			// It's not malformed.
-		} catch (ActionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new ConfigException("Bad URL set for Wikimedia Commons in the config file.");			
+		} catch (ActionException e) {
+			e.printStackTrace();
+			throw new ConfigException("Bad credentials for Wikimedia Commons.");
 		} catch (VersionException e) {
-			// TODO Auto-generated catch block
+			// This shouldn't show up if you're working with Wikipedia and WM Commons
 			e.printStackTrace();
 		} catch (ProcessException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	}

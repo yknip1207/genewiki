@@ -13,11 +13,14 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.gnf.pbb.Configs;
+import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.images.PdbImage;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
+
+import com.google.common.base.Preconditions;
 
 /**
  * ProteinBox represents all possible fields in the GNF_Protein_box wikipedia template.
@@ -198,6 +201,57 @@ public class ProteinBox {
 			return this;
 		}
 		
+		public Builder addImage(String pdbId) {
+			String pdb;
+			String sym;
+			String prevImg;
+			String img;
+			String imgSrc;
+			try {
+				pdb = Preconditions.checkNotNull(this.multipleValFields.get("PDB").get(0));
+				sym = Preconditions.checkNotNull(this.singleValFields.get("Symbol"));
+				prevImg = Preconditions.checkNotNull(this.singleValFields.get("image"));
+			} catch (NullPointerException e) {
+				return this; 	// Something we needed was null; abort
+			}
+			
+			// If we have a pdb value and no previous image:
+			if (!pdb.equals("") && prevImg.equals("")) {
+				System.out.print("Searching for existing image on Commons... ");
+				img = ImageFinder.getImage(sym, pdb.toLowerCase());
+				if (img != null) {
+					System.out.println("image found and linked.");
+					imgSrc = "Rendering of "+sym+"from [[Protein Data Bank | PDB]] {{PDB2|"+pdb+"}}";
+				} else {
+					System.out.println("no image found, attempting render and upload.");
+					try {
+						PdbImage pdbImg = new PdbImage(pdb, sym);
+						pdbImg.uploadPdbImg();
+						img = pdbImg.getImage();
+						imgSrc = pdbImg.getCaption();
+					} catch (IOException ie) {
+						ie.printStackTrace();
+						System.err.println("Could not create image- ensure that PyMOL is configured correctly.");
+						return this;
+					} catch (ConfigException ce) {
+						ce.printStackTrace();
+						System.err.println("Could not upload image due to bad URL or credentials in bot.properties file.");
+						return this;
+					}
+				}
+				
+				singleValFields.put("image", img);
+				singleValFields.put("image_source", imgSrc);
+			} else {
+				if (pdb.equals("")) {
+					System.out.println("No PDB values found to search for or generate image from.");
+				} else {
+					System.out.println("Previous image already set.");
+				}
+			}
+			return this;
+		}
+		
 		public ProteinBox build() {
 			if (!used) {
 				used = true;
@@ -276,6 +330,15 @@ public class ProteinBox {
 	}
 	
 	/**
+	 * We override the updated ProteinBox's id with the original even if the source
+	 * has a different one so that the same template gets updated.	
+	 * @param id
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	/**
 	 * Returns a copy of this ProteinBox updated with data from another ProteinBox. 
 	 * If data is unique in this instance (i.e. the source is missing the information 
 	 * and this instance has it, it is kept. Otherwise, any differing data is set to 
@@ -335,16 +398,7 @@ public class ProteinBox {
 				// Don't update if they're the same lists.
 				builder.add(key, thisList);
 			} else {
-//				if (key.equals("PDB")) {
-//					//System.out.println("H!"); 	// XXX remove this
-//					for (String str : thisList) {
-//						System.out.println(str);
-//					}
-//					for (String str : sourceList) {
-//						System.out.println(str);
-//					}
-//					System.out.println(thisList.size()+" vs "+sourceList.size());
-//				}
+
 				// We always overwrite the fields with lists
 				// due to their changing nature (ontologies
 				// could be corrected, PDB ids could be removed,
@@ -358,42 +412,19 @@ public class ProteinBox {
 				
 			}
 		}
-
-		/* --- Image insertion routine --- */
-		/* Conducted after update to use potentially updated PDB values
-		 */
-		String pdb = builder.multipleValFields.get("PDB").get(0);
-		String sym = builder.singleValFields.get("Symbol");
-		String previousImg = builder.singleValFields.get("image");
+		
+		// Add images if possible.
+		// This is done last to get the most up-to-date PDB values.
 		try {
-			
-			if ((pdb != null && !pdb.equals("")) 
-					&& (previousImg == null || previousImg.equals(""))){
-				String img = ImageFinder.getImage(sym, pdb.toLowerCase());
-				String imgSrc = "Rendering of {{PDB2|"+pdb+"}}";
-				builder.add("image", img);
-				builder.add("image_source", "Rendering of {{PDB2|"+pdb+"}}");
-				DatabaseManager.addChange(entrez, "image", "", img);
-				DatabaseManager.addChange(entrez, "image_source", "", imgSrc);
-				updated += 2; 
-			} else {
-				System.out.println("Image already present or no PDB values available.");
-			}
-		} catch (ImageNotFoundException e) {
-			System.out.println("Image for "+this.id+" not found.");
-			try {
-				PdbImage img = new PdbImage(pdb, sym);
-				img.uploadPdbImg();
-				builder.add("image", img.getImage());
-				builder.add("image_source", img.getCaption());
-				DatabaseManager.addChange(entrez, "image", "", img.getImage());
-				DatabaseManager.addChange(entrez, "image_source", "", img.getCaption());
-				updated += 2; 
-			} catch (IOException ie) {
-				System.out.println("Could not create image... ensure that PyMOL is configured correctly.");
-			}
-		} catch (NullPointerException e) {
-			System.out.println("Some null value in the fields...");
+			String pdb = Preconditions.checkNotNull(builder.multipleValFields.get("PDB").get(0));
+			builder.addImage(pdb);
+			String image = builder.singleValFields.get("image");
+			String image_source = builder.singleValFields.get("image_source");
+			DatabaseManager.addChange(entrez, "image", "", image);
+			DatabaseManager.addChange(entrez, "image_source", "", image_source);
+			updated += 2;
+		} catch (IndexOutOfBoundsException e) {
+			// No image for us this time.
 		}
 
 		
@@ -401,6 +432,8 @@ public class ProteinBox {
 		pb.setEditSummary(String.format("%d/%d fields updated.\n", updated, ALL_VALUES.size()));
 		pb.prepend(this.prependText);
 		pb.append(this.appendText);
+		
+		pb.setId(this.getId()); // We always need to have the ids match so that the correct template gets updated.
 		
 		return pb;
 	}
@@ -430,13 +463,14 @@ public class ProteinBox {
 				} else {
 					out.append(String.format(" | %s = ", key));
 					for (String str : list) {
-						out.append("{{");
-						if (key.equals("PDB")) { 
-							out.append("PDB2|"+str+"}}, ");
-						} else { 
-							out.append(str+"}} ");
+						if (!str.equals("")) {
+							out.append("{{");
+							if (key.equals("PDB")) { 
+								out.append("PDB2|"+str+"}}, ");
+							} else { 
+								out.append(str+"}} ");
+							}
 						}
-						
 					}
 					if (out.charAt(out.length()-2) == ',')
 						out.deleteCharAt(out.length()-2); // Removes the trailing comma from a list of template links

@@ -12,18 +12,19 @@ debug = false
 cacheLocation = /tmp/pbb
 logs = /tmp/pbb/logs
 
-# Wikipedia Credentials
+# Wikipedia credentials
 username = 
 password = 
 
-# Commons credentials (to upload rendered images)
-cwUsername = 
-cwPassword = 
+# Wikimedia Commons credentials (to upload rendered images)
+commonsUsername = 
+commonsPassword = 
 
 # Template information
 templatePrefix = Template:PBB/
 templateName = GNF_Protein_box
 api_root = http://en.wikipedia.org/w/
+commonsRoot = http://commons.wikimedia.org/w/
 
 # Miscellaneous
 loggerLevel = Info

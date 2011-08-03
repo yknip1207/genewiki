@@ -202,4 +202,15 @@ public class DatabaseManager {
 		}
 	}
 
+	public static void clearUpdated() {
+		try {
+			Connection dbc = connect();
+			Statement stat = dbc.createStatement();
+			stat.execute("update general set updated='false';");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new FatalException("Cannot connect to general table to reset it.");
+		}
+	}
+
 }

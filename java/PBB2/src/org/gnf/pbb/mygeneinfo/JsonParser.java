@@ -103,10 +103,10 @@ public class JsonParser {
 		try {
 			builder.add("PDB", buildListFromArray(rootNode.path("pdb")));
 			builder.add("HGNCid", rootNode.path("HGNC").getTextValue());
-			builder.add("AltSymbols", buildListFromArray(rootNode.path("alias"))); //TODO ensure setAltSymbols converts this to String[]
+			builder.add("AltSymbols", buildListFromArray(rootNode.path("alias"))); 
 			builder.add("OMIM",rootNode.path("MIM").getTextValue());
 			builder.add("ECnumber",rootNode.path("ec").getTextValue());
-			builder.add("Homologene", Integer.toString(rootNode.path("homologene").path("id").getIntValue())); // have to traverse down the tree a bit
+			builder.add("Homologene", Integer.toString(rootNode.path("homologene").path("id").getIntValue())); 
 			// setMGIid(null); // can't find this on downloaded json file
 			// setGeneAtlas_image(null); // can't find this either
 			builder.add("Function", buildOntologyList(

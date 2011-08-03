@@ -127,7 +127,6 @@ public class InfoboxParser extends AbstractParser {
 	 * understandable, and less brittle.
 	 * @param source string
 	 * @return extracted template content
-	 * @throws MalformedWikitextException
 	 */
 	public String extractTemplate(String source) {
 		try {

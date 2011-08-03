@@ -6,12 +6,11 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-import org.gnf.pbb.controller.PBBController;
+import org.gnf.pbb.controller.BotController;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.Severity;
 import org.gnf.pbb.logs.DatabaseManager;
@@ -55,10 +54,11 @@ public class ProteinBoxBot {
 		print("#  Main Menu:                                     #");
 		print("#  ---------------------------------------------  #");
 		print("#  1. Continue using general db of ids            #");
-		print("#  2. Update specific ids                         #");
-		print("#  3. Initialize database                         #");
-		print("#  4. Get help                                    #");
-		print("#  5. Quit                                        #");
+		print("#  2. Rescan and update from the beginning        #");
+		print("#  3. Update specific ids                         #");
+		print("#  4. Initialize database                         #");
+		print("#  5. Get help                                    #");
+		print("#  6. Quit                                        #");
 		print("#                                                 #");
 		print("###################################################");
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -69,10 +69,11 @@ public class ProteinBoxBot {
 			int selection = Integer.parseInt(in);
 			switch (selection) {
 			case 1: resume();				break;
-			case 2: specifyIds();			break;
-			case 3: initialize();			break;
-			case 4: help();					break;
-			case 5: quit();					break;
+			case 2: restart();				break;
+			case 3: specifyIds();			break;
+			case 4: initialize();			break;
+			case 5: help();					break;
+			case 6: quit();					break;
 			default: 						break;
 			}
 		} catch (IOException e) {
@@ -84,6 +85,12 @@ public class ProteinBoxBot {
 		}
 	}
 	
+	private static void restart() {
+		DatabaseManager.clearUpdated();
+		resume();
+		
+	}
+
 	public static void resume() {
 		exHandler = ExceptionHandler.INSTANCE;
 
@@ -151,7 +158,7 @@ public class ProteinBoxBot {
 	private static void launchBot(List<String> inputs) {
 		Configs.GET.setFromFile("bot.properties");
 		// We're running the bot controller in a thread to allow us to monitor the bot's state 
-		Thread controller = new Thread(new PBBController(inputs));
+		Thread controller = new Thread(new BotController(inputs));
 		System.out.println("Starting bot controller now with supplied arguments. \n" +
 				"Press q+enter to end bot operation and see completion report.");
 		controller.start();
