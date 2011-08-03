@@ -20,6 +20,8 @@ import org.gnf.pbb.util.FileHandler;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.InputSupplier;
 
 /**
  * Holds methods for downloading a PDB file from RCSB Protein Data Bank,
@@ -119,7 +121,7 @@ public class PdbImage {
 
 	/**
 	 * Renders the PDB file passed to it using PyMOL and the commands specified
-	 * in the commands[] array. Requires a working pymol binary on the host
+	 * in the file commands.pml. Requires a working pymol binary on the host
 	 * with the appropriate path to the binary set in bot.properties.
 	 * @param pdbFile
 	 * @return
@@ -132,43 +134,33 @@ public class PdbImage {
 		 * These strings form the prep commands to orient and color
 		 * the PDB molecule appropriately.
 		 */
-		String[] commands = new String[] {
-				"hide everything, all",
-				"show cartoon, all",
-				"util.chainbow !resn da+dt+dg+dc+du+hetatm",
-				"set opaque_background=0",
-				"set show_alpha_checker=1",
-				"set cartoon_transparency=0",
-				"set depth_cue=0",
-				"set ray_trace_fog=0",
-				"orient",
-				"ray 1200, 1000",
-				"png pdb/"+filename, 	// If changed, make sure this matches up with the FileHandler root
-				"quit"
-		};
+		String commands = 
+				"'hide everything, all;"+
+				"show cartoon, all;"+
+				"util.chainbow !resn da+dt+dg+dc+du+hetatm;" +
+				"set opaque_background=0;"+
+				"set show_alpha_checker=1;"+
+				"set cartoon_transparency=0;"+
+				"set depth_cue=0;"+
+				"set ray_trace_fog=0;"+
+				"orient;"+
+				"ray 1200, 1000'";
 		
 		
 		System.out.print("Rendering image for "+this.pdbId+"... ");
 		
-		// -p: accept input from stdin
-		// -i: no openGL interface
-		// -x: no external interface
-		// -c should have worked but program aborts immediately...? YMMV.
-		String pymol = this.pymol+" -p -i -x pdb/"+this.pdbId+".pdb";
+		// The following assumes you've left 'pdb' set as the FileHandler root.
+		// If not, change each instance in the two strings below.
+		// This is the command to export as a 1200,1000 px png file
+		String rendercmd = "cmd.png('pdb/"+filename+"',1200,1000)";
+		// we need to append the rendercmd string at the end for proper escaping... not sure why
+		String pymol = this.pymol+" -c pdb/"+this.pdbId+".pdb pdb/commands.pml -d "+rendercmd;
 		Runtime rt = Runtime.getRuntime();
 		Process process = rt.exec(pymol);
 		
-		OutputStream stdin = process.getOutputStream();
-		InputStream stout = process.getInputStream();
-		
-		// Sends the process the commands specified in commands[] iteratively.
-		for (String command : commands) {
-			System.out.println("Pymol: "+command);
-			stdin.write(command.getBytes());
-			stdin.write('\n');
-			stdin.flush();
-			
-		}
+		// Comment this out if you don't want to see pymol's chatter
+		InputStream stdout = process.getInputStream();
+		ByteStreams.copy(stdout, System.out);
 		
 		// Wait for PyMOL to finish before continuing
 		try {
@@ -176,7 +168,7 @@ public class PdbImage {
 		} catch (InterruptedException e) {
 			// not clear what would interrupt it but safe to assume
 			// it wouldn't finish the render, thus, no filename to return.
-			return null;
+			return null;	// Null safe checks done downstream (in Builder.addImage())
 		}
 		
 		
@@ -226,7 +218,7 @@ public class PdbImage {
 			Configs.GET.setFromFile("bot.properties");
 			PdbImage img = new PdbImage("1B09", "1401");
 			System.out.println(img.description);
-			img.uploadPdbImg();
+			//img.uploadPdbImg();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

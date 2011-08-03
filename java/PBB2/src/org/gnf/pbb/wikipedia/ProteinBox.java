@@ -201,6 +201,13 @@ public class ProteinBox {
 			return this;
 		}
 		
+		/**
+		 * Searches for an image for the given PDB id (and HUGO symbol) in Wikimedia Commons and links to it.
+		 * If this fails, a new image is generated and uploaded, and the ProteinBox is linked
+		 * to the new image instead.
+		 * @param pdbId
+		 * @return this Builder object (call Builder.build() to create a new ProteinBox)
+		 */
 		public Builder addImage(String pdbId) {
 			String pdb;
 			String sym;
@@ -221,7 +228,7 @@ public class ProteinBox {
 				img = ImageFinder.getImage(sym, pdb.toLowerCase());
 				if (img != null) {
 					System.out.println("image found and linked.");
-					imgSrc = "Rendering of "+sym+"from [[Protein Data Bank | PDB]] {{PDB2|"+pdb+"}}";
+					imgSrc = "Rendering of "+sym+" from [[Protein Data Bank | PDB]] {{PDB2|"+pdb+"}}";
 				} else {
 					System.out.println("no image found, attempting render and upload.");
 					try {
@@ -417,7 +424,7 @@ public class ProteinBox {
 		// This is done last to get the most up-to-date PDB values.
 		try {
 			String pdb = Preconditions.checkNotNull(builder.multipleValFields.get("PDB").get(0));
-			builder.addImage(pdb);
+			builder.addImage(pdb); // This method searches for the image in commons and renders/uploads a new one if missing
 			String image = builder.singleValFields.get("image");
 			String image_source = builder.singleValFields.get("image_source");
 			if (!image.equals("")) {

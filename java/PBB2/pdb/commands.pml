@@ -8,7 +8,6 @@ set opaque_background=0
 set show_alpha_checker=1
 set cartoon_transparency=0
 set depth_cue=0
-set ray_trac_fog=0
+set ray_trace_fog=0
 orient
-ray 1200,1000
-
+# ray 1200,1000 # not necessary if called with separate png command (as it is in PBB)
