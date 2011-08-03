@@ -420,9 +420,13 @@ public class ProteinBox {
 			builder.addImage(pdb);
 			String image = builder.singleValFields.get("image");
 			String image_source = builder.singleValFields.get("image_source");
-			DatabaseManager.addChange(entrez, "image", "", image);
-			DatabaseManager.addChange(entrez, "image_source", "", image_source);
-			updated += 2;
+			if (!image.equals("")) {
+				DatabaseManager.addChange(entrez, "image", "", image);
+				DatabaseManager.addChange(entrez, "image_source", "", image_source);
+				updated += 2;
+			} else {
+				System.out.println("No image found or created. Moving on...");
+			}
 		} catch (IndexOutOfBoundsException e) {
 			// No image for us this time.
 		}

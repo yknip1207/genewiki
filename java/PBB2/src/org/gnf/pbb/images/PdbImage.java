@@ -21,6 +21,17 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Holds methods for downloading a PDB file from RCSB Protein Data Bank,
+ * rendering a ray-traced image of that file using the host's copy of
+ * PyMOL, and uploading it to Wikimedia Commons.
+ * Large parts of this module derived from PDBBot, a much more elegant
+ * Python script by emw. Find it on <a href="http://code.google.com/p/pdbbot/">Google Code</a> and
+ * <a href="http://commons.wikimedia.org/wiki/User:PDBbot">Wikimedia Commons</a>.
+ * @author Erik Clarke
+ * @author emw
+ *
+ */
 public class PdbImage {
 	private String pymol;
 	private String username;
