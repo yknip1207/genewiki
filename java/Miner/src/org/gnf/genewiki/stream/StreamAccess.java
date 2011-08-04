@@ -90,18 +90,20 @@ public class StreamAccess {
 			}
 			++optind;
 		}
-		if(credential_file==null||index_file==null||interval==0){
+		if(credential_file==null||interval==0){
 			System.err.println("Need to specify a credential file and a gene index file and an update interval.");
 			System.exit(-1);
 		}
-		
-		//to start a watching and tweeting process
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credential_file);
-		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap(index_file);
-		List<String> titles = new ArrayList<String>();
-		titles.addAll(gene_wiki.values());
-		Collections.sort(titles);
-		RevisionStream.startWikiWatcher(interval, max_times, seconds2goback, titles, index_file, creds);
+		//start watchlist managed watching task
+		RevisionStream.startWatchlistTweetertask(interval, max_times, seconds2goback, creds);
+		
+		//to start the old watching and tweeting process	
+//		Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap(index_file);
+//		List<String> titles = new ArrayList<String>();
+//		titles.addAll(gene_wiki.values());
+//		Collections.sort(titles);
+//		RevisionStream.startWikiWatcher(interval, max_times, seconds2goback, titles, index_file, creds);
 		
 		//for a daily type rss
 		//RevisionStream.dailyDose(index_file, output_dir+"gwrss.xml", output_dir+"gwtweetsrss.xml", daysback, test, new RevisionCounter(wp_user, wp_pw));

@@ -71,9 +71,11 @@ public class WatchlistManager {
 		catreader.setUser(user);
 		List<Page> gw = catreader.getPagesWithPBB(100000, 500);
 		Set<String> genewiki_titles = pagelist2titleset(gw);
+		System.out.println("Current n wiki titles = "+genewiki_titles.size());
 		//get current watchlist titles
 		List<Page> cu = getCurrentLiveWatchlist(500, 100000);
 		Set<String> watchlist_titles = pagelist2titleset(cu);
+		System.out.println("Current watchlist titles = "+watchlist_titles.size());
 		//find missing gene wiki titles		
 		genewiki_titles.removeAll(watchlist_titles);
 		//push any additions
