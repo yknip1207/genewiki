@@ -1,0 +1,33 @@
+# Bot Name
+name = ProteinBoxBot
+
+# Boolean options
+dryRun = false
+useCache = false
+strictChecking = true
+verbose = true
+debug = false
+
+# Locations
+cacheLocation = /tmp/pbb
+logs = /tmp/pbb/logs
+
+# Wikipedia credentials
+username = 
+password = 
+
+# Wikimedia Commons credentials (to upload rendered images)
+commonsUsername = 
+commonsPassword = 
+
+# Template information
+templatePrefix = Template:PBB/
+templateName = GNF_Protein_box
+api_root = http://en.wikipedia.org/w/
+commonsRoot = http://commons.wikimedia.org/w/
+
+# Miscellaneous
+loggerLevel = Info
+
+# PDB image rendering
+pymol = /usr/local/bin/pymol
