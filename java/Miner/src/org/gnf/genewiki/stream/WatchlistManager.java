@@ -3,11 +3,14 @@
  */
 package org.gnf.genewiki.stream;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.gnf.genewiki.GWRevision;
 import org.gnf.genewiki.GeneWikiUtils;
@@ -51,10 +54,13 @@ public class WatchlistManager {
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		WatchlistManager wm = new WatchlistManager(creds.get("wpid"), creds.get("wppw"), null);
 		//wm.updateGeneWikiWatchList();
-
-		List<GWRevision> live = wm.getRecentChangesFromWatchlist(5, 5);
+		Calendar t0 = Calendar.getInstance();
+		t0.add(Calendar.DAY_OF_YEAR, -1);
+		List<GWRevision> live = wm.getRecentChangesFromWatchlist(t0, 100, 100);
+		int c = 0;
 		for(GWRevision rev : live){
-			System.out.println(rev.getTitle()+" "+rev.getUser()+" "+rev.getTimestamp());
+			c++;
+			System.out.println(c+" "+rev.getTimestamp()+"  "+rev.getTitle()+" "+rev.getUser()+" ");
 		}
 		//		System.out.println(live.size()+" "+live.get(9).getTitle()+" "+live.get(9).getTimestamp());
 	}
@@ -102,21 +108,22 @@ public class WatchlistManager {
 	}
 
 	public List<Page> getCurrentLiveWatchlist(int batch, int total){
+		
 		List<Page> pages = new ArrayList<Page>();
 		String nextTitle = "";
 		Connector connector = user.getConnector();
 		for(int i = 0; i< total; i+=batch){
-			String[] categoryMembers = { 
+			String[] query = { 
 					"list", "watchlistraw", 
 					"wrlimit", batch+"",
 					"wrnamespace", "0",  //namespace = 10 equals the template namespace.
 					"", ""
 			};
 			if(nextTitle!=null&&!nextTitle.equals("")){
-				categoryMembers[6] = "wrcontinue";
-				categoryMembers[7] = nextTitle;
+				query[6] = "wrcontinue";
+				query[7] = nextTitle;
 			}
-			String pagesXML = connector.queryXML(user, categoryMembers);
+			String pagesXML = connector.queryXML(user, query);
 			// <?xml version="1.0"?><api><watchlistraw><wr ns="0" title="Cyclin-dependent kinase 2" /></watchlistraw></api>\n
 			List<Page> page_batch = parser.parseWatchlistXml(pagesXML);
 			nextTitle = parser.getNextTitle();
@@ -132,7 +139,12 @@ public class WatchlistManager {
 		return pages;
 	}
 
-	public List<GWRevision> getRecentChangesFromWatchlist(int batch, int total){
+	public List<GWRevision> getRecentChangesFromWatchlist(Calendar earliest, int batch, int total){
+		SimpleDateFormat timestamp = new SimpleDateFormat("yyyyMMddHHmmss");
+		TimeZone tz = TimeZone.getTimeZone("GMT");
+		timestamp.setTimeZone(tz);
+		String start = timestamp.format(earliest.getTime());
+		
 		List<GWRevision> pages = new ArrayList<GWRevision>();
 		String nextTitle = "";
 		Connector connector = user.getConnector();
@@ -143,6 +155,8 @@ public class WatchlistManager {
 					"gwlnamespace", "0",  //namespace = 10 equals the template namespace.
 					"gwlshow", "!bot",
 					"", "",
+					"gwlstart",start,
+					"gwldir", "newer",
 					"prop", "revisions",
 					"rvprop", "user|timestamp|ids|size|flags|comment"
 			};
