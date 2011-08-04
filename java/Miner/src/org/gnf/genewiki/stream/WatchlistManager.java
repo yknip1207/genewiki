@@ -6,10 +6,13 @@ package org.gnf.genewiki.stream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.gnf.genewiki.GWRevision;
+import org.gnf.genewiki.GeneWikiUtils;
 import org.gnf.genewiki.WikiCategoryReader;
+import org.gnf.genewiki.metrics.RevisionCounter;
 import org.gnf.genewiki.parse.ParserAccess;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.Page;
@@ -44,12 +47,12 @@ public class WatchlistManager {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String botuser = "genewikibot";
-		String botpass = "2manypasswords";
-		WatchlistManager wm = new WatchlistManager(botuser, botpass, null);
+		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
+		WatchlistManager wm = new WatchlistManager(creds.get("wpid"), creds.get("wppw"), null);
 		//wm.updateGeneWikiWatchList();
 
-		List<GWRevision> live = wm.getRecentChangesFromWatchlist(50, 25);
+		List<GWRevision> live = wm.getRecentChangesFromWatchlist(5, 5);
 		for(GWRevision rev : live){
 			System.out.println(rev.getTitle()+" "+rev.getUser()+" "+rev.getTimestamp());
 		}
