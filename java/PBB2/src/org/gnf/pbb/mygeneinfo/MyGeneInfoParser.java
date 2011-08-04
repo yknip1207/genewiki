@@ -70,6 +70,10 @@ public class MyGeneInfoParser {
 			System.err.println("Bad URL.");
 			botState.fatal(mue);
 			return null;	// Ideally the bot's in the process of shutting down
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			botState.recoverable(e);
+			return null;
 		} catch (IOException e) {
 			e.printStackTrace();
 			botState.fatal(e);
