@@ -132,19 +132,24 @@ public class GeneSetSelector {
 		///////////////////
 		//Identify interesting MeSH topics
 		//////////////////
-//		String infile = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
-//		String meshoutfile = "/Users/bgood/data/journal_collab/1st_edition_mesh_data_stypes.txt";
-//		g.buildMeshProfiles(infile, meshoutfile);
+		//		String infile = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
+		//		String meshoutfile = "/Users/bgood/data/journal_collab/1st_edition_mesh_data_stypes.txt";
+		//		g.buildMeshProfiles(infile, meshoutfile);
 
 		///////////////////
 		//build some specific reports
-		//////////////////		
-				String mesh = "Parasitemia";//"Endocarditis, Bacterial"; //"Isoantigens";//Wounds and Injuries
-				String geneprofiles = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
-				String meshout = "/Users/bgood/data/journal_collab/Parasitemia.txt";
-				g.makeReportforMeSHterm(geneprofiles, mesh, meshout);
-				mesh = "Sleep";
-				meshout = "/Users/bgood/data/journal_collab/Sleep.txt";
+		//////////////////	
+		//"Sleep","Pain",
+		String[] terms = {"Motor Neuron Disease","Leukemia, T-Cell","Diabetic Neuropathies", "Influenza, Human", "Wounds and Injuries", "Parasitemia"};
+		boolean recapture_gene_wiki_data = true;
+		for(String mesh : terms){
+			System.out.println("working on mesh term "+mesh);
+			String geneprofiles = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
+			String filename = mesh.replace(",", ":");
+			filename = filename.replace(" ", "_");
+			String meshout = "/Users/bgood/data/journal_collab/MeSHgeneSets/"+filename+".txt";
+			g.makeReportforMeSHterm(geneprofiles, mesh, meshout, recapture_gene_wiki_data);
+		}
 	}
 
 	/**
@@ -153,7 +158,7 @@ public class GeneSetSelector {
 	 * @param term
 	 * @param meshout
 	 */
-	public void makeReportforMeSHterm(String genefile, String term, String meshout){
+	public void makeReportforMeSHterm(String genefile, String term, String meshout, boolean recapture_gene_wiki_data){
 		//		String mesh = "Asperger Syndrome";//"Endocarditis, Bacterial"; //"Isoantigens";//Wounds and Injuries
 		//		String geneprofiles = "/Users/bgood/data/journal_collab/1st_edition_gene_data_freq2.txt";
 		//		String meshout = "/Users/bgood/data/journal_collab/Asperger_Syndrome.txt";
@@ -168,7 +173,8 @@ public class GeneSetSelector {
 				if(mp==null){
 					mp = new ArrayList<GeneProfile>();
 				}
-				mp.add(gene_profile.getValue());
+				GeneProfile gp = gene_profile.getValue();
+				mp.add(gp);
 				mesh_profiles.put(pubmesh, mp);
 			}
 		}
@@ -176,6 +182,25 @@ public class GeneSetSelector {
 			FileWriter f = new FileWriter(meshout);
 			f.write(getGeneProfileHeader()+"termcount\tconnecting_pmids"+"\n");
 			for(GeneProfile gp : mesh_profiles.get(term)){
+				int c = 0;
+				if(recapture_gene_wiki_data){			
+					if(gp.page.getTitle()==null||gp.gw_sentences==0){
+						c++;
+						GeneWikiPage page = new GeneWikiPage();
+						page.setNcbi_gene_id(gp.page.getNcbi_gene_id());
+						String title = gene2gwtitle.get(page.getNcbi_gene_id());
+						page.setTitle(title);
+						if(title!=null){
+							System.out.println("regetting "+title+" "+c);
+							page.retrieveWikiTextContent(false);
+							if(page!=null&&page.getPageContent()!=null){
+								page.parseAndSetSentences();
+								gp.page = page;							
+								gp.gw_sentences = page.getSentences().size();
+							}							
+						}
+					}
+				}			
 				//measure relevance of this gene to this topic, also report pubmed ids..
 				List<String> pubs = gene2pubs.get(gp.page.getNcbi_gene_id());
 				String pmids = "";
@@ -227,7 +252,7 @@ public class GeneSetSelector {
 		int c = 0;
 		for(Entry<String, List<GeneProfile>> mesh_profile : mesh_profiles.entrySet()){
 			c++;
-			
+
 			Set<String> types = db.getSemanticTypesForMeshAtom(mesh_profile.getKey());
 			Set<String> groups = new HashSet<String>();
 			if(types!=null&&types.size()>0){
@@ -504,7 +529,8 @@ public class GeneSetSelector {
 		"f-weighted-overlap\t" +
 		"f-intersect_count\t" +
 		"weighted-intersect\t"+
-		"weighted-pub_mesh\t";
+		"weighted-pub_mesh\t" +
+		"Top_authors\t";
 	}
 
 	class GeneProfile{
@@ -514,6 +540,7 @@ public class GeneSetSelector {
 		int pubmed_refs;
 		Map<String, Double> pub_mesh_freq;
 		Set<String> gw_mesh;
+		Map<String, Double> authors;
 		private GeneProfile(SetComparison sc_, GeneWikiPage page_, Map<String, Double> pub_mesh_, Set<String> gw_mesh_){
 			sc = sc_;
 			page = page_;
@@ -521,7 +548,15 @@ public class GeneSetSelector {
 			gw_mesh = gw_mesh_;
 		}
 
+		private void setAuthorList(){
+			authors = AuthorSelector.getRankedAuthorListForPmids(gene2pubs.get(page.getNcbi_gene_id()));
+		}
+
 		private String getAsString(boolean keepalltext){
+			int max_authors = 10;
+			setAuthorList();
+			String top_authors = AuthorSelector.getTopForExcelCell(authors, max_authors);
+
 			//limit comparison to more interesting mesh terms
 			boolean penalize_prior = true;
 			Map<String, Double> pubmeshfreq = count2freq(pub_mesh_freq, penalize_prior);
@@ -593,7 +628,8 @@ public class GeneSetSelector {
 			superset.getF()+"\t"+
 			superset.getSet_intersection()+"\t"+
 			superset.getInterset()+"\t"+
-			weighted_pub_mesh_terms+"\t";
+			weighted_pub_mesh_terms+"\t"+
+			top_authors+"\t";
 
 		}
 

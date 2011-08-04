@@ -42,6 +42,8 @@ public class XMLRevisionsParser extends AbstractXMLParser {
 	private List<GWRevision> revsList;
 	
 	private String cmcontinue;
+	
+	private String tmptitle;
 
 	public XMLRevisionsParser(String xmlText) throws SAXException {
 		super(xmlText);
@@ -52,8 +54,11 @@ public class XMLRevisionsParser extends AbstractXMLParser {
 	public void startElement(String namespaceURI, String localName, String qName, Attributes atts) {
 		fAttributes = atts;
 
-		if ( (REV.equals(qName)) ) {
+		if("page".equals(qName)){
+			tmptitle = fAttributes.getValue("title");
+		}else if ( (REV.equals(qName)) ) {
 			fRev = new GWRevision();
+			fRev.setTitle(tmptitle);
 			fRev.setRevid(fAttributes.getValue(REV_ID));
 			fRev.setUser(fAttributes.getValue(USER));
 			fRev.setTimestamp(fAttributes.getValue(TIMESTAMP));
@@ -67,11 +72,6 @@ public class XMLRevisionsParser extends AbstractXMLParser {
 				setCmcontinue(fAttributes.getValue("rvstartid"));
 			}
 		}
-		/*
-		<query-continue>
-<categorymembers cmcontinue="24-dehydrocholesterol reductase|" />
-</query-continue>
-		 */
 		fData = null;
 	}
 

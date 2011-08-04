@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.axis2.AxisFault;
+import org.gnf.util.MapFun;
 
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractTextType;
@@ -58,8 +59,8 @@ SO: 1986 Apr;83(8):2363-7
 public class PubMed {
 
 	public static void main(String[] args) {
-//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
-//		System.out.println(pmid_meshes.get("3458201"));
+		//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
+		//		System.out.println(pmid_meshes.get("3458201"));
 
 		try {
 			Set<String> pmids = new HashSet<String>();
@@ -158,7 +159,7 @@ public class PubMed {
 		req.setId(ids);
 
 		EFetchPubmedServiceStub.EFetchResult res;
-		
+
 		try {
 			res = service.run_eFetch(req);
 			// results output
@@ -201,172 +202,228 @@ public class PubMed {
 		if(c%10==0){
 			System.out.println("on "+c+" of "+idlist.size());
 		}
-	return pmid_meshs;
-}
-
-public static Map<String, String> getPubmedTitlesAndAbstracts(Set<String> idlist, String pubcache, boolean cache) throws AxisFault{
-	if(idlist==null){
-		return null;
+		return pmid_meshs;
 	}
-	Map<String, String> pmid_text = new HashMap<String, String>();
-	if(cache){
-		pmid_text = getCachedPmidAbstractMap(pubcache);
-	}
-	System.out.println("Cache contains: "+pmid_text.keySet().size());
-	idlist.removeAll(pmid_text.keySet());
-	System.out.println("Retrieving new: "+idlist.size());
-	// call NCBI E utility
-	EFetchPubmedServiceStub service = new EFetchPubmedServiceStub();
-	//Call NCBI EFetch Utilities 
-	EFetchPubmedServiceStub.EFetchRequest req = new EFetchPubmedServiceStub.EFetchRequest();
-	int c = 0;
-	for(String id : idlist){
-		c++;
-		String output = "";
-		req.setId(id);
 
-		EFetchPubmedServiceStub.EFetchResult res;
-		try {
-			res = service.run_eFetch(req);
-			// results output
-			if(res==null){
-				pmid_text.put(id, "no data");
-				continue;
-			}
-			String title = res.getPubmedArticleSet().getPubmedArticleSetChoice()[0].getPubmedArticle().getMedlineCitation().getArticle().getArticleTitle().getString();
-			AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticleSetChoice()[0].getPubmedArticle().getMedlineCitation().getArticle().getAbstract();
-			String abstractText = "";
-			if (abstractTypeObj != null) { 
-				AbstractTextType[] abtexts = abstractTypeObj.getAbstractText();
-				if(abtexts!=null){
-					for(AbstractTextType ab : abtexts){
-						abstractText+=ab.getString();
+	public static Map<String, String> getPubmedTitlesAndAbstracts(Set<String> idlist, String pubcache, boolean cache) throws AxisFault{
+		if(idlist==null){
+			return null;
+		}
+		Map<String, String> pmid_text = new HashMap<String, String>();
+		if(cache){
+			pmid_text = getCachedPmidAbstractMap(pubcache);
+		}
+		System.out.println("Cache contains: "+pmid_text.keySet().size());
+		idlist.removeAll(pmid_text.keySet());
+		System.out.println("Retrieving new: "+idlist.size());
+		// call NCBI E utility
+		EFetchPubmedServiceStub service = new EFetchPubmedServiceStub();
+		//Call NCBI EFetch Utilities 
+		EFetchPubmedServiceStub.EFetchRequest req = new EFetchPubmedServiceStub.EFetchRequest();
+		int c = 0;
+		for(String id : idlist){
+			c++;
+			String output = "";
+			req.setId(id);
+
+			EFetchPubmedServiceStub.EFetchResult res;
+			try {
+				res = service.run_eFetch(req);
+				// results output
+				if(res==null){
+					pmid_text.put(id, "no data");
+					continue;
+				}
+				String title = res.getPubmedArticleSet().getPubmedArticleSetChoice()[0].getPubmedArticle().getMedlineCitation().getArticle().getArticleTitle().getString();
+				AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticleSetChoice()[0].getPubmedArticle().getMedlineCitation().getArticle().getAbstract();
+				String abstractText = "";
+				if (abstractTypeObj != null) { 
+					AbstractTextType[] abtexts = abstractTypeObj.getAbstractText();
+					if(abtexts!=null){
+						for(AbstractTextType ab : abtexts){
+							abstractText+=ab.getString();
+						}
 					}
 				}
-			}
 
-			//				String title = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getArticleTitle();
-			//				AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getAbstract();
-			//				String abstractText = "";
-			//				if (abstractTypeObj != null) { 
-			//					abstractText = abstractTypeObj.getAbstractText();
-			//				}
-			output+=title+"\t"+abstractText;
-			pmid_text.put(id, output);
-			if(cache){
-				FileWriter f = new FileWriter(pubcache, true);
-				f.write(id+"\t"+output+"\n");
-				f.close();
+				//				String title = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getArticleTitle();
+				//				AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getAbstract();
+				//				String abstractText = "";
+				//				if (abstractTypeObj != null) { 
+				//					abstractText = abstractTypeObj.getAbstractText();
+				//				}
+				output+=title+"\t"+abstractText;
+				pmid_text.put(id, output);
+				if(cache){
+					FileWriter f = new FileWriter(pubcache, true);
+					f.write(id+"\t"+output+"\n");
+					f.close();
+				}
+			} catch (RemoteException e) {
+				System.out.println("error on "+id);
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}		
+			if(c%10==0){
+				System.out.println("on "+c+" of "+idlist.size());
 			}
-		} catch (RemoteException e) {
-			System.out.println("error on "+id);
-			e.printStackTrace();
-		} catch (IOException e) {
+		}
+		return pmid_text;
+	}
+
+
+
+	public static Map<String, String> getPubmedArticleTypes(String idlist){
+		if(idlist==null){
+			return null;
+		}
+		Map<String, String> journal = new HashMap<String, String>();
+		String info = ""; 
+
+		EUtilsServiceStub service = null;
+		try {
+			service = new EUtilsServiceStub();
+		} catch (AxisFault e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
-		if(c%10==0){
-			System.out.println("on "+c+" of "+idlist.size());
 		}
-	}
-	return pmid_text;
-}
+		// call NCBI ESummary utility
+		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+		req.setDb("pubmed");
+		req.setId(idlist);
+		EUtilsServiceStub.ESummaryResult res;
+		try {
+			res = service.run_eSummary(req);
 
-
-
-public static Map<String, String> getPubmedArticleTypes(String idlist){
-	if(idlist==null){
-		return null;
-	}
-	Map<String, String> journal = new HashMap<String, String>();
-	String info = ""; 
-
-	EUtilsServiceStub service = null;
-	try {
-		service = new EUtilsServiceStub();
-	} catch (AxisFault e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	// call NCBI ESummary utility
-	EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
-	req.setDb("pubmed");
-	req.setId(idlist);
-	EUtilsServiceStub.ESummaryResult res;
-	try {
-		res = service.run_eSummary(req);
-
-		// results output
-		if(res==null){
-			return(journal);
-		}
-		DocSumType[] docs = res.getDocSum();
-		if(docs!=null){
-			for(int i=0; i<docs.length; i++)
-			{
-				//System.out.println("ID: "+res.getDocSum()[i].getId());
-				String pmid = res.getDocSum()[i].getId();
-				for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+			// results output
+			if(res==null){
+				return(journal);
+			}
+			DocSumType[] docs = res.getDocSum();
+			if(docs!=null){
+				for(int i=0; i<docs.length; i++)
 				{
-					//uncomment to see all the available fields
-					//	System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
-					//						if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
-					//							String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
-					//							dates.put(pmid, date);
-					//						}
+					//System.out.println("ID: "+res.getDocSum()[i].getId());
+					String pmid = res.getDocSum()[i].getId();
+					for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+					{
+						//uncomment to see all the available fields
+						//	System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
+						//						if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
+						//							String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
+						//							dates.put(pmid, date);
+						//						}
 
-					if(res.getDocSum()[i].getItem()[k].getName().equals("PubTypeList")){
-						if(res.getDocSum()[i].getItem()[k]!=null){
-							ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
-							if(items!=null){
-								for(ItemType item : items){
-									journal.put(pmid, item.getItemContent());
+						if(res.getDocSum()[i].getItem()[k].getName().equals("PubTypeList")){
+							if(res.getDocSum()[i].getItem()[k]!=null){
+								ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
+								if(items!=null){
+									for(ItemType item : items){
+										journal.put(pmid, item.getItemContent());
+									}
 								}
 							}
 						}
 					}
+					info+="\t";
 				}
-				info+="\t";
 			}
-		}
-	} catch (RemoteException e) {
-		System.out.println(idlist);
-		e.printStackTrace();
-	}		
+		} catch (RemoteException e) {
+			System.out.println(idlist);
+			e.printStackTrace();
+		}		
 
 
-	return journal;
-}
-
-public static Map<String, String> getPubmedJournals(String idlist){
-	if(idlist==null){
-		return null;
+		return journal;
 	}
-	Map<String, String> journal = new HashMap<String, String>();
-	String info = ""; 
 
-	EUtilsServiceStub service = null;
-	try {
-		service = new EUtilsServiceStub();
-	} catch (AxisFault e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	// call NCBI ESummary utility
-	EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
-	req.setDb("pubmed");
-	req.setId(idlist);
-	EUtilsServiceStub.ESummaryResult res;
-	try {
-		res = service.run_eSummary(req);
-
-		// results output
-		if(res==null){
-			return(journal);
+	public static Map<String, String> getPubmedJournals(String idlist){
+		if(idlist==null){
+			return null;
 		}
-		DocSumType[] docs = res.getDocSum();
-		if(docs!=null){
-			for(int i=0; i<docs.length; i++)
+		Map<String, String> journal = new HashMap<String, String>();
+		String info = ""; 
+
+		EUtilsServiceStub service = null;
+		try {
+			service = new EUtilsServiceStub();
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// call NCBI ESummary utility
+		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+		req.setDb("pubmed");
+		req.setId(idlist);
+		EUtilsServiceStub.ESummaryResult res;
+		try {
+			res = service.run_eSummary(req);
+
+			// results output
+			if(res==null){
+				return(journal);
+			}
+			DocSumType[] docs = res.getDocSum();
+			if(docs!=null){
+				for(int i=0; i<docs.length; i++)
+				{
+					//System.out.println("ID: "+res.getDocSum()[i].getId());
+					String pmid = res.getDocSum()[i].getId();
+					for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+					{
+						//uncomment to see all the available fields
+						//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
+						if(res.getDocSum()[i].getItem()[k].getName().equals("FullJournalName")){
+							List<String> auths = new ArrayList<String>();
+							if(res.getDocSum()[i].getItem()[k]!=null){
+								journal.put(pmid, res.getDocSum()[i].getItem()[k].getItemContent());
+							}
+						}
+					}
+					info+="\t";
+				}
+			}
+		} catch (RemoteException e) {
+			System.out.println(idlist);
+			e.printStackTrace();
+		}		
+
+
+		return journal;
+	}
+
+	public static Map<String, Set<String>> getPubmedAuthors(String idlist){
+		if(idlist==null){
+			return null;
+		}
+		Map<String, Set<String>> authors = new HashMap<String, Set<String>>();
+		String info = ""; 
+
+		EUtilsServiceStub service = null;
+		try {
+			service = new EUtilsServiceStub();
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// call NCBI ESummary utility
+		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+		req.setDb("pubmed");
+		req.setId(idlist);
+		EUtilsServiceStub.ESummaryResult res;
+		try {
+			res = service.run_eSummary(req);
+
+			// results output
+			if(res==null){
+				return(authors);
+			}
+			if(res.getDocSum()==null){
+				return authors;
+			}
+			for(int i=0; i<res.getDocSum().length; i++)
 			{
 				//System.out.println("ID: "+res.getDocSum()[i].getId());
 				String pmid = res.getDocSum()[i].getId();
@@ -374,180 +431,147 @@ public static Map<String, String> getPubmedJournals(String idlist){
 				{
 					//uncomment to see all the available fields
 					//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
-					if(res.getDocSum()[i].getItem()[k].getName().equals("FullJournalName")){
-						List<String> auths = new ArrayList<String>();
+					if(res.getDocSum()[i].getItem()[k].getName().equals("AuthorList")){
+					Set<String> auths = new HashSet<String>();
 						if(res.getDocSum()[i].getItem()[k]!=null){
-							journal.put(pmid, res.getDocSum()[i].getItem()[k].getItemContent());
+							ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
+							if(items!=null){
+								for(int a = 0; a<items.length; a++){
+									auths.add(items[a].getItemContent());
+								}
+								//							for(ItemType it : res.getDocSum()[i].getItem()[k].getItem()){
+								//								auths.add(it.getItemContent());
+								//							}
+								authors.put(pmid, auths);
+							}
 						}
+						//String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
+						//authors.put(pmid, date);
+					}
+				}
+				info+="\t";
+			}
+		} catch (RemoteException e) {
+			System.out.println("died sending about "+idlist.length()/9+" pmids");
+			e.printStackTrace();
+		}		
+
+
+		return authors;
+	}
+
+	/**
+	 * return a map linking pubmed id to date published	
+	 * @param idlist
+	 * @return
+	 */
+	public static Map<String, String> getPubmedDates(String idlist){
+		if(idlist==null){
+			return null;
+		}
+		Map<String, String> dates = new HashMap<String, String>();
+		String info = ""; 
+
+		EUtilsServiceStub service = null;
+		try {
+			service = new EUtilsServiceStub();
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// call NCBI ESummary utility
+		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+		req.setDb("pubmed");
+		req.setId(idlist);
+		EUtilsServiceStub.ESummaryResult res;
+		try {
+			res = service.run_eSummary(req);
+
+			// results output
+			for(int i=0; i<res.getDocSum().length; i++)
+			{
+				//System.out.println("ID: "+res.getDocSum()[i].getId());
+				String pmid = res.getDocSum()[i].getId();
+				for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+				{
+					//uncomment to see all the available fields
+					System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
+					if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
+						String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
+						dates.put(pmid, date);
+					}
+				}
+				info+="\t";
+			}
+		} catch (RemoteException e) {
+			System.out.println(idlist);
+			e.printStackTrace();
+		}		
+
+
+		return dates;
+	}
+
+	public static String getPubmedDate(String id){
+		String info = ""; 
+		try
+		{
+			EUtilsServiceStub service = new EUtilsServiceStub();
+			// call NCBI ESummary utility
+			EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+			req.setDb("pubmed");
+			req.setId(id);
+			EUtilsServiceStub.ESummaryResult res = service.run_eSummary(req);
+			// results output
+			for(int i=0; i<res.getDocSum().length; i++)
+			{
+				//       System.out.println("ID: "+res.getDocSum()[i].getId());
+				for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+				{
+					//uncomment to see all the available fields
+					//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
+					if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
+						info += res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
 					}
 				}
 				info+="\t";
 			}
 		}
-	} catch (RemoteException e) {
-		System.out.println(idlist);
-		e.printStackTrace();
-	}		
 
-
-	return journal;
-}
-
-public static Map<String, List<String>> getPubmedAuthors(String idlist){
-	if(idlist==null){
-		return null;
+		catch(Exception e) { System.out.println(e.toString()); }
+		return info;
 	}
-	Map<String, List<String>> authors = new HashMap<String, List<String>>();
-	String info = ""; 
 
-	EUtilsServiceStub service = null;
-	try {
-		service = new EUtilsServiceStub();
-	} catch (AxisFault e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+	public static Map<String, Set<String>> getMeshTerms(String pmid) throws AxisFault {
+		Set<String> pmids = new HashSet<String>();
+		pmids.add(pmid);
+		return getMeshTerms(pmids);
 	}
-	// call NCBI ESummary utility
-	EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
-	req.setDb("pubmed");
-	req.setId(idlist);
-	EUtilsServiceStub.ESummaryResult res;
-	try {
-		res = service.run_eSummary(req);
 
-		// results output
-		if(res==null){
-			return(authors);
-		}
-		if(res.getDocSum()==null){
-			return authors;
-		}
-		for(int i=0; i<res.getDocSum().length; i++)
-		{
-			//System.out.println("ID: "+res.getDocSum()[i].getId());
-			String pmid = res.getDocSum()[i].getId();
-			for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
-			{
-				//uncomment to see all the available fields
-				System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
-				if(res.getDocSum()[i].getItem()[k].getName().equals("AuthorList")){
-					List<String> auths = new ArrayList<String>();
-					if(res.getDocSum()[i].getItem()[k]!=null){
-						ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
-						if(items!=null){
-							for(int a = 0; a<items.length; a++){
-								auths.add(items[a].getItemContent());
-							}
-							//							for(ItemType it : res.getDocSum()[i].getItem()[k].getItem()){
-							//								auths.add(it.getItemContent());
-							//							}
-							authors.put(pmid, auths);
-						}
-					}
-					//String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
-					//authors.put(pmid, date);
+	public static Map<String, Set<String>> getPubmedAuthors(Set<String> pmids) {
+		String plist = "";
+		int max_batch = 500;
+		int c = 0;
+		Map<String, Set<String>> pmid_authors = new HashMap<String, Set<String>>();
+		if(pmids!=null&&pmids.size()>0){
+			for(String pmid : pmids){
+				plist+=pmid+",";
+				c++;
+				if(c==max_batch||c==pmids.size()){
+					System.out.println("Getting author names for, batch size = "+c);
+					plist = plist.substring(0, plist.length()-1);
+					Map<String, Set<String>> tmp_authors = getPubmedAuthors(plist);
+					pmid_authors = MapFun.mergeStringSetMaps(pmid_authors, tmp_authors);
+					plist = "";
+					c =0;
 				}
 			}
-			info+="\t";
 		}
-	} catch (RemoteException e) {
-		System.out.println(idlist);
-		e.printStackTrace();
-	}		
 
-
-	return authors;
-}
-
-/**
- * return a map linking pubmed id to date published	
- * @param idlist
- * @return
- */
-public static Map<String, String> getPubmedDates(String idlist){
-	if(idlist==null){
-		return null;
-	}
-	Map<String, String> dates = new HashMap<String, String>();
-	String info = ""; 
-
-	EUtilsServiceStub service = null;
-	try {
-		service = new EUtilsServiceStub();
-	} catch (AxisFault e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	// call NCBI ESummary utility
-	EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
-	req.setDb("pubmed");
-	req.setId(idlist);
-	EUtilsServiceStub.ESummaryResult res;
-	try {
-		res = service.run_eSummary(req);
-
-		// results output
-		for(int i=0; i<res.getDocSum().length; i++)
-		{
-			//System.out.println("ID: "+res.getDocSum()[i].getId());
-			String pmid = res.getDocSum()[i].getId();
-			for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
-			{
-				//uncomment to see all the available fields
-				System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
-				if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
-					String date = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
-					dates.put(pmid, date);
-				}
-			}
-			info+="\t";
-		}
-	} catch (RemoteException e) {
-		System.out.println(idlist);
-		e.printStackTrace();
-	}		
-
-
-	return dates;
-}
-
-public static String getPubmedDate(String id){
-	String info = ""; 
-	try
-	{
-		EUtilsServiceStub service = new EUtilsServiceStub();
-		// call NCBI ESummary utility
-		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
-		req.setDb("pubmed");
-		req.setId(id);
-		EUtilsServiceStub.ESummaryResult res = service.run_eSummary(req);
-		// results output
-		for(int i=0; i<res.getDocSum().length; i++)
-		{
-			//       System.out.println("ID: "+res.getDocSum()[i].getId());
-			for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
-			{
-				//uncomment to see all the available fields
-				//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
-				if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
-					info += res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"
-				}
-			}
-			info+="\t";
-		}
+		return pmid_authors;
 	}
 
-	catch(Exception e) { System.out.println(e.toString()); }
-	return info;
-}
-
-public static Map<String, Set<String>> getMeshTerms(String pmid) throws AxisFault {
-	Set<String> pmids = new HashSet<String>();
-	pmids.add(pmid);
-	return getMeshTerms(pmids);
-}
-
-/**
+	/**
 	         try
         {
             EFetchSequenceServiceStub service = new EFetchSequenceServiceStub();
@@ -567,8 +591,8 @@ public static Map<String, Set<String>> getMeshTerms(String pmid) throws AxisFaul
             }
         }
         catch (Exception e) { System.out.println(e.toString()); }
- */
-/*
+	 */
+	/*
 				 String db = "", searchTerm = "", retMax = "", relDate = "", minDate = "", maxDate = "", dateType = ""; String[] idListArray = null; String id = "", title = "", abstractText = ""; int numLiteratureId = 0;
 		try {
 			EUtilsServiceStub service1 = new EUtilsServiceStub();
@@ -612,6 +636,6 @@ public static Map<String, Set<String>> getMeshTerms(String pmid) throws AxisFaul
 				}
 			}
 		}catch (Exception e){}
- */
+	 */
 
 }

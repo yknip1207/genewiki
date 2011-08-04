@@ -109,6 +109,32 @@ public class ParserAccess implements Serializable{
 		return revs;
 	}
 
+		public List<GWRevision> parseRecentWatchlistXml(String wikiXml){
+			List<GWRevision> revs = null;
+			try {
+				XMLWatchlistRecentParser xmlRevsParser = new XMLWatchlistRecentParser(wikiXml);
+				xmlRevsParser.parse();
+				revs = xmlRevsParser.getRevsList();
+				nextTitle = xmlRevsParser.getCmcontinue();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return revs;
+		}
+	
+	public List<Page> parseWatchlistXml(String wikiXml){
+		List<Page> pages = null;
+		try {
+			XMLWatchlistParser xmlPagesParser = new XMLWatchlistParser(wikiXml);
+			xmlPagesParser.parse();
+			pages = xmlPagesParser.getPagesList();
+			nextTitle = xmlPagesParser.getWrcontinue();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pages;
+	}
+	
 	public List<Page> parseWikiEmbeddedApiXml(String wikiXml){
 		List<Page> pages = null;
 		try {

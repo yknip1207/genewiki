@@ -82,6 +82,17 @@ public class MapFun {
 		 return outmap;
 	 }
 
+	 public static Map<String, Set<String>> mergeStringSetMaps(Map<String, Set<String>> map1, Map<String, Set<String>> map2){
+		 for(Entry<String, Set<String>> in : map1.entrySet()){
+			if(map2.keySet().contains(in.getKey())){
+				map2.get(in).addAll(map1.get(in.getKey()));
+			}else{
+				map2.put(in.getKey(), in.getValue());
+			}
+		 }
+		 return map2;
+	 }
+	 
 	 public static Map<String, Set<String>> flipMapStringSetStrings(Map<String, Set<String>> inmap){
 		 Map<String, Set<String>> outmap = new HashMap<String, Set<String>>();
 		 for(Entry<String, Set<String>> in : inmap.entrySet()){

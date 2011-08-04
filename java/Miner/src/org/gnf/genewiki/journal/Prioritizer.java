@@ -70,7 +70,7 @@ public class Prioritizer {
 
 
 
-		Map<String, List<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
+		Map<String, Set<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
 		if(pmid_authors!=null){
 			Map<String, Integer> auth_count = new HashMap<String, Integer>();
 			for(String pub : gene2pub.get(gene)){
@@ -192,7 +192,7 @@ public class Prioritizer {
 						for(String p : gene2pub.get(gene)){
 							pmids+=p+",";
 						}
-						Map<String, List<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
+						Map<String, Set<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
 						if(pmid_authors!=null){
 							Map<String, Integer> auth_count = new HashMap<String, Integer>();
 							for(String pub : gene2pub.get(gene)){
