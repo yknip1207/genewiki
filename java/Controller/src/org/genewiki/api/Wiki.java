@@ -27,6 +27,8 @@ import java.util.logging.*;
 import java.util.zip.GZIPInputStream;
 import javax.security.auth.login.*; // useful exception types
 
+import org.genewiki.sync.Sync;
+
 /**
  *  This is a somewhat sketchy bot framework for editing MediaWiki wikis.
  *  Requires JDK 1.5 (5.0) or greater. Uses the <a 
@@ -6155,15 +6157,32 @@ public class Wiki implements Serializable
         URLConnection connection = new URL(url).openConnection();
         setCookies(connection, cookies2);
         connection.setDoOutput(true);
+        connection.setReadTimeout(60000);
         connection.connect();
-        OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
-        out.write(text);
-        out.close();
-        BufferedReader in = new BufferedReader(new InputStreamReader(
-            zipped ? new GZIPInputStream(connection.getInputStream()) : connection.getInputStream(), "UTF-8"));
-        String temp = in.readLine();
-        in.close();
-        return temp;
+        try {
+	        OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+	        System.err.println("DEBUG: Started writing...");
+	        out.write(text);
+	        System.err.println("DEBUG: Finished writing;");
+	        out.close();
+	        System.err.println("DEBUG: Closed connection.");
+	        long start = Calendar.getInstance().getTimeInMillis();
+	        System.err.println("DEBUG: Opening input stream...");
+	        BufferedReader in = new BufferedReader(new InputStreamReader(
+	            zipped ? new GZIPInputStream(connection.getInputStream()) : connection.getInputStream(), "UTF-8"));
+	        long end = Calendar.getInstance().getTimeInMillis() - start;
+	        System.err.println("DEBUG: Took "+end+" ms to open input stream...");
+	        System.err.println("DEBUG: Reading response...");
+	        String temp = in.readLine();
+	        System.err.println("DEBUG: finished reading response...");
+	        in.close();
+	        System.err.println("DEBUG: Closed connection.");
+	        return temp;
+        } catch (SocketTimeoutException e) {
+        	System.err.println("DEBUG: Timed out retrieving input stream.");
+        	return "Timeout";
+        }
+        
     }
 
     /**

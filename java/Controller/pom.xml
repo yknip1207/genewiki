@@ -10,5 +10,10 @@
       <artifactId>guava</artifactId>
       <version>r09</version>
     </dependency>
+    <dependency>
+    	<groupId>net.sf.jopt-simple</groupId>
+    	<artifactId>jopt-simple</artifactId>
+    	<version>3.3</version>
+    </dependency>
   </dependencies>
 </project>
