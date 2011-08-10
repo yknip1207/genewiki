@@ -53,40 +53,77 @@ public class WatchlistManager {
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		WatchlistManager wm = new WatchlistManager(creds.get("wpid"), creds.get("wppw"), null);
-		//wm.updateGeneWikiWatchList();
-		Calendar t0 = Calendar.getInstance();
-		t0.add(Calendar.DAY_OF_YEAR, -1);
-		List<GWRevision> live = wm.getRecentChangesFromWatchlist(t0, 100, 100);
-		int c = 0;
-		for(GWRevision rev : live){
-			c++;
-			System.out.println(c+" "+rev.getTimestamp()+"  "+rev.getTitle()+" "+rev.getUser()+" ");
-		}
+		wm.updateGeneWikiWatchList(true);
+//		Calendar t0 = Calendar.getInstance();
+//		t0.add(Calendar.DAY_OF_YEAR, -1);
+//		List<GWRevision> live = wm.getRecentChangesFromWatchlist(t0, 100, 100);
+//		int c = 0;
+//		for(GWRevision rev : live){
+//			c++;
+//			System.out.println(c+" "+rev.getTimestamp()+"  "+rev.getTitle()+" "+rev.getUser()+" ");
+//		}
 		//		System.out.println(live.size()+" "+live.get(9).getTitle()+" "+live.get(9).getTimestamp());
 	}
 
-	public void updateGeneWikiWatchList(){
+	/**
+	 * Get current list of articles that use the ProteinBoxBot template (aka 'the gene wiki').
+	 * Update the watchlist for the genewikibot account to include all of these articles.
+	 * Optionally, delete anything from the watchlist that is not in the gene wiki collection.
+	 * @param remove_non_gwtemplate
+	 */
+	public void updateGeneWikiWatchList(boolean remove_non_gwtemplate){
 		//get gene wiki titles
 		WikiCategoryReader catreader = new WikiCategoryReader();
 		catreader.setUser(user);
 		List<Page> gw = catreader.getPagesWithPBB(100000, 500);
 		Set<String> genewiki_titles = pagelist2titleset(gw);
+		Set<String> tmp_genewiki_titles = new HashSet<String>(genewiki_titles);
 		System.out.println("Current n wiki titles = "+genewiki_titles.size());
 		//get current watchlist titles
 		List<Page> cu = getCurrentLiveWatchlist(500, 100000);
 		Set<String> watchlist_titles = pagelist2titleset(cu);
 		System.out.println("Current watchlist titles = "+watchlist_titles.size());
 		//find missing gene wiki titles		
-		genewiki_titles.removeAll(watchlist_titles);
+		tmp_genewiki_titles.removeAll(watchlist_titles);
 		//push any additions
-		//TODO - possibly look for things to delete but not now (might want to add other pages manually for gene wiki feed)
 		if(genewiki_titles!=null){
-			System.out.println("Adding "+genewiki_titles.size()+" to gene wiki watchlist");
-			addTitles2watchlist(genewiki_titles);
+			System.out.println("Adding "+tmp_genewiki_titles.size()+" to gene wiki watchlist");
+			addTitles2watchlist(tmp_genewiki_titles);
+		}
+		//push any deletions
+		if(remove_non_gwtemplate){
+			watchlist_titles.removeAll(genewiki_titles);
+			if(watchlist_titles!=null&&watchlist_titles.size()>0){
+				System.out.println("Removing.. \n"+watchlist_titles);
+				removeTitlesFromwatchlist(watchlist_titles);
+			}
 		}
 
 	}
 
+	/**
+	 * Removes a set of titles (strings that matche wikipedia article titles) from the genewikibot watchlist
+	 * @param titles
+	 */
+	public void removeTitlesFromwatchlist(Set<String> titles){
+		Connector connector = user.getConnector();
+		int c = 0;
+		for(String title : titles){
+			c++;
+			Watch watch = Watch.create();
+			watch.title(title);
+			watch.unwatch();
+			String xmlresponse = connector.sendXML(user, watch);
+			if(c%3==0){
+				System.out.println(c+"\n"+xmlresponse);
+			}
+		}
+	}
+	
+	/**
+	 * Adds a set of titles (strings that matche wikipedia article titles) to the genewikibot watchlist
+	 * @param titles
+	 */
 	public void addTitles2watchlist(Set<String> titles){
 		Connector connector = user.getConnector();
 		int c = 0;
@@ -101,6 +138,11 @@ public class WatchlistManager {
 		}
 	}
 
+	/**
+	 * Convert a list of Page objects to a Set of strings from their titles
+	 * @param pages
+	 * @return
+	 */
 	public Set<String> pagelist2titleset(List<Page> pages){
 		Set<String> titles = new HashSet<String>();
 		for(Page page : pages){
@@ -109,6 +151,12 @@ public class WatchlistManager {
 		return titles;
 	}
 
+	/**
+	 * Get pages in the watchlist of the user that is currently logged in (see User in this class) 
+	 * @param batch
+	 * @param total
+	 * @return
+	 */
 	public List<Page> getCurrentLiveWatchlist(int batch, int total){
 		
 		List<Page> pages = new ArrayList<Page>();
@@ -141,6 +189,14 @@ public class WatchlistManager {
 		return pages;
 	}
 
+	/**
+	 * Get a list of revisions to the articles listed in the watchlist of the currently logged in user.
+	 * Specify how far back to look with the 'earliest' parameter
+	 * @param earliest
+	 * @param batch
+	 * @param total
+	 * @return
+	 */
 	public List<GWRevision> getRecentChangesFromWatchlist(Calendar earliest, int batch, int total){
 		SimpleDateFormat timestamp = new SimpleDateFormat("yyyyMMddHHmmss");
 		TimeZone tz = TimeZone.getTimeZone("GMT");
@@ -181,10 +237,18 @@ public class WatchlistManager {
 		return pages;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public Set<String> getWatchlist() {
 		return watchlist;
 	}
 
+	/**
+	 * 
+	 * @param watchlist
+	 */
 	public void setWatchlist(Set<String> watchlist) {
 		this.watchlist = watchlist;
 	}

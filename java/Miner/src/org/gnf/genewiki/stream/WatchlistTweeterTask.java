@@ -43,6 +43,7 @@ public class WatchlistTweeterTask extends TimerTask {
 	Shortener shorty;
 	Map<String, String> creds_;
 	WatchlistManager wl_man;
+	boolean clean_non_gw_off_watchlist;
 
 	WatchlistTweeterTask(int max_times,int seconds2goback, Map<String, String> creds){
 		super();
@@ -53,6 +54,7 @@ public class WatchlistTweeterTask extends TimerTask {
 		lastchecked = earliest;
 		rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
 		wl_man = new WatchlistManager(creds.get("wpid"), creds.get("wppw"), null);
+		clean_non_gw_off_watchlist = false;
 		creds_ = creds;
 		shorty = new Shortener(creds);
 		Tweeter.initTweeter(creds);
@@ -67,8 +69,8 @@ public class WatchlistTweeterTask extends TimerTask {
 //		}
 		//every so often, update the watchlist
 		if(n%15==0){
-			System.out.println("Updating watchlist ");
-			wl_man.updateGeneWikiWatchList();
+			System.out.println("Updating watchlist ");			
+			wl_man.updateGeneWikiWatchList(clean_non_gw_off_watchlist);
 		}
 		SimpleDateFormat timestamp = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss");
 		TimeZone tz = TimeZone.getTimeZone("GMT");

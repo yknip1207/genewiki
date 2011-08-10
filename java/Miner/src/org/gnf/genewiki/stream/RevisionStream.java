@@ -59,7 +59,6 @@ public class RevisionStream {
 	public static void startOldWikiWatcher(int interval, int max_times, int seconds2goback, List<String>titles, String index, Map<String, String> creds){
 		Timer timer = new Timer();		
 		timer.schedule(new WikiWatcherTask(max_times, seconds2goback, titles, index, creds), interval * 1000, interval * 1000);
-
 	}
 
 	public static void testOldWatchermethod(){
