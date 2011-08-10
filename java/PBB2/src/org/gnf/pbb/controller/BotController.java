@@ -47,7 +47,15 @@ public class BotController implements Runnable {
 		this.wpControl = new WikipediaController(botState, Configs.GET);
 		
 		this.delay = 3;
-		this.identifiers = identifiers;
+		this.identifiers = new ArrayList<String>();
+		for (String id : identifiers) {
+			try {
+				Integer.parseInt(id);
+				this.identifiers.add(id);
+			} catch (NumberFormatException e) {
+				System.out.println("Identifier \""+e+"\" is not a valid Entrez ID, omitting.");
+			}
+		}
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);
 	}
