@@ -1155,9 +1155,9 @@ public class NetworkExtractor {
 		Resource genetype = m.createResource(uriroot+"Gene");
 		genetype.addProperty(RDF.type, RDFS.Class);
 
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, 1000000);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, 1000000);
 		int c = 0;
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			if(page!=null&&page.getGlinks()!=null&&page.getGlinks().size()>0){
 				String sourcetitle = page.getTitle();
 				try {

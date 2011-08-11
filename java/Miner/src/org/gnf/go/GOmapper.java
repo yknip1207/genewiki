@@ -141,7 +141,7 @@ public class GOmapper {
 
 		//load all serialized page objects
 		int limit = 100000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		System.out.println("read in wikigene files");
 
 		//prepare output
@@ -150,7 +150,7 @@ public class GOmapper {
 		writer.write(CandidateAnnotation.getHeader());
 
 
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			article_count++;
 			List<GeneWikiLink> links = page.getGlinks();
 			// # links for this article
@@ -642,7 +642,7 @@ public class GOmapper {
 
 		//load all serialized page objects
 		int limit = 10000000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		//		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//		GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/10312");
 		//		pages.add(test);
@@ -651,7 +651,7 @@ public class GOmapper {
 		//prepare output
 		HashMap<String, CandidateAnnotation> cannolist = new HashMap<String, CandidateAnnotation>();
 
-		for(GeneWikiPage page : pages){			
+		for(GeneWikiPage page : pages.values()){			
 			article_count++;
 			List<GeneWikiLink> links = page.getGlinks();
 			// # links for this article

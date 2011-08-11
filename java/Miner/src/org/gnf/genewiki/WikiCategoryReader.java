@@ -54,8 +54,8 @@ public class WikiCategoryReader {
 	public static void main(String[] args){
 		WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		//Genes_by_human_chromosome
-		List<Page> pages = r.listPagesByCategory(1000000, 500, "Human proteins"); //Genes_on_chromosome_1 Genes_by_human_chromosome
-		System.out.println(pages.size()+" "+pages.get(3).getTitle());
+	//	List<Page> pages = r.listPagesByCategory(1000000, 5, "Genes_on_chromosome_1"); //Genes_on_chromosome_1 Genes_by_human_chromosome
+		r.getPagesWithPBB(10,10);
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class WikiCategoryReader {
 					"eifilterredir", "nonredirects",
 					"eilimit", batch+"",
 					"einamespace", "0",  //namespace = 10 equals the template namespace.
-					"", ""
+					"", "",
 			};
 			if(nextTitle!=null&&!nextTitle.equals("")){
 				categoryMembers[10] = "eicontinue";
@@ -113,6 +113,42 @@ public class WikiCategoryReader {
 		return pages;
 	}
 
+	public  List<Page> getPagesPlusRevidsWithTemplate(String template_name, int total, int batch){
+		List<Page> pages = new ArrayList<Page>();
+		//note only (main namespace)
+		String nextTitle = "";
+		Connector connector = user.getConnector();
+		ParserAccess parser = new ParserAccess();
+		for(int i = 0; i< total; i+=batch){
+			String[] categoryMembers = { 
+					"generator", "embeddedin", 
+					"geititle", template_name, 
+					"geifilterredir", "nonredirects",
+					"geilimit", batch+"",
+					"geinamespace", "0",  //namespace = 10 equals the template namespace.
+					"", "",
+					"prop","revisions"
+			};
+			if(nextTitle!=null&&!nextTitle.equals("")){
+				categoryMembers[10] = "geicontinue";
+				categoryMembers[11] = nextTitle;
+			}
+			String pagesXML = connector.queryXML(user, categoryMembers);
+			List<Page> page_batch = parser.parseWikiEmbeddedRevisionsApiXml(pagesXML);
+			nextTitle = parser.getNextTitle();
+			if(page_batch!=null&&page_batch.size()>0){
+				pages.addAll(page_batch);
+				//		System.out.println("Done getting PBB batch "+i+" next title: "+nextTitle);
+			}else{
+				break;
+			}
+			if(nextTitle==null){
+				break;
+			}
+		}
+		return pages;
+	}
+	
 	public  List<Page> getPagesWithPBB(int total, int batch){
 		return getPagesWithTemplate("Template:GNF_Protein_box", total, batch);
 	}
