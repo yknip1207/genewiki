@@ -198,51 +198,32 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
-		GeneWikiPage prot = new GeneWikiPage();//GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/genewiki/intermediate/javaobj/1812"); //5354
-		prot.setTitle("AXIN2");
-		prot.defaultPopulate();
-		prot.retrieveAllInBoundWikiLinks(true, false);
-		for(GeneWikiLink link : prot.getInglinks()){
-			System.out.println(link.getTarget_page());
-		}
-		//		boolean gotext = prot.defaultPopulate();
-		//		if(gotext){
-		//			prot.parseAndSetNcbiGeneId();
-		//			prot.retrieveAllInBoundWikiLinks(true, false);
-		//		}
-
-		//		System.out.println(prot.getTitle()+"\n"+prot.getHeadings());
-
-		//		for(Heading h : prot.getHeadings()){
-		//			System.out.println(h.getPrettyText());
-		//		}
-
-		//		prot.setRefs( new ArrayList<Reference>());
-		//		prot.setReferences();
-		//		prot.parseAndSetSentences();
-		//
-		//		Sentence s = prot.getSentenceByTextIndex(6703);
-		//		System.out.println(s+"\n");
-		////		System.out.println(prot.getPageContent().substring(8475, 8500));
-		//		int i = 0;
-		//		int refindex = prot.getPageContent().lastIndexOf("References");
-		//		Set<String> rc = new HashSet<String>();
-		//		for (Sentence sentence : prot.getSentences()) {
-		//			List<Reference> refs = prot.getRefsForSentence(sentence, refindex);
-		////			if(refs!=null&&refs.size()>0){
-		//				System.out.println(sentence.getStartIndex()+"-"+sentence.getStopIndex()+" "+sentence.getPrettyText());
-		//				for(Reference ref : refs){
-		//					if(rc.add(ref.toKeyString())){
-		//						i++;
-		//					}
-		//					System.out.println(i+"\t"+ref);
-		//				}
-		//			}
-		////		}
-
+		testParseGeneWikiPage("Melatonin receptor 1B");
 
 	}
 
+	public static void testParseGeneWikiPage(String title){
+		GeneWikiPage prot = new GeneWikiPage();//GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/genewiki/intermediate/javaobj/1812"); //5354
+		prot.setTitle(title);
+		prot.defaultPopulate();
+
+		System.out.println("Headings");
+		for(Heading h : prot.getHeadings()){
+			System.out.println(h.getPrettyText());
+		}
+		int refindex = prot.getPageContent().lastIndexOf("References");
+		
+		System.out.println("Sentences and references");
+		for (Sentence sentence : prot.getSentences()) {
+			List<Reference> refs = prot.getRefsForSentence(sentence, refindex);
+			System.out.println(sentence.getStartIndex()+"-"+sentence.getStopIndex()+" "+sentence.getPrettyText());
+			for(Reference ref : refs){
+				System.out.println("\t"+ref);
+			}
+		}
+
+	}
+	
 	/**
 	 * populates this page object with everything except for wikilinks that appear in templates 
 	 * (only wikilinks that appear in the text are kept by default because templates are often used to import

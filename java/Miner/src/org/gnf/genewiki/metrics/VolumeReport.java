@@ -93,6 +93,9 @@ public class VolumeReport {
 	}
 
 	public void extractVolumeFromPopulatedPage(GeneWikiPage page) {
+		if(page==null){
+			return;
+		}
 		setLasteditor(page.getLasteditor());
 		setTimestamp(page.getTimestamp());
 		setGeneid(page.getNcbi_gene_id());

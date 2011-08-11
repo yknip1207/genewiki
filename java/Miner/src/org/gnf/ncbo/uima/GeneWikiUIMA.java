@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.gnf.genewiki.Config;
 import org.gnf.genewiki.GeneWikiPage;
@@ -15,9 +16,9 @@ public class GeneWikiUIMA {
 	 * This creates a directory of files containing just the plain text of GeneWiki articles
 	 */
 	public static void preparePlainTextDirectory(){
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, 1000000);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, 1000000);
 		int c = 0;
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			if(page.getPageContent()!=null){
 				c++;
 				try {

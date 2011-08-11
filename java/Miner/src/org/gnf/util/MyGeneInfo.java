@@ -39,7 +39,7 @@ public class MyGeneInfo {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		Gene g = getGeneInfoByGeneid("100270941", false);
+		String g = getSymbolByGeneid("35", true);
 		System.out.println(g);
 		
 		//	List<String> genes = new ArrayList<String>();
