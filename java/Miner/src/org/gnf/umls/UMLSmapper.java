@@ -43,7 +43,7 @@ public class UMLSmapper {
 
 		//load all serialized page objects
 		int limit = 100000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		System.out.println("read in wikigene files");
 
 		//prepare output
@@ -51,7 +51,7 @@ public class UMLSmapper {
 		float link_count = 0;
 		float mapped_count = 0;
 		
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			List<GeneWikiLink> links = page.getGlinks();
 			// # links for this article
 			link_count += links.size();

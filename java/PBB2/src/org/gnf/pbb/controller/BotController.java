@@ -8,15 +8,18 @@ import java.util.logging.Logger;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.NoBotsException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 import org.gnf.pbb.logs.DatabaseManager;
 import org.gnf.pbb.logs.DatabaseManager;
+import org.gnf.pbb.mygeneinfo.MyGeneInfoParser;
 import org.gnf.pbb.wikipedia.InfoboxParser;
 import org.gnf.pbb.wikipedia.ProteinBox;
 import org.gnf.pbb.wikipedia.WikipediaController;
 
-public abstract class AbstractBotController implements Runnable {
+import com.google.common.base.Preconditions;
+
+public class BotController implements Runnable {
 
 	/* ---- Declarations ---- */
 	protected final Logger logger;				
@@ -36,24 +39,32 @@ public abstract class AbstractBotController implements Runnable {
 	
 	
 	/* ---- Constructors ---- */
-	public AbstractBotController(List<String> identifiers, ExceptionHandler exh) {
-		logger = Logger.getLogger(AbstractBotController.class.getName());
+	public BotController(List<String> identifiers, ExceptionHandler exh) {
+		logger = Logger.getLogger(BotController.class.getName());
 		dbManager = new DatabaseManager();
 		botState = exh;
 		
 		this.wpControl = new WikipediaController(botState, Configs.GET);
 		
 		this.delay = 3;
-		this.identifiers = identifiers;
+		this.identifiers = new ArrayList<String>();
+		for (String id : identifiers) {
+			try {
+				Integer.parseInt(id);
+				this.identifiers.add(id);
+			} catch (NumberFormatException e) {
+				System.out.println("Identifier \""+e+"\" is not a valid Entrez ID, omitting.");
+			}
+		}
 		this.completed = new ArrayList<String>(0);
 		this.failed = new ArrayList<String>(0);
 	}
 	
-	public AbstractBotController(List<String> identifiers) {
-		this(identifiers, PbbExceptionHandler.INSTANCE);
+	public BotController(List<String> identifiers) {
+		this(identifiers, ExceptionHandler.INSTANCE);
 	}
 	
-	public AbstractBotController(List<String> identifiers, int delay) {
+	public BotController(List<String> identifiers, int delay) {
 		this(identifiers);
 		this.delay = delay;
 	}
@@ -133,7 +144,7 @@ public abstract class AbstractBotController implements Runnable {
 	 */
 	private boolean update(ProteinBox update) throws Exception {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
-			wpControl.putContent(update.toString(), update.getSingle("Hs_EntrezGene"), update.getSummary());
+			wpControl.putContent(update.toString(), update.getId(), update.getSummary());
 			DatabaseManager.updateDb("true", update.getId(), update.getChangedFields());
 			return true;
 		} else {
@@ -152,18 +163,23 @@ public abstract class AbstractBotController implements Runnable {
 			wikipediaData.reset();
 		}
 		botState.reset();
-		logger.info("Bot reset.");
+		logger.fine("Bot reset.");
 	}
 	
 	/* ---- Private importer methods ---- */
 	
-	abstract protected ProteinBox importSourceData(String id);
+	private ProteinBox importSourceData(String id) {
+		MyGeneInfoParser parser = new MyGeneInfoParser();
+		return Preconditions.checkNotNull(parser.parse(id));
+	}
 	
 	private ProteinBox importWikipediaData(String id) {
 		String content = wpControl.getContentForId(id);
 		InfoboxParser parser = InfoboxParser.factory(content);
 		try {
-			return parser.parse();
+			ProteinBox result = parser.parse();
+			result.setId(id);
+			return result;
 		} catch (NoBotsException e) {
 			botState.recoverable(e);
 			return null;
@@ -175,5 +191,24 @@ public abstract class AbstractBotController implements Runnable {
 	
 	/* ---- Public methods ---- */
 	
-	abstract protected String prepareReport();
+	public String prepareReport() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(				"| Completion report: \n");
+		sb.append(				"|------------------------------- \n");
+		sb.append(String.format("|  Completed updates: %d/%d \n", this.completed.size(), this.identifiers.size()));
+		sb.append(String.format("|  Failed updates:    %d/%d \n", this.failed.size(), this.identifiers.size()));
+		sb.append(				"|  \n");
+		sb.append(				"|  Protein boxes updated: \n");
+		for (String str : completed) {
+			sb.append(			"|   "+str+"\n");
+		}
+		sb.append(				"|  Failed to update: \n");
+		for (String str : failed) {
+			sb.append(			"|   "+str+"\n");
+		}
+		String report = sb.toString();
+		System.out.println(report);
+		
+		return report;
+	}
 }

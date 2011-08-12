@@ -14,13 +14,22 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.axis2.AxisFault;
+import org.gnf.util.MapFun;
 
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractTextType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MedlineCitationType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MeshHeadingListType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MeshHeadingType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubmedArticleSet;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubmedArticleSetChoiceE;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.PubmedArticleSet_type0;
 import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub.DocSumType;
 import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub.ItemType;
-import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub; import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractType; import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub; 
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractType; 
+import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub;
 /*
 PubDate: 1986 Apr
 EPubDate: null
@@ -50,14 +59,23 @@ SO: 1986 Apr;83(8):2363-7
 public class PubMed {
 
 	public static void main(String[] args) {
+		//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
+		//		System.out.println(pmid_meshes.get("3458201"));
+
 		try {
 			Set<String> pmids = new HashSet<String>();
 			pmids.add("3458201");
-			boolean cache = false;
-			Map<String, String> pmid_texts = getPubmedTitlesAndAbstracts(pmids,"/tmp/tmp", cache);
-			for(Entry<String, String> pmid_text : pmid_texts.entrySet()){
-				System.out.println(pmid_text.getKey()+"\t"+pmid_text.getValue());
-			}
+			pmids.add("2465923");
+			pmids.add("11259612");
+			Map<String, Set<String>> pmid_meshs = getMeshTerms(pmids);
+			System.out.println(pmid_meshs.get("3458201"));
+			System.out.println(pmid_meshs.get("2465923"));
+			System.out.println(pmid_meshs.get("11259612"));
+			//			boolean cache = false;
+			//			Map<String, String> pmid_texts = getPubmedTitlesAndAbstracts(pmids,"/tmp/tmp", cache);
+			//			for(Entry<String, String> pmid_text : pmid_texts.entrySet()){
+			//				System.out.println(pmid_text.getKey()+"\t"+pmid_text.getValue());
+			//			}
 
 		} catch (AxisFault e) {
 			// TODO Auto-generated catch block
@@ -65,6 +83,10 @@ public class PubMed {
 		}
 	}
 
+	/**
+	 * @param pubcache
+	 * @return
+	 */
 
 	public static Map<String, String> getCachedPmidAbstractMap(String pubcache){
 		Map<String, String> pmid_texts = new HashMap<String, String>();
@@ -90,7 +112,99 @@ public class PubMed {
 		}
 		return pmid_texts;
 	}
-	
+
+	public static Map<String, Set<String>> getCachedPmidMeshMap(String pubmeshcache){
+		Map<String, Set<String>> pmid_meshs = new HashMap<String, Set<String>>();
+		try {
+			BufferedReader f = new BufferedReader(new FileReader(pubmeshcache));
+			String line = f.readLine();
+			while(line!=null){
+				String[] row = line.split("\t");
+				String pmid = row[0];
+				String[] meshes = row[1].split("::");
+				Set<String> mshset = new HashSet<String>();
+				for(String m : meshes){
+					mshset.add(m);
+				}
+				pmid_meshs.put(pmid, mshset);
+				line = f.readLine();
+			}
+			f.close();
+		}catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pmid_meshs;
+	}
+
+	public static Map<String, Set<String>> getMeshTerms(Set<String> idlist) throws AxisFault{
+		if(idlist==null){
+			return null;
+		}
+		Map<String, Set<String>> pmid_meshs = new HashMap<String, Set<String>>();
+		// call NCBI E utility
+		EFetchPubmedServiceStub service = new EFetchPubmedServiceStub();
+		//Call NCBI EFetch Utilities 
+		EFetchPubmedServiceStub.EFetchRequest req = new EFetchPubmedServiceStub.EFetchRequest();
+		int c = 0;
+		String ids = "";
+		for(String id : idlist){
+			ids+=id+",";
+		}
+		ids = ids.substring(0,ids.length()-1);
+		c++;
+		req.setId(ids);
+
+		EFetchPubmedServiceStub.EFetchResult res;
+
+		try {
+			res = service.run_eFetch(req);
+			// results output
+			if(res==null){
+				for(String id : idlist){
+					pmid_meshs.put(id, null);
+				}
+				return pmid_meshs;
+			}
+
+			PubmedArticleSet_type0 articles = res.getPubmedArticleSet();
+			String id = null;
+			if(articles==null||articles.getPubmedArticleSetChoice()==null){
+				for(String id1 : idlist){
+					pmid_meshs.put(id1, null);
+				}
+				return pmid_meshs;
+			}
+			for(PubmedArticleSetChoiceE article : articles.getPubmedArticleSetChoice()){
+				Set<String> meshes = new HashSet<String>();
+				try{
+					MedlineCitationType cite = article.getPubmedArticle().getMedlineCitation();
+					id = cite.getPMID().getString();
+					MeshHeadingListType mhlt = cite.getMeshHeadingList();
+					if(id!=null&&mhlt!=null){
+						for(MeshHeadingType mht : mhlt.getMeshHeading()){
+							String term = mht.getDescriptorName().getString();
+							meshes.add(term);
+						}
+						pmid_meshs.put(id, meshes);
+					}
+				}catch(NullPointerException e){
+					System.out.println("No MeSH found for pmid "+id);
+				}
+			}
+		} catch (RemoteException e) {
+			System.out.println("error on "+ids);
+			e.printStackTrace();
+		} 		
+		if(c%10==0){
+			System.out.println("on "+c+" of "+idlist.size());
+		}
+		return pmid_meshs;
+	}
+
 	public static Map<String, String> getPubmedTitlesAndAbstracts(Set<String> idlist, String pubcache, boolean cache) throws AxisFault{
 		if(idlist==null){
 			return null;
@@ -111,7 +225,7 @@ public class PubMed {
 			c++;
 			String output = "";
 			req.setId(id);
-			
+
 			EFetchPubmedServiceStub.EFetchResult res;
 			try {
 				res = service.run_eFetch(req);
@@ -131,13 +245,13 @@ public class PubMed {
 						}
 					}
 				}
-				
-//				String title = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getArticleTitle();
-//				AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getAbstract();
-//				String abstractText = "";
-//				if (abstractTypeObj != null) { 
-//					abstractText = abstractTypeObj.getAbstractText();
-//				}
+
+				//				String title = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getArticleTitle();
+				//				AbstractType abstractTypeObj = res.getPubmedArticleSet().getPubmedArticle()[0].getMedlineCitation().getArticle().getAbstract();
+				//				String abstractText = "";
+				//				if (abstractTypeObj != null) { 
+				//					abstractText = abstractTypeObj.getAbstractText();
+				//				}
 				output+=title+"\t"+abstractText;
 				pmid_text.put(id, output);
 				if(cache){
@@ -280,11 +394,11 @@ public class PubMed {
 		return journal;
 	}
 
-	public static Map<String, List<String>> getPubmedAuthors(String idlist){
+	public static Map<String, Set<String>> getPubmedAuthors(String idlist){
 		if(idlist==null){
 			return null;
 		}
-		Map<String, List<String>> authors = new HashMap<String, List<String>>();
+		Map<String, Set<String>> authors = new HashMap<String, Set<String>>();
 		String info = ""; 
 
 		EUtilsServiceStub service = null;
@@ -316,9 +430,9 @@ public class PubMed {
 				for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
 				{
 					//uncomment to see all the available fields
-					System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
+					//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
 					if(res.getDocSum()[i].getItem()[k].getName().equals("AuthorList")){
-						List<String> auths = new ArrayList<String>();
+					Set<String> auths = new HashSet<String>();
 						if(res.getDocSum()[i].getItem()[k]!=null){
 							ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
 							if(items!=null){
@@ -338,7 +452,7 @@ public class PubMed {
 				info+="\t";
 			}
 		} catch (RemoteException e) {
-			System.out.println(idlist);
+			System.out.println("died sending about "+idlist.length()/9+" pmids");
 			e.printStackTrace();
 		}		
 
@@ -426,6 +540,35 @@ public class PubMed {
 
 		catch(Exception e) { System.out.println(e.toString()); }
 		return info;
+	}
+
+	public static Map<String, Set<String>> getMeshTerms(String pmid) throws AxisFault {
+		Set<String> pmids = new HashSet<String>();
+		pmids.add(pmid);
+		return getMeshTerms(pmids);
+	}
+
+	public static Map<String, Set<String>> getPubmedAuthors(Set<String> pmids) {
+		String plist = "";
+		int max_batch = 500;
+		int c = 0;
+		Map<String, Set<String>> pmid_authors = new HashMap<String, Set<String>>();
+		if(pmids!=null&&pmids.size()>0){
+			for(String pmid : pmids){
+				plist+=pmid+",";
+				c++;
+				if(c==max_batch||c==pmids.size()){
+					System.out.println("Getting author names for, batch size = "+c);
+					plist = plist.substring(0, plist.length()-1);
+					Map<String, Set<String>> tmp_authors = getPubmedAuthors(plist);
+					pmid_authors = MapFun.mergeStringSetMaps(pmid_authors, tmp_authors);
+					plist = "";
+					c =0;
+				}
+			}
+		}
+
+		return pmid_authors;
 	}
 
 	/**

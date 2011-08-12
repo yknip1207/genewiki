@@ -23,12 +23,12 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.wikipedia.ProteinBox;
 
 public class JsonParser {
 	private final static Logger logger = Logger.getLogger(JsonParser.class.getName());
-	static PbbExceptionHandler botState = PbbExceptionHandler.INSTANCE;
+	static ExceptionHandler botState = ExceptionHandler.INSTANCE;
 	public static final String baseGeneURL = "http://mygene.info/gene/";
 	public static final String metadataLoc = "http://mygene.info/metadata";
 	public static final String uniprotURL = "http://www.uniprot.org/uniprot/";
@@ -103,10 +103,10 @@ public class JsonParser {
 		try {
 			builder.add("PDB", buildListFromArray(rootNode.path("pdb")));
 			builder.add("HGNCid", rootNode.path("HGNC").getTextValue());
-			builder.add("AltSymbols", buildListFromArray(rootNode.path("alias"))); //TODO ensure setAltSymbols converts this to String[]
+			builder.add("AltSymbols", buildListFromArray(rootNode.path("alias"))); 
 			builder.add("OMIM",rootNode.path("MIM").getTextValue());
 			builder.add("ECnumber",rootNode.path("ec").getTextValue());
-			builder.add("Homologene", Integer.toString(rootNode.path("homologene").path("id").getIntValue())); // have to traverse down the tree a bit
+			builder.add("Homologene", Integer.toString(rootNode.path("homologene").path("id").getIntValue())); 
 			// setMGIid(null); // can't find this on downloaded json file
 			// setGeneAtlas_image(null); // can't find this either
 			builder.add("Function", buildOntologyList(
@@ -182,12 +182,14 @@ public class JsonParser {
 		List<String> outList = new ArrayList<String>();
 		Iterator<JsonNode> it = arrayNode.getElements();
 		try {
-			do {
+			outList.add(it.next().getTextValue());
+			while (it.hasNext()) {
 				outList.add(it.next().getTextValue());
-			} while (it.hasNext());
+			}
 			return outList;
 		} catch (NoSuchElementException e) {
-			return Collections.emptyList();			// I think this is better than returning null
+			outList.add(arrayNode.getTextValue());
+			return outList;
 		}
 	}
 	

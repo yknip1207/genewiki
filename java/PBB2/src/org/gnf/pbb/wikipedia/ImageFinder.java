@@ -2,10 +2,12 @@ package org.gnf.pbb.wikipedia;
 
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
-import org.gnf.wikiapi.User;
-import org.gnf.wikiapi.Connector;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 
+import com.google.common.base.Preconditions;
+
+import info.bliki.api.User;
+import info.bliki.api.Connector;
 public class ImageFinder {
 	
 	public static boolean imageExists(String title) {
@@ -17,21 +19,21 @@ public class ImageFinder {
 	 * @return valid URI for the image from commons.wikimedia.org
 	 * @throws ImageNotFoundException if image does not exist
 	 */
-	public static String imageFromPDB(String pdb) throws ImageNotFoundException {
+	public static String imageFromPDB(String pdb) {
 		String title = "PDB_"+pdb+"_EBI.jpg";
 		if (ImageFinder.imageExists("File:"+title)) {
 			return title;
 		} else {
-			throw new ImageNotFoundException();
+			return null;
 		}
 	}
 	
-	public static String imageFromSymbol(String sym, String pdb) throws ImageNotFoundException {
+	public static String imageFromSymbol(String sym, String pdb) {
 		String title = "Protein_"+sym+"_PDB_"+pdb+".png";
 		if (ImageFinder.imageExists("File:"+title)) {
 			return title;
 		} else {
-			throw new ImageNotFoundException();
+			return null;
 		}
 	}
 	
@@ -42,12 +44,14 @@ public class ImageFinder {
 	 * @return
 	 * @throws ImageNotFoundException
 	 */
-	public static String getImage(String sym, String pdb) throws ImageNotFoundException {
+	public static String getImage(String sym, String pdb) {
 		try {
-			return ImageFinder.imageFromSymbol(sym, pdb);
-		} catch (ImageNotFoundException e) {
+			return Preconditions.checkNotNull(ImageFinder.imageFromSymbol(sym, pdb));
+		} catch (NullPointerException e) {
 			return ImageFinder.imageFromPDB(pdb);
 		}
+		
+		
 	}
 	
 	/**
@@ -57,8 +61,8 @@ public class ImageFinder {
 	public static void main(String[] args) {
 		Configs.GET.setFromFile("bot.properties");
 		try {
-			System.out.println(ImageFinder.getImage("CRP","1b09"));
-		} catch (ImageNotFoundException e) {
+			System.out.println(Preconditions.checkNotNull(ImageFinder.getImage("CRP","1b09")));
+		} catch (NullPointerException e) {
 			System.out.println("No image found.");
 		}
 	}

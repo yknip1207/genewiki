@@ -92,11 +92,11 @@ public class SentenceSplitter {
 		"<ref name=\"pmid1990262\">{{cite journal | author = Papathanasiou MA, Kerr NC, Robbins JH, " +
 		"McBride OW, Alamo I Jr, Barrett SF, Hickson ID, Fornace AJ Jr | title = Induction by ionizing radiation of the gadd45 gene " +
 		"in cultured human cells: lack of mediation by protein kinase C | journal = Mol Cell Biol | volume = 11 | issue = 2 | pages = " +
-		"1009Ð16 | year = 1991 | month = Mar | pmid = 1990262 | pmc = 359769 | doi =  }}</ref>" +
+		"1009ï¿½16 | year = 1991 | month = Mar | pmid = 1990262 | pmc = 359769 | doi =  }}</ref>" +
 		"" +
 		"<ref name=\"pmid8226988\">{{cite journal |" +
 		" author = Hollander MC, Alamo I, Jackman J, Wang MG, McBride OW, Fornace AJ Jr | title = Analysis of the mammalian gadd45 gene " +
-		"and its response to DNA damage | journal = J Biol Chem | volume = 268 | issue = 32 | pages = 24385Ð93 | year = 1993 | month = " +
+		"and its response to DNA damage | journal = J Biol Chem | volume = 268 | issue = 32 | pages = 24385ï¿½93 | year = 1993 | month = " +
 		"Dec | pmid = 8226988 | pmc =  | doi =  }}</ref>" +
 		"" +
 		"<ref name=\"entrez\">{{cite web | title = Entrez Gene: GADD45A growth arrest and" +
@@ -109,7 +109,7 @@ public class SentenceSplitter {
 
 
 	//	text = "There is evidence that the change is selective, and DNMT1 is overexpressed in reelin-secreting GABAegric neurons but not in their glutamatergic neighbours.<ref name=\"DNMT_inhibition_GAD67_Reelin_2004\"/> [[Methylation]] inhibitors and [[histone deacetylase]] inhibitors, such as [[valproic acid]], increase reelin mRNA levels,<ref name =\"valpro\"/> while L-methionine treatment downregulates the phenotypic expression of reelin.";
-	// text = "A potential inhibitor of the Hedgehog signaling pathway has been found and dubbed 'Robotnikinin', in honor of Sonic the Hedgehog's nemesis, [[Doctor Ivo Robotnik|Dr. Ivo \"Eggman\" Robotnik]].<ref> cite web | url=http://www.lifescientist.com.au/article/273516/robotnikinin_takes_sonic_hedgehog?fp=4&fpid=1013 | title=Robotnikinin takes on Sonic hedgehog - robotnikinin, Sonic hedgehog - Australian Life Scientist | publisher=www.lifescientist.com.au | accessdate=2009-09-21 | last= | first= </ref> Some clinicians and scientists criticize giving genes frivolous, whimsical, or quirky names, calling it inappropriate that patients with \"a serious illness or [[disability]] are told that they or their child have a [[mutation]] in a gene such as ''Sonic hedgehog''.\" [[Zbtb7]], a gene which was originally named \"[[PokŽmon]]\" [[Pikachurin]], a retinal protein named after [[Pikachu]] [[Cyclopia]] ";
+	// text = "A potential inhibitor of the Hedgehog signaling pathway has been found and dubbed 'Robotnikinin', in honor of Sonic the Hedgehog's nemesis, [[Doctor Ivo Robotnik|Dr. Ivo \"Eggman\" Robotnik]].<ref> cite web | url=http://www.lifescientist.com.au/article/273516/robotnikinin_takes_sonic_hedgehog?fp=4&fpid=1013 | title=Robotnikinin takes on Sonic hedgehog - robotnikinin, Sonic hedgehog - Australian Life Scientist | publisher=www.lifescientist.com.au | accessdate=2009-09-21 | last= | first= </ref> Some clinicians and scientists criticize giving genes frivolous, whimsical, or quirky names, calling it inappropriate that patients with \"a serious illness or [[disability]] are told that they or their child have a [[mutation]] in a gene such as ''Sonic hedgehog''.\" [[Zbtb7]], a gene which was originally named \"[[Pokï¿½mon]]\" [[Pikachurin]], a retinal protein named after [[Pikachu]] [[Cyclopia]] ";
 		
 		
 		SentenceSplitter s = new SentenceSplitter();
@@ -178,6 +178,9 @@ public class SentenceSplitter {
 
 	
 	public String maskWiki(String input){
+		if(input==null){
+			return "";
+		}
 		input = zapBelowRefs(input);
 		input = trust2spaces(input);
 		input = refs2spaces(input);

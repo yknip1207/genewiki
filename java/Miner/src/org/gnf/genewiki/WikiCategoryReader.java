@@ -22,47 +22,47 @@ import org.gnf.wikiapi.User;
 public class WikiCategoryReader {
 	User user;
 	public WikiCategoryReader(){
-		
+
 	}
-	
+
 	public WikiCategoryReader(Map<String, String> creds){
 		init(creds.get("wpid"), creds.get("wppw"));
 	}
-	
+
 	public WikiCategoryReader(String credfile){
-//		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		//		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		init(creds.get("wpid"), creds.get("wppw"));
 	}
 
 	public WikiCategoryReader(String wikiapi, String credfile){
-	//	String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
+		//	String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		init(creds.get("wpid"), creds.get("wppw"), wikiapi);
 	}
-	
+
 	public void init(String wikipedia_user, String wikipedia_password){
 		user = new User(wikipedia_user, wikipedia_password, "http://en.wikipedia.org/w/api.php");
 		user.login();
 	}
-	
+
 	public void init(String wiki_user, String wiki_password, String apiurl){
 		user = new User(wiki_user, wiki_password, apiurl);
 		user.login();
 	}
-	
+
 	public static void main(String[] args){
 		WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		//Genes_by_human_chromosome
-		List<Page> pages = r.listPagesByCategory(1000000, 500, "Human proteins"); //Genes_on_chromosome_1 Genes_by_human_chromosome
-		System.out.println(pages.size()+" "+pages.get(3).getTitle());
+	//	List<Page> pages = r.listPagesByCategory(1000000, 5, "Genes_on_chromosome_1"); //Genes_on_chromosome_1 Genes_by_human_chromosome
+		r.getPagesWithPBB(10,10);
 	}
 
-/**
- * Queries wikipedia for all the pages that use the PBB template, retrieves their text, parses the NCBI gene id out of the PBB template header 	
- * @param max
- * @param batchsize
- */
+	/**
+	 * Queries wikipedia for all the pages that use the PBB template, retrieves their text, parses the NCBI gene id out of the PBB template header 	
+	 * @param max
+	 * @param batchsize
+	 */
 	public void buildGeneWikiIndex(int max, int batchsize){
 		List<Page> pages = getPagesWithPBB(max, batchsize);
 		for(Page page : pages){
@@ -72,50 +72,88 @@ public class WikiCategoryReader {
 			System.out.println(p.getTitle()+"\t"+p.getNcbi_gene_id());
 		}
 	}
-	
-	
+
+
 	/**
+	 * Template:GNF_Protein_box
 	 * Retrieve (mostly unpopulated) Pages that use the PBB template.  A page is 'in' in the Gene Wiki if it uses this template.
 	 */
 	public  List<Page> getPagesWithTemplate(String template_name, int total, int batch){
-			List<Page> pages = new ArrayList<Page>();
-			//note only (main namespace)
-			String nextTitle = "";
-			Connector connector = new Connector();
-			ParserAccess parser = new ParserAccess();
-			for(int i = 0; i< total; i+=batch){
-				String[] categoryMembers = { 
-						"list", "embeddedin", 
-						"eititle", template_name, 
-						"eifilterredir", "nonredirects",
-						"eilimit", batch+"",
-						"einamespace", "0",  //namespace = 10 equals the template namespace.
-						"", ""
-						};
-				if(nextTitle!=null&&!nextTitle.equals("")){
-					categoryMembers[10] = "eicontinue";
-					categoryMembers[11] = nextTitle;
-				}
-				String pagesXML = connector.queryXML(user, categoryMembers);
-				List<Page> page_batch = parser.parseWikiEmbeddedApiXml(pagesXML);
-				nextTitle = parser.getNextTitle();
-				if(page_batch!=null&&page_batch.size()>0){
-					pages.addAll(page_batch);
-			//		System.out.println("Done getting PBB batch "+i+" next title: "+nextTitle);
-				}else{
-					break;
-				}
-				if(nextTitle==null){
-					break;
-				}
+		List<Page> pages = new ArrayList<Page>();
+		//note only (main namespace)
+		String nextTitle = "";
+		Connector connector = user.getConnector();
+		ParserAccess parser = new ParserAccess();
+		for(int i = 0; i< total; i+=batch){
+			String[] categoryMembers = { 
+					"list", "embeddedin", 
+					"eititle", template_name, 
+					"eifilterredir", "nonredirects",
+					"eilimit", batch+"",
+					"einamespace", "0",  //namespace = 10 equals the template namespace.
+					"", "",
+			};
+			if(nextTitle!=null&&!nextTitle.equals("")){
+				categoryMembers[10] = "eicontinue";
+				categoryMembers[11] = nextTitle;
 			}
-			return pages;
+			String pagesXML = connector.queryXML(user, categoryMembers);
+			List<Page> page_batch = parser.parseWikiEmbeddedApiXml(pagesXML);
+			nextTitle = parser.getNextTitle();
+			if(page_batch!=null&&page_batch.size()>0){
+				pages.addAll(page_batch);
+				//		System.out.println("Done getting PBB batch "+i+" next title: "+nextTitle);
+			}else{
+				break;
+			}
+			if(nextTitle==null){
+				break;
+			}
 		}
+		return pages;
+	}
+
+	public  List<Page> getPagesPlusRevidsWithTemplate(String template_name, int total, int batch){
+		List<Page> pages = new ArrayList<Page>();
+		//note only (main namespace)
+		String nextTitle = "";
+		Connector connector = user.getConnector();
+		ParserAccess parser = new ParserAccess();
+		for(int i = 0; i< total; i+=batch){
+			String[] categoryMembers = { 
+					"generator", "embeddedin", 
+					"geititle", template_name, 
+					"geifilterredir", "nonredirects",
+					"geilimit", batch+"",
+					"geinamespace", "0",  //namespace = 10 equals the template namespace.
+					"", "",
+					"prop","revisions"
+			};
+			if(nextTitle!=null&&!nextTitle.equals("")){
+				categoryMembers[10] = "geicontinue";
+				categoryMembers[11] = nextTitle;
+			}
+			String pagesXML = connector.queryXML(user, categoryMembers);
+			List<Page> page_batch = parser.parseWikiEmbeddedRevisionsApiXml(pagesXML);
+			nextTitle = parser.getNextTitle();
+			if(page_batch!=null&&page_batch.size()>0){
+				pages.addAll(page_batch);
+				//		System.out.println("Done getting PBB batch "+i+" next title: "+nextTitle);
+			}else{
+				break;
+			}
+			if(nextTitle==null){
+				break;
+			}
+		}
+		return pages;
+	}
+	
 	public  List<Page> getPagesWithPBB(int total, int batch){
 		return getPagesWithTemplate("Template:GNF_Protein_box", total, batch);
 	}
-	
-	
+
+
 	public void getHumanProteinsAndStore(){
 		WikiCategoryReader gr = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
 		try {
@@ -154,7 +192,7 @@ public class WikiCategoryReader {
 					"cmlimit", batch+"",
 					"cmnamespace", "0",
 					"cmcontinue",nextTitle
-					};
+			};
 			String pagesXML = connector.queryXML(user, categoryMembers);
 			pages.addAll(parser.parseWikiCategoriesApiXml(pagesXML));
 			nextTitle = parser.getNextTitle();
@@ -165,7 +203,7 @@ public class WikiCategoryReader {
 		}
 		return pages;
 	}
-	
+
 	public List<Page> listHumanProteins(int total, int batch){
 		List<Page> pages = new ArrayList<Page>();
 		//note only (main namespace)
@@ -187,7 +225,7 @@ public class WikiCategoryReader {
 		return pages;
 	}
 
-// Category:Genes_by_human_chromosome
+	// Category:Genes_by_human_chromosome
 
 
 	public static void testQueryCategories001() {

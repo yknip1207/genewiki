@@ -40,7 +40,8 @@ public class GeneWikiUtils {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//	System.out.println(toPlainText(" [[Protein-protein interaction|interact]]"));
+		boolean usewikitrust = false;
+		retrieveAndStoreGeneWikiAsJava(100000, "/Users/bgood/workspace/Config/gw_creds.txt", "/Users/bgood/data/bioinfo/gene_wiki_as_java/", usewikitrust);
 	}
 
 	//	public static String toPlainText(String wikitext){
@@ -73,7 +74,7 @@ public class GeneWikiUtils {
 		return titles;
 	}
 
-	public static Map<String, String> getGeneWikiGeneIndex(String index_file, boolean recalculate_all, Map<String, String> creds){
+	public static Map<String, String> readGeneWikiGeneIndex(String index_file){
 		Map<String, String> old_gene_wiki = new HashMap<String, String>();
 		if(index_file!=null){
 			File in = new File(index_file);
@@ -102,6 +103,11 @@ public class GeneWikiUtils {
 				}
 			}
 		}
+		return old_gene_wiki;
+	}
+
+	public static Map<String, String> getGeneWikiGeneIndex(String index_file, boolean recalculate_all, Map<String, String> creds){
+		Map<String, String> old_gene_wiki = readGeneWikiGeneIndex(index_file);
 		WikiCategoryReader r = new WikiCategoryReader(creds);
 		List<Page> pages = r.getPagesWithPBB(1000000, 500);
 		System.out.println("N pages now = "+pages.size()+" n have "+old_gene_wiki.size());
@@ -115,12 +121,6 @@ public class GeneWikiUtils {
 				tmppage.setTitle(p.getTitle());
 				tmppage.retrieveWikiTextContent(false);
 				tmppage.parseAndSetNcbiGeneId();
-				//				//check if its a replacement title
-				//				if(old_gene_wiki.get(page.getNcbi_gene_id())!=null){
-				//					System.out.println("Replacing "+old_gene_wiki.get(page.getNcbi_gene_id())+" with "+p.getTitle()+" for "+page.getNcbi_gene_id());
-				//				}else{//or if its new
-				//					System.out.println("Adding new gene wiki page for "+p.getTitle()+" for "+page.getNcbi_gene_id());
-				//				}
 				//check if we have two pages for the same ncbi gene id
 				if(gene_wiki.get(tmppage.getNcbi_gene_id())!=null&&!recalculate_all){
 					System.out.println(" 2 pages for "+tmppage.getNcbi_gene_id()+" "+p.getTitle()+" & "+gene_wiki.get(tmppage.getNcbi_gene_id()));
@@ -141,7 +141,9 @@ public class GeneWikiUtils {
 			try {
 				FileWriter f = new FileWriter(index_file);
 				for(Entry<String, String> entry : gene_wiki.entrySet()){
-					f.write(entry.getKey()+"\t"+entry.getValue()+"\n");
+					if(entry.getKey()!=null&&entry.getKey()!=""&&entry.getKey().length()>0){
+						f.write(entry.getKey()+"\t"+entry.getValue()+"\n");
+					}
 				}
 				f.close();
 			} catch (IOException e) {
@@ -173,48 +175,53 @@ public class GeneWikiUtils {
 	 * @param limit
 	 */
 
-	public static void retrieveAndStoreGeneWikiAsJava(int limit, String credfile){
+	public static void retrieveAndStoreGeneWikiAsJava(int limit, String credfile, String directory, boolean usewikitrust){
 		//loads an index linking gene wiki page titles to NCBI geneids
 		WikiCategoryReader r = new WikiCategoryReader(credfile);
-		List<Page> pages = r.getPagesWithPBB(limit, 500);
+		List<Page> pages = r.getPagesPlusRevidsWithTemplate("Template:GNF_Protein_box",limit, 500);
 		System.out.println("N pages = "+pages.size());
 		//checks to see which are already done
-		File folder = new File(Config.gwikidir);
-		List<String> done = new ArrayList<String>();
-		for(String f : folder.list()){
-			done.add(f);
+		Map<String, GeneWikiPage> done = loadSerializedDir(directory, 1000000000);
+		Map<String, String> title_id = new HashMap<String, String>();
+		for(Entry<String, GeneWikiPage> gene_wiki : done.entrySet()){
+			title_id.put(gene_wiki.getValue().getTitle(), gene_wiki.getKey());
 		}
 		int todo = pages.size();
 		int i = 0; int n_new_articles = pages.size()-done.size(); int n_altered_articles = 0;
 		System.out.println("N new: "+n_new_articles);
 		for(Page p : pages){
 			i++;
-			GeneWikiPage page = new GeneWikiPage(p.getTitle());
-			page.retrieveWikiTextContent(false);
-			page.parseAndSetNcbiGeneId();
-			String geneid = page.getNcbi_gene_id();
+			String title = p.getTitle();
 			//if we have it, check for a revision
 			String s_rev = "";
 			String c_rev = "";
-			if(done.contains(geneid)){
-				GeneWikiPage stored = deserializeGeneWikiPage(Config.gwikidir+geneid);
-				s_rev = stored.getRevid();
-				c_rev = page.getRevid();
+			if(title_id.keySet().contains(title)){
+				GeneWikiPage stored = done.get(title_id.get(title));
+				s_rev = stored.getRevid();			
+				c_rev = p.getCurrentRevision().getRevid();
 				//	System.out.println(s_rev+" <stored current> "+c_rev);
 			}
-			if(!(c_rev.equals(s_rev))||(!done.contains(geneid))){
+			if(!(c_rev.equals(s_rev))||(!title_id.keySet().contains(title))){
 				n_altered_articles++;
 				if(i>limit){
 					break;
 				}
 				//then go get it!
-				boolean gotext = page.defaultPopulate();
-				if(gotext){
-					page.retrieveAllInBoundWikiLinks(true, false);
-					GeneWikiUtils.saveToFile(page, Config.gwikidir+geneid);									
+				GeneWikiPage page = new GeneWikiPage();
+				page.setTitle(title);
+				boolean gotext = false;
+				if(usewikitrust){
+					gotext = page.defaultPopulateWikiTrust();
+				}else{
+					gotext = page.defaultPopulate();
+				}
+				page.parseAndSetNcbiGeneId();
+				String geneid = page.getNcbi_gene_id();
+				if(gotext&&geneid!=null&&!geneid.equals("")&&geneid.length()>0){
+					GeneWikiUtils.saveToFile(page, directory+geneid);									
 					System.out.println("done "+i+" of "+todo+"\t"+page.getTitle()+"\t"+geneid);
 				}else{
-					System.out.println("failed to get text for "+page.getTitle()+"\t"+geneid);
+					System.out.println("failed to get text for "+page.getTitle()+"\t or id "+geneid);
 				}
 			}
 		}
@@ -269,8 +276,12 @@ public class GeneWikiUtils {
 	 * @param objfile
 	 */
 	public static GeneWikiPage deserializeGeneWikiPage(String objfile){
-		GeneWikiPage data = (GeneWikiPage)readObjectFromFile(objfile);
-		return data;
+		File f = new File(objfile);
+		if(f.exists()){
+			GeneWikiPage data = (GeneWikiPage)readObjectFromFile(objfile);
+			return data;
+		}
+		return null;
 	}
 
 	/**
@@ -287,12 +298,12 @@ public class GeneWikiUtils {
 	public static void updatePageObjects(){
 		//make sure most recent text indexing procedures run on cached pages
 		int limit = 1000000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir("/Users/bgood/data/genewiki/intermediate/javaobj-original/", limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir("/Users/bgood/data/genewiki/intermediate/javaobj-original/", limit);
 		//		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//		GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/10018");
 		//		pages.add(test);
 		String outdir = "/Users/bgood/data/genewiki/intermediate/javaobj/";
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			page.setReferences();
 			page.parseAndSetSentences();
 			int nlinks = page.getGlinks().size();
@@ -511,10 +522,10 @@ public class GeneWikiUtils {
 
 	public static Set<GeneWikiPage> getNRlinks(int limit, String gwikidir){
 		Set<GeneWikiPage> links = new HashSet<GeneWikiPage>();
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(gwikidir, limit);
 		System.out.println("read in wikigene files");
 		int linkcount = 0;
-		for(GeneWikiPage page : pages){
+		for(GeneWikiPage page : pages.values()){
 			if(page!=null&&page.getGlinks()!=null){
 				for(GeneWikiLink glink : page.getGlinks()){
 					links.add(new GeneWikiPage(glink.getTarget_page()));
@@ -573,8 +584,8 @@ public class GeneWikiUtils {
 		return obj;
 	}
 
-	public static List<GeneWikiPage> loadSerializedDir(String dir, int limit){
-		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
+	public static Map<String, GeneWikiPage> loadSerializedDir(String dir, int limit){
+		Map<String, GeneWikiPage> pages = new HashMap<String,GeneWikiPage>();
 		File folder = new File(dir);
 		if(folder.isDirectory()){
 			int n = 0;
@@ -583,8 +594,11 @@ public class GeneWikiUtils {
 					continue;
 				}
 				n++;
-				GeneWikiPage page = deserializeGeneWikiPage(dir+title);
-				pages.add(page);
+				File gf = new File(dir+title);
+				if(gf.exists()){
+					GeneWikiPage page = deserializeGeneWikiPage(dir+title);
+					pages.put(page.getNcbi_gene_id(), page);
+				}
 				if(n > limit){
 					break;
 				}

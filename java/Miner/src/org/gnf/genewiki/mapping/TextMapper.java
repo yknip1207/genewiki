@@ -283,7 +283,7 @@ public class TextMapper {
 		//check which files have already been processed
 		Set<String> donegeneids = GeneWikiUtils.getDoneGeneIds(Config.text_mined_annos);
 
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		//	List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//	GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/55");
 		//	pages.add(test);
@@ -292,7 +292,7 @@ public class TextMapper {
 			FileWriter writer = new FileWriter(Config.text_mined_annos, true);
 			writer.write(CandidateAnnotation.getHeader()+"\n");
 			writer.close();
-			for(GeneWikiPage page : pages){
+			for(GeneWikiPage page : pages.values()){
 				if(donegeneids.contains(page.getNcbi_gene_id())){
 					n++;
 					continue;
@@ -378,7 +378,7 @@ public class TextMapper {
 		//check which files have already been processed
 		Set<String> donegeneids = GeneWikiUtils.getDoneGeneIds(Config.text_mined_annos_mm);
 
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		//	List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//	GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/55");
 		//	pages.add(test);
@@ -387,7 +387,7 @@ public class TextMapper {
 			FileWriter writer = new FileWriter(Config.text_mined_annos_mm, true);
 			writer.write(CandidateAnnotation.getHeader()+"\n");
 			writer.close();
-			for(GeneWikiPage page : pages){
+			for(GeneWikiPage page : pages.values()){
 				if(donegeneids.contains(page.getNcbi_gene_id())){
 					n++;
 					continue;
@@ -600,7 +600,7 @@ public class TextMapper {
 
 		//load all serialized page objects
 		int limit = 10000000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		//		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//		GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/6469");
 		//		pages.add(test);
@@ -611,7 +611,7 @@ public class TextMapper {
 
 		Ontologies onts = new Ontologies();
 
-		for(GeneWikiPage page : pages){			
+		for(GeneWikiPage page : pages.values()){			
 			article_count++;
 			List<GeneWikiLink> links = page.getGlinks();
 			// # links for this article
@@ -736,7 +736,7 @@ public class TextMapper {
 
 		//load all serialized page objects
 		int limit = 10000000;
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(Config.gwikidir, limit);
 		//		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
 		//		GeneWikiPage test = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/6469");
 		//		pages.add(test);
@@ -747,7 +747,7 @@ public class TextMapper {
 
 		Ontologies onts = new Ontologies();
 
-		for(GeneWikiPage page : pages){			
+		for(GeneWikiPage page : pages.values()){			
 			article_count++;
 			List<GeneWikiLink> links = page.getGlinks();
 			// # links for this article

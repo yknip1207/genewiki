@@ -18,8 +18,9 @@ public enum Configs {
 	private HashMap<String, String>	 strings = new HashMap<String, String>();
 	
 	private final String[] keys = {"name", "dryRun", "useCache", "strictChecking", 
-			"verbose", "debug", "cacheLocation", "logs", "username", "password", 
-			"templatePrefix", "templateName", "api_root", "loggerLevel"};
+			"verbose", "debug", "cacheLocation", "logs", "username", "password",
+			"commonsUsername", "commonsPassword", "templatePrefix", "templateName", "api_root", 
+			"commonsRoot", "loggerLevel", "pymol"};
 	
 
 	/* ---- Initialization Code ---- */

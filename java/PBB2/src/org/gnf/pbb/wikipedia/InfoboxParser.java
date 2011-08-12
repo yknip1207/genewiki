@@ -17,7 +17,7 @@ import org.gnf.pbb.exceptions.ConfigException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.MalformedWikitextException;
 import org.gnf.pbb.exceptions.NoBotsException;
-import org.gnf.pbb.exceptions.PbbExceptionHandler;
+import org.gnf.pbb.exceptions.ExceptionHandler;
 import org.gnf.pbb.exceptions.ValidationException;
 
 /**
@@ -56,9 +56,9 @@ public class InfoboxParser extends AbstractParser {
 			return new InfoboxParser(rawText, Configs.GET.flag("strictChecking"), 
 					Configs.GET.flag("verbose"),
 					Configs.GET.str("templateName"),
-					PbbExceptionHandler.INSTANCE);		
+					ExceptionHandler.INSTANCE);		
 		} catch (ConfigException e) {
-			PbbExceptionHandler.INSTANCE.fatal(e);
+			ExceptionHandler.INSTANCE.fatal(e);
 			return null;
 		}
 
@@ -127,7 +127,6 @@ public class InfoboxParser extends AbstractParser {
 	 * understandable, and less brittle.
 	 * @param source string
 	 * @return extracted template content
-	 * @throws MalformedWikitextException
 	 */
 	public String extractTemplate(String source) {
 		try {

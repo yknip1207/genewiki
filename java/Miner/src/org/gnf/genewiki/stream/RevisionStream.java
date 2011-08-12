@@ -48,7 +48,20 @@ public class RevisionStream {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+	}
+	
+	public static void startWatchlistTweetertask(int interval, int max_times, int seconds2goback, Map<String, String> creds){
+		Timer timer = new Timer();		
+		timer.schedule(new WatchlistTweeterTask(max_times, seconds2goback, creds), interval * 1000, interval * 1000);
 
+	}
+	
+	public static void startOldWikiWatcher(int interval, int max_times, int seconds2goback, List<String>titles, String index, Map<String, String> creds){
+		Timer timer = new Timer();		
+		timer.schedule(new WikiWatcherTask(max_times, seconds2goback, titles, index, creds), interval * 1000, interval * 1000);
+	}
+
+	public static void testOldWatchermethod(){
 		Calendar latest = Calendar.getInstance();
 		Calendar earliest = Calendar.getInstance();
 		earliest.add(Calendar.SECOND, -1*1000080);
@@ -77,15 +90,7 @@ public class RevisionStream {
 			System.out.println();
 		}
 	}
-
-
-	public static void startWikiWatcher(int interval, int max_times, int seconds2goback, List<String>titles, String index, Map<String, String> creds){
-		Timer timer = new Timer();		
-		timer.schedule(new WikiWatcherTask(max_times, seconds2goback, titles, index, creds), interval * 1000, interval * 1000);
-
-	}
-
-
+	
 	/**
 	 * Runs through all the titles of the gene wiki and checks for revisions that occurred in the previous DAYSBACK.
 	 * Writes out an RSS file that summarizes these revisions
