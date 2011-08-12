@@ -66,9 +66,10 @@ public class Distributor<K> {
 		for (Thread thread : threads) {
 			results.put(i, manager.submit(thread));
 			println("Adding new thread to execution queue.");
+			i++;
 		}
 		
-		manager.shutdown();
+		
 		while (!manager.isShutdown()) {
 			boolean isDone = true; // assert that we're done
 			for (Integer key : results.keySet()) {
@@ -78,8 +79,8 @@ public class Distributor<K> {
 						// If we get here, this thread finished fine, don't correct assertion
 					} catch (ExecutionException e) {
 						isDone = false; // Thread failed, correct assertion
-						println("Resubmitting failed thread #"+key+"...");
-						manager.submit(threads.get(key));
+						errln("Resubmitting failed thread #"+key+"...");
+						results.put(key, manager.submit(threads.get(key)));
 					} catch (InterruptedException e) {}
 				} else {
 					isDone = false;	// We're not done, correct assertion
@@ -95,7 +96,7 @@ public class Distributor<K> {
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e){
-				println("Attempting orderly shutdown...");
+				errln("Attempting orderly shutdown...");
 				manager.shutdownNow();
 			}
 		}
@@ -109,7 +110,7 @@ public class Distributor<K> {
 		System.out.println(str);
 	}
 	
-	private void print(String str) {
-		System.out.print(str);
+	private void errln(String str) {
+		System.err.println(str);
 	}
 }
