@@ -1,0 +1,48 @@
+<!--
+You are free to copy and use this sample in accordance with the terms of the
+Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Google Visualization API Sample</title>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script src="jquery-1.5.min.js"></script>
+  <script type="text/javascript">
+	google.load('visualization', '1', {packages: ['table', 'motionchart']});
+    google.setOnLoadCallback(function() {
+  	  $(function() {
+  	    // init my stuff
+		drawVisualization();
+  	  });
+  	});
+    
+    function drawVisualization() {
+    	$.getJSON("mchart_well_studied.json", function(cdata) {   		 	
+			
+  			var newdata = cdata;
+  			jQuery.each(cdata.rows, function(i, row) {
+	  			//console.log(cdata.rows[i].c[1].v);
+   				newdata.rows[i].c[1].v = new Date(cdata.rows[i].c[1].v);
+   		   }); 
+  			
+  			var data  = new google.visualization.DataTable(newdata, 0.6);
+  			//window.thedata = data;
+  			
+  			var motionchart = new google.visualization.MotionChart(document.getElementById('visualization'));
+  			motionchart.draw(data, {'width': 800, 'height': 400});	
+  		
+  		});
+    }
+    
+    
+  </script>
+
+</head>
+<body style="font-family: Arial;border: 0 none;">
+<div id="visualization" style="width: 800px; height: 400px;"></div>
+</body>
+</html>
+​

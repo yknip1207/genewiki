@@ -1,0 +1,1 @@
+For now, we will try to include different java projects as Eclipse projects here.  

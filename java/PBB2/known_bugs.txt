@@ -1,0 +1,1 @@
+When parsing a file with citations, PBB2 does not include the reflist at the end.
