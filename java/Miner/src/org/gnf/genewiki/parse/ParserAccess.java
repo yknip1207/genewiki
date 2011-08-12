@@ -147,6 +147,19 @@ public class ParserAccess implements Serializable{
 		}
 		return pages;
 	}
+	
+	public List<Page> parseWikiEmbeddedRevisionsApiXml(String wikiXml){
+		List<Page> pages = null;
+		try {
+			XMLPagesParserFromGenerator xmlPagesParser = new XMLPagesParserFromGenerator(wikiXml);
+			xmlPagesParser.parse();
+			pages = xmlPagesParser.getPagesList();
+			nextTitle = xmlPagesParser.getGeicontinue();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pages;
+	}
 
 	public static List<Page> parseWikiContentApiXml(String wikiXml){
 		List<Page> pages = null;

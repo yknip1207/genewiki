@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -72,8 +73,8 @@ public class VolumeCounter {
 	//	List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir("/Users/bgood/data/genewiki_dec_2010/intermediate/javaobj/", limit);
 	//	summarizeArticleVolumes(getArticleVolumes(pages), Config.gwroot+"/tmp/WikiVolumeSnapshot-dec-2010");
 		
-		List<GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(obj_dir, limit);
-		summarizeArticleVolumes(getArticleVolumes(pages), outdir+"_volume");
+		Map<String, GeneWikiPage> pages = GeneWikiUtils.loadSerializedDir(obj_dir, limit);
+		summarizeArticleVolumes(getArticleVolumes(pages.values()), outdir+"_volume");
 	
 //		Set<String> titles = GeneWikiUtils.getGeneNames(pages);
 //		String page_view_report = PageViewCounter.generatePageSetViewReportText(titles, outdir+"_page_view_full");
@@ -149,7 +150,7 @@ public class VolumeCounter {
 		return sum_report;
 	}
 	
-	public static List<VolumeReport> getArticleVolumes(List<GeneWikiPage> pages){
+	public static List<VolumeReport> getArticleVolumes(Collection<GeneWikiPage> pages){
 		List<VolumeReport> volumes = new ArrayList<VolumeReport>();
 		for(GeneWikiPage page : pages){
 			volumes.add(getArticleVolume(page));

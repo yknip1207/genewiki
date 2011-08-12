@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.gnf.genewiki.GeneWikiPage;
+import org.gnf.genewiki.GeneWikiUtils;
 import org.gnf.genewiki.WikiCategoryReader;
 import org.gnf.util.DateFun;
 import org.gnf.util.FileFun;
@@ -33,6 +34,9 @@ import org.json.JSONObject;
 public class MetricsAccess {
 
 	/**
+	 * Example args for gene wiki, limit 100, for one year interval, and all metrics gathered 
+	 * -pv -vl -rv -t Template:GNF_Protein_box -L 10 -t0 20100801 -t1 20110801 -o "/Users/bgood/data/wikiportal/gene_wiki_metrics_aug2011/", -c -c /Users/bgood/workspace/Config/gw_creds.txt
+
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -46,6 +50,7 @@ public class MetricsAccess {
 		int limit = 100000;
 		String wp_user = "";
 		String wp_pw = "";
+		String credential_file = "";
 		String template_name = null;
 		boolean revisions = false; boolean pageviews = false; boolean volume = false;
 		
@@ -56,17 +61,16 @@ public class MetricsAccess {
 				printHelp();
 				return;
 			}
+			else if (args[optind].equalsIgnoreCase("-c"))
+			{
+				credential_file = args[++optind];
+				Map<String, String> creds = GeneWikiUtils.read2columnMap(credential_file);
+				wp_user = creds.get("wpid");
+				wp_pw = creds.get("wppw");
+			}
 			else if (args[optind].equals("-t"))
 			{
 				template_name = args[++optind];
-			}
-			else if (args[optind].equals("-u"))
-			{
-				wp_user = args[++optind];
-			}
-			else if (args[optind].equals("-p"))
-			{
-				wp_pw = args[++optind];
 			}
 			else if (args[optind].equals("-f"))
 			{
@@ -109,11 +113,16 @@ public class MetricsAccess {
 			}
 			++optind;
 		}
+		//must have credentials set 
+		if(credential_file==null){
+			System.err.println("Need to specify a credential file.");
+			System.exit(-1);
+		}
 		//must have titles to do anything
 		if(title_file==null&&template_name==null){
 			System.out.println("You must specify a title file as in -f \"./yourwikidir/your_wiki_page_titles.txt\" or the name of a template like -t Template:GNF_Protein_box");
 			System.out.println("a specific titles file overrides a template");
-			return;
+			System.exit(-1);
 		}else if(title_file==null&&template_name!=null){
 			//TODO - generalize this.
 			WikiCategoryReader r = new WikiCategoryReader("/Users/bgood/workspace/Config/gw_creds.txt");
@@ -250,7 +259,7 @@ public class MetricsAccess {
 	}
 
 	public static void printHelp(){
-		System.err.println("Provided by Benjamin Good. bgood@gnf.org");
+		System.err.println("Provided by the Gene Wiki team. http://code.google.com/p/genewiki/");
 		System.err.println("-h this screen");
 		System.err.println("-f <file> file containing list of Wikipedia article titles");
 		System.err.println("-t <String> template embedded in page collection like Template:GNF_Protein_box - if title file specified, it overrides this");
@@ -258,8 +267,7 @@ public class MetricsAccess {
 		System.err.println("-t0 <timestamp> the earliest date to consider as yearmonthday like 20091201");
 		System.err.println("-t1 <timestamp> the latest date to consider as yearmonthday like 20101231");
 		System.err.println("-o <directory> place to put all the data - will overwrite files..");
-		System.err.println("-u <String> wikipedia user name");
-		System.err.println("-p <String> wikipedia password");
+		System.err.println("-c <String> file containing credentials for logging into wikipedia (2 column, wpid\ttheid\nwppw\tthepw)");
 	}
 	
 }
