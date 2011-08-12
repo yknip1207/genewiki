@@ -1,7 +1,5 @@
 package org.gnf.pbb.wikipedia;
 
-import info.bliki.wiki.filter.AbstractParser;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -27,7 +25,7 @@ import org.gnf.pbb.exceptions.ValidationException;
  * @author eclarke
  *
  */
-public class InfoboxParser extends AbstractParser {
+public class InfoboxParser {
 	private static ExceptionHandler botState;
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
@@ -38,7 +36,8 @@ public class InfoboxParser extends AbstractParser {
 	private String textAfterTemplate;
 	
 	public InfoboxParser(String rawText, boolean strict, boolean verbose, String templateName, ExceptionHandler exh) {
-		super(rawText);
+		
+		
 		botState = exh;
 		this.rawText = rawText;
 		this.strict = strict;
@@ -100,17 +99,13 @@ public class InfoboxParser extends AbstractParser {
 		}
 		return false;
 	}
-
-	@Override
-	public void setNoToC(boolean noToC) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void runParser() {
-		// TODO Auto-generated method stub
-		
+	
+	private boolean readUntil(String untilString) {
+		int index = rawText.indexOf(untilString);
+		if (index != (-1)) {
+			return true;
+		}
+		return false;
 	}
 	
 	private void findNoBotsFlag() throws NoBotsException {
