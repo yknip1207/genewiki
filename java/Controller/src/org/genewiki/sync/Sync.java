@@ -1,15 +1,9 @@
 package org.genewiki.sync;
 
-import org.genewiki.StatusMonitor;
 import org.genewiki.api.*;
-import org.genewiki.api.Wiki.Revision;
 import org.genewiki.concurrent.RunnableFactory;
-import org.genewiki.util.Serialize;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;

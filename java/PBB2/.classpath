@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/jackson-core-asl-1.7.4.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-mapper-asl-1.7.5.jar"/>
-	<classpathentry kind="lib" path="lib/sqlitejdbc-v056.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Miner"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/WikipediaAPI"/>
-	<classpathentry kind="lib" path="lib/commons-collections-3.2.1-javadoc.jar"/>
-	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/jwbf.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
+	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bliki-core"/>
-	<classpathentry kind="lib" path="/Users/eclarke/Development/workspace/A genewiki/java/PBB2/lib/jopt-simple-3.3.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jwbf"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

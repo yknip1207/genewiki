@@ -3,11 +3,11 @@ package org.gnf.pbb.wikipedia;
 import org.gnf.pbb.Configs;
 import org.gnf.pbb.exceptions.ImageNotFoundException;
 import org.gnf.pbb.exceptions.ExceptionHandler;
+import org.gnf.wikiapi.Connector;
+import org.gnf.wikiapi.User;
 
 import com.google.common.base.Preconditions;
 
-import info.bliki.api.User;
-import info.bliki.api.Connector;
 public class ImageFinder {
 	
 	public static boolean imageExists(String title) {
