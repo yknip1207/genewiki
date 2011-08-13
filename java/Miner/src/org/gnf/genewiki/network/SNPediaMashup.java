@@ -41,7 +41,6 @@ import org.gnf.wikiapi.Page;
 import org.gnf.wikiapi.User;
 
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -51,11 +50,9 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
@@ -82,9 +79,9 @@ public class SNPediaMashup {
 		//get data in a simple way..
 		//String outfile = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
 		//getSNPDiseaseLinksFromSNPediaViaSNPText(outfile);
-//		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
-//		String outputdir = "/Users/bgood/data/SMW/take2/";
-//		summarizeGeneDiseaseNewSNPtagging(rdf, outputdir);
+		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
+		String outputdir = "/Users/bgood/data/SMW/take2/";
+		summarizeGeneDiseaseNewSNPtagging(rdf, outputdir);
 		//		
 		//		String snpdisease = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
 		//		Map<String, Set<String>> snp_doids = FileFun.loadMapFromTabD(snpdisease, 1, 5, true);
@@ -101,40 +98,9 @@ public class SNPediaMashup {
 		//			}
 		//		}
 		//		System.out.println(none+" "+some);
-		
-		//makeniceuris();
 	}
 
 
-//	public static void makeniceuris(){
-//		String rdf = "file:///Users/bgood/data/SMW/data2share/gw_snp_mashup3.rdf";
-//		String outputfile = "/Users/bgood/data/SMW/data2share/gw_snp_mashup3_niceuris.rdf";
-//		OntModel model = ModelFactory.createOntologyModel();
-//		OntModel model2 = ModelFactory.createOntologyModel();
-//		//184.72.42.242 -> www.snpedia.com
-//		//dbpedia.org/resource/
-////		model.getResource("http://www.snpedia.com/mediawiki/index.php/Special:URIResolver/Property-3AIn_gene");
-//		model.read(rdf);
-//		Property hasSnp = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AHasSNP");
-//		Property associated_with = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3AIs-2Dassociated-2Dwith");
-//		Property sameas = model.getProperty("http://184.72.42.242/mediawiki/index.php/Special:URIResolver/Property-3ASame-2Das");
-//		ExtendedIterator i = model.listAllOntProperties();
-//		while(i.hasNext()){
-//			OntProperty p = (OntProperty)i.next();
-//			System.out.println(p.getURI());
-//			StmtIterator stmt = model.listStatements(null, p, (RDFNode)null);
-//			while(stmt.hasNext()){
-//				Statement st = stmt.next();
-//				Resource sub1 = st.getSubject();
-//				RDFNode ob1 = st.getObject();
-//				if(p==associated_with||p==hasSnp){
-//					//
-//					model2.add(sub, RDFS.seeAlso, ob);
-//				}
-//			}
-//		}
-//	}
-	
 	public static void summarizeGeneDiseaseNewSNPtagging(String rdffile, String outputdir){
 		//get snp-disease mappings from simple method
 		String snpdisease = "/Users/bgood/data/SMW/snpedia_disease_snp_take2.txt";
