@@ -19,6 +19,7 @@ import java.util.Set;
 import org.gnf.genewiki.ncbi.PubMed;
 import org.gnf.go.Annotation;
 import org.gnf.go.GOterm;
+import org.gnf.util.BioInfoUtil;
 import org.gnf.util.MapFun;
 
 /**
@@ -35,7 +36,7 @@ public class Prioritizer {
 		String pmids = "";
 //filterMegaGenePubs(
 		
-		Map<String, List<String>> gene2pub = getHumanGene2pub("/Users/bgood/data/gene2pubmed");
+		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/gene2pubmed");
 		List<String> g2p_list = gene2pub.get(gene);
 		System.out.println(gene2pub.get(gene).size());
 		for(String p : gene2pub.get(gene)){
@@ -99,7 +100,7 @@ public class Prioritizer {
 
 
 	public static void getHighPriority(){
-		Map<String, List<String>> gene2pub = filterMegaGenePubs(getHumanGene2pub("/Users/bgood/data/gene2pubmed"), 5);
+		Map<String, List<String>> gene2pub = filterMegaGenePubs(BioInfoUtil.getHumanGene2pub("/Users/bgood/data/gene2pubmed"), 5);
 		HashMap<String, Set<GOterm>> gene2go = Annotation.readGene2GO("/Users/bgood/data/human_gene2go.txt", false);
 		Map<String, Float> gene2words = getGeneWiki2Words("/Users/bgood/data/genewiki_jan11_volume.txt");
 
@@ -169,7 +170,7 @@ public class Prioritizer {
 	}
 	
 	public static void getPriorityData(){
-		Map<String, List<String>> gene2pub = getHumanGene2pub("/Users/bgood/data/gene2pubmed");
+		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/gene2pubmed");
 		HashMap<String, Set<GOterm>> gene2go = Annotation.readGene2GO("/Users/bgood/data/human_gene2go.txt", false);
 		Map<String, Float> gene2words = getGeneWiki2Words("/Users/bgood/data/genewiki_jan11_volume.txt");
 
@@ -344,37 +345,6 @@ public class Prioritizer {
 		return g_w;	
 	}
 
-
-	public static Map<String, List<String>> getHumanGene2pub(String gene2pubmed_file){
-		Map<String, List<String>> p2g = new HashMap<String, List<String>>();
-		BufferedReader f;
-		try {
-			f = new BufferedReader(new FileReader(gene2pubmed_file));
-			String line = f.readLine();
-			while(line!=null){
-				if(!line.startsWith("9606")){
-					line = f.readLine();
-					continue;
-				}
-				String[] g2p = line.split("\t");
-				List<String> pmids = p2g.get(g2p[1]);
-				if(pmids==null){
-					pmids = new ArrayList<String>();
-				}
-				pmids.add(g2p[2]);
-				p2g.put(g2p[1], pmids);
-				line = f.readLine();
-			}
-			f.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return p2g;	
-	}
 
 	public static Map<String, List<String>> filterMegaGenePubs(Map<String, List<String>> gene2pubs, int max_genes_per_pmid){
 		Map<String, Set<String>> pmid2genes = MapFun.flipMapStringListStrings(gene2pubs);

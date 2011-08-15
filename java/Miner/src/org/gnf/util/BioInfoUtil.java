@@ -130,17 +130,17 @@ public class BioInfoUtil {
 			for(GOterm goterm : entry.getValue()){				
 				if(ps.get(goterm)!=null){
 					int psize = ps.get(goterm).size();
-//					if(psize>50){
-//						Set<GOterm> bigmama = ps.get(goterm);
-//						System.err.println("Wow.. many parents for "+geneid+" "+goterm.getTerm()+" "+psize);
-//					}
+					//					if(psize>50){
+					//						Set<GOterm> bigmama = ps.get(goterm);
+					//						System.err.println("Wow.. many parents for "+geneid+" "+goterm.getTerm()+" "+psize);
+					//					}
 					size+=psize;
 				}
 				if(addChildren&&cs.get(goterm)!=null){					
 					int csize = cs.get(goterm).size();
-//					if(csize>50){
-//						System.err.println("Wow.. big family for "+geneid+" "+goterm.getTerm()+" "+csize);
-//					}
+					//					if(csize>50){
+					//						System.err.println("Wow.. big family for "+geneid+" "+goterm.getTerm()+" "+csize);
+					//					}
 					size+=csize;
 				}
 			}
@@ -586,8 +586,92 @@ public class BioInfoUtil {
 		}
 	}
 
+	public static Map<String, List<String>> getHumanGene2pub(String gene2pubmed_file){
+		Map<String, List<String>> p2g = new HashMap<String, List<String>>();
+		BufferedReader f;
+		try {
+			f = new BufferedReader(new FileReader(gene2pubmed_file));
+			String line = f.readLine();
+			while(line!=null){
+				if(!line.startsWith("9606")){
+					line = f.readLine();
+					continue;
+				}
+				String[] g2p = line.split("\t");
+				List<String> pmids = p2g.get(g2p[1]);
+				if(pmids==null){
+					pmids = new ArrayList<String>();
+				}
+				pmids.add(g2p[2]);
+				p2g.put(g2p[1], pmids);
+				line = f.readLine();
+			}
+			f.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return p2g;	
+	}
 
+	public static HashMap<String, Set<GOterm>> readGene2GO(String file, boolean skipIEA, boolean only_human){
+		HashMap<String,Set<GOterm>> map = new HashMap<String, Set<GOterm>>();
+		try {
+			BufferedReader f = new BufferedReader(new FileReader(file));
+			String line = f.readLine().trim();
+			while(line!=null){
+				if(!line.startsWith("#")){
+					String[] item = line.split("\t");
+					if(item!=null&&item.length>1){
+						String taxa = item[0];
+						if(!taxa.equals("9606")&&only_human){
+							line = f.readLine();
+							continue;
+						}
+						String code = item[3];
+						//always skip no data...
+						if(code.equals("ND")){
+							line = f.readLine();
+							continue;
+						}
+						if(skipIEA&&code.equals("IEA")){
+							line = f.readLine();
+							continue;
+						}
+						String geneid = item[1];					
+						Set<GOterm> GOs = map.get(geneid);
+						if(GOs == null){
+							GOs = new HashSet<GOterm>();
+							map.put(geneid, GOs);
+						}
+						String id = null; String acc = item[2];
+						String term = ""; String root = "";
 
+						if(item.length>5){
+							term = item[5];
+							if(item.length>7){
+								root = item[7];
+							}
+						}
+						GOterm go = new GOterm(id, acc, root, term, true);
+						go.setEvidence("ncbi_"+code);
+						GOs.add(go);//the text term for the go id					
+					}
+				}
+				line = f.readLine();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return map;
+	}
 
 	public static void writeStatsForR(DescriptiveStatistics stats, String outfile, String colheader){
 		try {

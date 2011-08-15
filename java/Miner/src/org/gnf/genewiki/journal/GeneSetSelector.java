@@ -38,6 +38,7 @@ import org.gnf.umls.TypedTerm;
 import org.gnf.umls.UmlsDb;
 import org.gnf.umls.metamap.MMannotation;
 import org.gnf.umls.metamap.MetaMap;
+import org.gnf.util.BioInfoUtil;
 import org.gnf.util.MapFun;
 import org.gnf.util.MyGeneInfo;
 import org.gnf.util.SetComparison;
@@ -73,7 +74,7 @@ public class GeneSetSelector {
 	public GeneSetSelector() {
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		gene2gwtitle = GeneWikiUtils.getGeneWikiGeneIndex(gene2gwtitlefile, false, creds);//GeneWikiUtils.readGeneWikiGeneIndex(gene2gwtitlefile);		
-		gene2pubs = Prioritizer.getHumanGene2pub(gene2pubmedfile);	
+		gene2pubs = BioInfoUtil.getHumanGene2pub(gene2pubmedfile);	
 		pub2meshes = PubMed.getCachedPmidMeshMap(pmid_mesh_cache);
 		pub2authors = AuthorSelector.readCachedPmid2Authors(pmid_author_cache);
 		gw2meshes = getCachedGWMeshMap(gw_mesh_cache);
