@@ -38,10 +38,10 @@ public class YahooBOSS {
 //OR10G8		
 //		coOccurrence("\"oculocerebrorenal syndrome\"","OCRL", true);
 //		coOccurrence("\"OR10G8\"","\"transduction\"", true);
-		coOccurrence("\"Morn repeat containing 1\"","\"asexual reproduction\"", true);
+//		coOccurrence("\"Morn repeat containing 1\"","\"asexual reproduction\"", true);
 		
-	/*	coOccurrence("apple","banana", true);
-		coOccurrence("dog","cat", true);
+		coOccurrence("apple","banana", true);
+	/*	coOccurrence("dog","cat", true);
 		coOccurrence("horse","rider", true);
 		coOccurrence("elbow","arm", true);
 		coOccurrence("offense","defense", true);

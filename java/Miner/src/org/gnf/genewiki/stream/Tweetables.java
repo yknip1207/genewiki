@@ -181,6 +181,7 @@ public class Tweetables {
 		if(base.words>0&&base.sentences>0){
 			String summary = "";
 			summary+= base.user+" added "+base.words+" words to "+base.hashtag+" ";
+			Set<String> distinct_no_alpha = new HashSet<String>();
 			Set<String> keywords = new HashSet<String>();
 			List<String> diffs = rc.getDiffBlocks(p_t1.getRevid(), p_t0.getRevid());
 			if(diffs!=null&&diffs.size()>0){
@@ -188,7 +189,9 @@ public class Tweetables {
 					List<NcboAnnotation> annos = AnnotatorClient.ncboAnnotateText(diff, true, useGO, useDO, useFMA, usePRO, useOMIM, useDrug);
 					if(annos!=null){
 						for(NcboAnnotation anno : annos){
-							keywords.add(anno.getConcept().getPreferredName());
+							if(distinct_no_alpha.add(anno.getConcept().getPreferredName().toLowerCase())){
+								keywords.add(anno.getConcept().getPreferredName());
+							}
 						}
 					}
 				}
@@ -253,19 +256,20 @@ public class Tweetables {
 			}
 		}
 		//default to bytes tweet
-		if(tweets.size()==0&&base.bytes!=0){
-			String summary = "";
-			summary+= base.user+" edited "+base.hashtag+" ";
-			if(base.bytes>0){
-				summary += "adding "+base.bytes+" bytes.";
-			}else{
-				summary += "deleting "+(-1*base.bytes)+" bytes.";
-			}
-			Tweetable tweet = new Tweetable(base);
-			tweet.setSummary(summary);
-			tweets.add(tweet);	
-			summaryForRSS += " and added "+base.bytes+" bytes.";
-		}
+		//turning this off.. we are getting plenty without it
+//		if(tweets.size()==0&&base.bytes!=0){
+//			String summary = "";
+//			summary+= base.user+" edited "+base.hashtag+" ";
+//			if(base.bytes>0){
+//				summary += "adding "+base.bytes+" bytes.";
+//			}else{
+//				summary += "deleting "+(-1*base.bytes)+" bytes.";
+//			}
+//			Tweetable tweet = new Tweetable(base);
+//			tweet.setSummary(summary);
+//			tweets.add(tweet);	
+//			summaryForRSS += " and added "+base.bytes+" bytes.";
+//		}
 
 
 

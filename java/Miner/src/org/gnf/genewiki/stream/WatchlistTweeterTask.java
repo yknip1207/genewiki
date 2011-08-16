@@ -64,12 +64,11 @@ public class WatchlistTweeterTask extends TimerTask {
 
 	@Override
 	public void run() {
-//		if(n==0){
-//			Tweeter.tweet("suggest merging pages SLC17A5 & HP59 (both linked to Gene:26503");
-//		}
+	//	if(wl_man.user!=null&&wl_man.user.login())
 		//every so often, update the watchlist
 		if(n%15==0){
 			System.out.println("Updating watchlist ");			
+			wl_man.user.login();
 			wl_man.updateGeneWikiWatchList(clean_non_gw_off_watchlist);
 		}
 		SimpleDateFormat timestamp = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss");

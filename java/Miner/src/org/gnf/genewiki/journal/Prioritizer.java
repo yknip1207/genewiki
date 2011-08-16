@@ -345,8 +345,15 @@ public class Prioritizer {
 		return g_w;	
 	}
 
-
+/**
+ * Removes values from the list of strings in the input map that show up too many times.
+ * Created to filter out gene2pubmed citations where the pubmed article connects to large number of genes
+ * @param gene2pubs
+ * @param max_genes_per_pmid
+ * @return
+ */
 	public static Map<String, List<String>> filterMegaGenePubs(Map<String, List<String>> gene2pubs, int max_genes_per_pmid){
+		Map<String, List<String>> gene2pubs_f = new HashMap<String, List<String>>();
 		Map<String, Set<String>> pmid2genes = MapFun.flipMapStringListStrings(gene2pubs);
 
 		Set<String> too_many = new HashSet<String>();
@@ -357,19 +364,13 @@ public class Prioritizer {
 				}
 			}
 		}
-
 		for(Entry<String, List<String>> gene2pub : gene2pubs.entrySet()){
-			List<String> pubs = gene2pub.getValue();
-			for(String pmid : pubs){
-				if(too_many.contains(pmid)){
-					List<String> shorter = new ArrayList<String>(pubs);
-					shorter.remove(pmid);
-					//	System.out.println("removing "+pmid+" "+gene2pub.getKey());
-					gene2pubs.put(gene2pub.getKey(), shorter);
-				}
-			}
+			Set<String> pubs = new HashSet<String>(gene2pub.getValue());
+			pubs.removeAll(too_many);
+			String gene = gene2pub.getKey();
+			gene2pubs_f.put(gene, new ArrayList<String>(pubs));
 		}
-		return gene2pubs;
+		return gene2pubs_f;
 	}
 
 }

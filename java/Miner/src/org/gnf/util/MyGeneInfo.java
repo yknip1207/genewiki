@@ -39,7 +39,7 @@ public class MyGeneInfo {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		String g = getSymbolByGeneid("35", true);
+		Gene g = getGeneInfoByGeneid("35", true);
 		System.out.println(g);
 		
 		//	List<String> genes = new ArrayList<String>();
@@ -185,7 +185,7 @@ public class MyGeneInfo {
 		String out = "";
 		//http://mygene.info/query?q=cdk2+AND+species:human
 		String encoded = URLEncoder.encode(geneid, "UTF8");
-		GetMethod get = new GetMethod("http://cwu-stage/query?q="+idtype+":"+encoded+"+AND+species:human");
+		GetMethod get = new GetMethod("http://cwudev/query?q="+idtype+":"+encoded+"+AND+species:human");
 		// Get HTTP client
 		HttpClient httpclient = new HttpClient();
 		// Execute request
@@ -213,6 +213,14 @@ public class MyGeneInfo {
 		return out;
 	}
 
+	/**
+	 * Batch request for MyGeneinfo - note that you can change the values returned with the filter parameter (hard coded at the moment)
+	 * See http://mygene.info/doc/anno_service for available properties.
+	 * @param geneidss
+	 * @param external
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
 	public static Map<String, Gene> getBatchGeneInfo(Collection<String> geneidss, boolean external) throws UnsupportedEncodingException{
 		if(geneidss==null){
 			return null;
@@ -227,47 +235,50 @@ public class MyGeneInfo {
 
 			//http://mygene.info/boc/?query=1017+1018&scope=entrezgene,retired&format=json
 			for(int i=g; i<geneids.size()&&i<g+500; i++){
-				batch+=geneids.get(i)+" ";
+				batch+=geneids.get(i)+",";
 			}
-			String encoded = URLEncoder.encode(batch, "UTF8");
+			//String encoded = URLEncoder.encode(batch, "UTF8");
 			//http://mygene.info/gene/117
-			String u = "http://cwu-stage/boc/?query=";
+			String u = "http://cwudev/gene";
 			if(external){
-				u = "http://mygene.info/boc/?query=";
+				u = "http://mygene.info/gene";
 			}
-			String url = u+encoded+"&scope=entrezgene,retired&format=json";
-			GetMethod get = new GetMethod(url);
+	//		String url = u+encoded+"&scope=entrezgene,retired&format=json";
+			PostMethod post = new PostMethod(u);
+			post.addParameter("ids", batch);
+			post.addParameter("filter","name,id,symbol,type_of_gene");
+			
 			// Get HTTP client
 			HttpClient httpclient = new HttpClient();
 			// Execute request
 			try {
-				int result = httpclient.executeMethod(get);
+				int result = httpclient.executeMethod(post);
 				// Display status code
 				//	System.out.println("Response status code: " + result);
 				// Display response
 				//	System.out.println("Response body: ");
 				
-				out = get.getResponseBodyAsString();
+				out = post.getResponseBodyAsString();
 				if(out!=null&&(!out.startsWith("<html"))){
 					JSONArray r = new JSONArray(out);
 					for(int j=0; j<r.length(); j++){
 						JSONObject o = r.getJSONObject(j);
 						String name = o.getString("name");
-						String entrezgene = o.getString("id");
+						String entrezgene = o.getString("_id");
 						String symbol = o.getString("symbol");
-						//not supported in batch mode
-						//String t = o.getString("type_of_gene");
+						String t = o.getString("type_of_gene");
 						Gene gene = new Gene();
 						gene.setGeneID(entrezgene);
 						gene.setGeneSymbol(symbol);
 						gene.setGeneDescription(name);
-						genes.put(entrezgene, gene);
-//						if(t!=null){
-//							if(t.equals("pseudo")){
-//								gene.setPseudo(true);
-//							}
-//							gene.setGenetype(t);
-//						}
+						gene.setGenetype(t);
+						if(t!=null){
+							if(t.equals("pseudo")){
+								gene.setPseudo(true);
+							}
+							gene.setGenetype(t);
+						}
+						genes.put(entrezgene, gene);					
 					}
 				}
 				//	System.out.println(out);
@@ -282,7 +293,7 @@ public class MyGeneInfo {
 				e.printStackTrace();
 			} finally {
 				// Release current connection to the connection pool once you are done
-				get.releaseConnection();
+				post.releaseConnection();
 			}
 		}
 		return genes;
@@ -296,7 +307,7 @@ public class MyGeneInfo {
 		//http://mygene.info/query?q=cdk2+AND+species:human
 		String encoded = URLEncoder.encode(geneid, "UTF8");
 		//http://mygene.info/gene/117
-		String u = "http://cwu-stage/gene/";
+		String u = "http://cwudev/gene/";
 		if(external){
 			u = "http://mygene.info/gene/";
 		}
