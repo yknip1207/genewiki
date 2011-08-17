@@ -15,6 +15,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.gnf.util.HttpUtil;
 
 /**
@@ -87,11 +90,17 @@ public class GoogleSearch {
 		GetMethod get = new GetMethod(url+encoded);
 		// Get HTTP client
 		HttpClient httpclient = new HttpClient();
+		httpclient.getParams().setParameter(
+			    HttpMethodParams.USER_AGENT,
+			    "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0"
+			);
 		// Execute request
 		try {
 			int result = httpclient.executeMethod(get);
 			// Display status code
-			//System.out.println("Response status code: " + result);
+			if(result>399){
+				System.out.println("Response status code: " + result);
+			}
 			InputStream s = get.getResponseBodyAsStream(); 
 			out = HttpUtil.convertStreamToString(s);
 			//System.out.println(out);

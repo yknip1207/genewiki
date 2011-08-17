@@ -39,12 +39,17 @@ public class MyGeneInfo {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static void main(String[] args) throws UnsupportedEncodingException {
-		Gene g = getGeneInfoByGeneid("35", true);
-		System.out.println(g);
+//		Gene g = getGeneInfoByGeneid("6840", true);
+//		System.out.println(g);
+		// [588, 6840, 6843, 6844, 6845, 6855, 6853, 6854, 6857, 81127]
 		
-		//	List<String> genes = new ArrayList<String>();
-	//	genes.add("30682"); genes.add("1017");
-	//	System.out.println(getBatchGeneInfo(genes, true));
+		
+		String[] genes = {"588","6840", "6843", "6844", "6845", "6855", "6853", "6854", "6857", "81127"};
+		List<String> g = new ArrayList<String>();
+		for(String gene : genes){
+			g.add(gene);
+		}
+		System.out.println(getBatchGeneInfo(g, false));
 
 		//		String f = "gw_data/gene_wiki_index.txt";
 		//		Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(f, false);
@@ -225,25 +230,28 @@ public class MyGeneInfo {
 		if(geneidss==null){
 			return null;
 		}
-		List<String> geneids = new ArrayList<String>(geneidss);
+		//make non-redundant list
+		List<String> geneids = new ArrayList<String>(new HashSet<String>(geneidss));
 		
 		Map<String, Gene> genes = new HashMap<String, Gene>();
-		int index = 0;
+		int batchsize = 1000;
 		String out = "";
-		for(int g=0;g<geneids.size();g+=500){
+		for(int g=0;g<geneids.size();g+=batchsize){
+			Set<String> current_set = new HashSet<String>();
+			//get the gene set for this batch
 			String batch = "";
-
-			//http://mygene.info/boc/?query=1017+1018&scope=entrezgene,retired&format=json
-			for(int i=g; i<geneids.size()&&i<g+500; i++){
+			for(int i=g; i<geneids.size()&&i<g+batchsize; i++){
 				batch+=geneids.get(i)+",";
+				current_set.add(geneids.get(i));
 			}
-			//String encoded = URLEncoder.encode(batch, "UTF8");
-			//http://mygene.info/gene/117
+			if(current_set.size()>0){
+				batch = batch.substring(0, batch.length()-1);
+			}
+			//prepare the request for this set
 			String u = "http://cwudev/gene";
 			if(external){
 				u = "http://mygene.info/gene";
 			}
-	//		String url = u+encoded+"&scope=entrezgene,retired&format=json";
 			PostMethod post = new PostMethod(u);
 			post.addParameter("ids", batch);
 			post.addParameter("filter","name,id,symbol,type_of_gene");
@@ -251,16 +259,13 @@ public class MyGeneInfo {
 			// Get HTTP client
 			HttpClient httpclient = new HttpClient();
 			// Execute request
+			Set<String> response_set = new HashSet<String>();
 			try {
-				int result = httpclient.executeMethod(post);
-				// Display status code
-				//	System.out.println("Response status code: " + result);
-				// Display response
-				//	System.out.println("Response body: ");
-				
+				int result = httpclient.executeMethod(post);				
 				out = post.getResponseBodyAsString();
-				if(out!=null&&(!out.startsWith("<html"))){
+				if(result==200&&out!=null&&(!out.startsWith("<html"))){
 					JSONArray r = new JSONArray(out);
+					
 					for(int j=0; j<r.length(); j++){
 						JSONObject o = r.getJSONObject(j);
 						String name = o.getString("name");
@@ -278,10 +283,18 @@ public class MyGeneInfo {
 							}
 							gene.setGenetype(t);
 						}
-						genes.put(entrezgene, gene);					
+						genes.put(entrezgene, gene);
+						response_set.add(entrezgene);
 					}
+				}else{
+					System.out.println(out);
 				}
-				//	System.out.println(out);
+				if(response_set.size()!=current_set.size()){
+					
+					System.out.println("MyGeneInfo returned "+response_set.size()+" results for "+current_set.size()+" queried gene ids, missing ids:");
+					current_set.removeAll(response_set);
+					System.out.println(current_set);
+				}
 			} catch (HttpException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
