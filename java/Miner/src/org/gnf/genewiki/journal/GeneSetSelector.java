@@ -137,14 +137,14 @@ public class GeneSetSelector {
 		////////////////
 		String infile = "/Users/bgood/data/journal_collab/gene_data.txt";
 		String outfile = "/Users/bgood/data/journal_collab/gene_data_1.txt";
-//		String exloutfile = "/Users/bgood/data/journal_collab/gene_data_exl.txt";
-//		int limit = 100000;
-//		int minPubs = 10;
-//		boolean useannotator = false; //else use metamap
-//		boolean usecachedgenewiki = true;
+		//		String exloutfile = "/Users/bgood/data/journal_collab/gene_data_exl.txt";
+		//		int limit = 100000;
+		//		int minPubs = 10;
+		//		boolean useannotator = false; //else use metamap
+		//		boolean usecachedgenewiki = true;
 		//g.gatherGeneProfiles(limit, minPubs, useannotator, usecachedgenewiki, infile, outfile);
 		//g.convertToExcellableFile(infile, exloutfile);
-		
+
 		///////////////////
 		//Identify interesting MeSH topics
 		//////////////////
@@ -154,23 +154,48 @@ public class GeneSetSelector {
 		///////////////////
 		//build some specific reports
 		//////////////////	
-		
-//		String[] terms = {
-//				"Aging", "Feeding Behavior","Learning","Sleep","Pain",
-//				"Motor Neuron Disease","Leukemia, T-Cell","Diabetic Neuropathies", "Influenza, Human", "Wounds and Injuries", "Parasitemia",
-//				"Complement Pathway, Classical",
-//				"Running","Survival","Bicycling","Swimming","Weight Lifting", 
-//				"Violence", "Gambling", "Alcohol Drinking",
-//				"War","Breast Implants"};
-//		Map<String, GeneProfile> gene_profiles = g.readGeneProfiles(infile);
-//		Map<String, ProteinPage> protein_pages = ProteinPage.loadSerializedDir("/Users/bgood/data/bioinfo/protein_template_pages/", 1000000000);
-//		for(String mesh : terms){
-//			System.out.println("working on mesh term "+mesh);
-//			String filename = mesh.replace(",", ":");
-//			filename = filename.replace(" ", "_");
-//			String meshout = "/Users/bgood/data/journal_collab/MeSHgeneSets/"+filename+".txt";
-//			g.makeReportforMeSHterm(gene_profiles, protein_pages, mesh, meshout);
-//		}
+
+		//		String[] terms = {
+		//				"Aging", "Feeding Behavior","Learning","Sleep","Pain",
+		//				"Motor Neuron Disease","Leukemia, T-Cell","Diabetic Neuropathies", "Influenza, Human", "Wounds and Injuries", "Parasitemia",
+		//				"Complement Pathway, Classical",
+		//				"Running","Survival","Bicycling","Swimming","Weight Lifting", 
+		//				"Violence", "Gambling", "Alcohol Drinking",
+		//				"War","Breast Implants"};
+		//		Map<String, GeneProfile> gene_profiles = g.readGeneProfiles(infile);
+		//		Map<String, ProteinPage> protein_pages = ProteinPage.loadSerializedDir("/Users/bgood/data/bioinfo/protein_template_pages/", 1000000000);
+		//		for(String mesh : terms){
+		//			System.out.println("working on mesh term "+mesh);
+		//			String filename = mesh.replace(",", ":");
+		//			filename = filename.replace(" ", "_");
+		//			String meshout = "/Users/bgood/data/journal_collab/MeSHgeneSets/"+filename+".txt";
+		//			g.makeReportforMeSHterm(gene_profiles, protein_pages, mesh, meshout);
+		//		}
+		g.makeReportsForSemanticGroup(infile, "Chemicals & Drugs", "/Users/bgood/data/journal_collab/MeSHgeneSets/Chemicals_Drugs/");
+
+	}
+
+	public void makeReportsForSemanticGroup(String gene_profile_file, String sgroup, String outfolder){
+		Map<String, GeneProfile> gene_profiles = readGeneProfiles(gene_profile_file);
+		Map<String, ProteinPage> protein_pages = ProteinPage.loadSerializedDir("/Users/bgood/data/bioinfo/protein_template_pages/", 1000000000);
+		Set<String> terms = new HashSet<String>();
+		//get the sgroup
+		List<MeshProfile> mesh_profiles = getMeshTermsInGroup(gene_profile_file, sgroup);
+		for(MeshProfile mpro : mesh_profiles){
+			String mesh = mpro.term;
+			System.out.println("working on mesh term "+mesh);
+			String filename = mesh.replace(",", ":");
+			filename = filename.replace(" ", "_");
+			String meshout = outfolder+filename+".txt";
+			File newfile = new File(meshout);
+			if(!newfile.exists()){
+				try{
+					makeReportforMeSHterm(gene_profiles, protein_pages, mesh, meshout);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	/**
@@ -201,11 +226,13 @@ public class GeneSetSelector {
 				//measure relevance of this gene to this topic, also report pubmed ids..
 				List<String> pubs = gene2pubs.get(gp.page.getNcbi_gene_id());
 				String pmids = "";
-				for(String pub : pubs){
-					Set<String> meshes = pub2meshes.get(pub);
-					if(meshes!=null){
-						if(meshes.contains(term)){
-							pmids+=pub+",";
+				if(pubs!=null){
+					for(String pub : pubs){
+						Set<String> meshes = pub2meshes.get(pub);
+						if(meshes!=null){
+							if(meshes.contains(term)){
+								pmids+=pub+",";
+							}
 						}
 					}
 				}
@@ -232,6 +259,46 @@ public class GeneSetSelector {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+
+	public List<MeshProfile> getMeshTermsInGroup(String infile, String sgroup){
+		List<MeshProfile> mpros = new ArrayList<MeshProfile>();
+		Map<String, GeneProfile> gene_profiles = readGeneProfiles(infile);
+		Map<String, List<GeneProfile>> mesh_profiles = new HashMap<String, List<GeneProfile>>();
+		for(Entry<String, GeneProfile> gene_profile : gene_profiles.entrySet()){
+			String gene_id = gene_profile.getKey();
+			for(String pubmesh : gene_profile.getValue().pub_mesh_freq.keySet()){
+				List<GeneProfile> mp = mesh_profiles.get(pubmesh);
+				if(mp==null){
+					mp = new ArrayList<GeneProfile>();
+				}
+				mp.add(gene_profile.getValue());
+				mesh_profiles.put(pubmesh, mp);
+			}
+		}
+		int c = 0;
+		for(Entry<String, List<GeneProfile>> mesh_profile : mesh_profiles.entrySet()){
+			c++;
+			Set<String> types = db.getSemanticTypesForMeshAtom(mesh_profile.getKey());
+			Set<String> groups = new HashSet<String>();
+			if(types!=null&&types.size()>0){
+				for(String type : types){
+					String group = db.getGroupForStypeName(type);
+					if(group!=null){
+						groups.add(group);
+					}
+				}
+			}
+			if(c%100==0){
+				System.out.println("getting mesh profile number "+c+" "+mesh_profile.getKey()+" "+groups+" "+types);
+			}
+			if(groups.contains(sgroup)){
+				MeshProfile mp = new MeshProfile(mesh_profile.getKey(), mesh_profile.getValue(), groups, types);
+				mpros.add(mp);
+			}
+		}
+		return mpros;
 	}
 
 	/**
@@ -343,7 +410,7 @@ public class GeneSetSelector {
 
 		String getAsString(int maxgenes){
 			String genetext = "";
-			
+
 			int c = 0;
 			for(String gene : genes){
 				c++;
@@ -352,7 +419,7 @@ public class GeneSetSelector {
 					break;
 				}
 			}
-			
+
 			String g = "";
 			if(groups!=null&&groups.size()>0){
 				for(String root : groups){

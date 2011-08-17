@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,8 +41,11 @@ public class NAR2ReportBuilder {
 	public static void main(String[] args) {
 		//getGenePubGoCounts();
 		runGoogleRankAnalysis();
+		
 	}
 
+	
+	
 	public static Map<String, List<String>> getUrlsForGeneSymbols(String google_cache_file){
 		Map<String, List<String>> gene_urls = new HashMap<String, List<String>>();
 		if(google_cache_file!=null){
@@ -94,7 +98,7 @@ public class NAR2ReportBuilder {
 		Map<String, List<String>> gene_urls = getUrlsForGeneSymbols(google_result_cache);
 		String google_rank = "/users/bgood/data/NARupdate2011/google/google_rank.txt";
 		int g = 0;
-		float n_with_gresults = 0; float n_first_page = 0;
+		float n_with_gresults = 0; float n_first_page = 0; float n_gene_cards_not_gw = 0; float n_gene_cards = 0;
 		Map<String, Float> gene_rank = new HashMap<String, Float>();
 		boolean newone = true;
 		for(Gene gene : gene_info.values()){
@@ -104,8 +108,24 @@ public class NAR2ReportBuilder {
 				newone = true;
 			}
 			g++;
-			String wikiurl = "http://en.wikipedia.org/wiki/"+gene_wiki.get(gene.getGeneID());
-			wikiurl.replaceAll(" ", "_");
+			String wikiurl = "http://en.wikipedia.org/wiki/";
+			String title = gene_wiki.get(gene.getGeneID());
+			//some id remapping happened at mygene.info, skip it
+			if(title==null){
+				continue;
+			}
+			title = title.replaceAll(" ", "_");
+			try {
+				title = URLEncoder.encode(title, "UTF-8");
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			//capture exceptions where gogole urls are not fully encoded..
+			title = title.replaceAll("%28", "(");
+			title = title.replaceAll("%29", ")");
+			title = title.replaceAll("%2C", ",");
+			wikiurl = wikiurl+title;
 			System.out.println("on "+g+"\t"+gene.getGeneSymbol()+" fraction on first page = "+n_first_page/n_with_gresults);
 			try {
 				List<String> urls = null;
@@ -126,6 +146,7 @@ public class NAR2ReportBuilder {
 					FileWriter f = new FileWriter(google_result_cache, true);
 					int rank = 1;
 					int wrank = 0;
+					boolean genecards = false;
 					for(String url : urls){
 						if(newone){
 							f.write(gene.getGeneID()+"\t"+gene.getGeneSymbol()+"\t"+rank+"\t"+url+"\n");
@@ -136,6 +157,21 @@ public class NAR2ReportBuilder {
 							n_first_page++;
 						}
 						rank++;
+						if(url.contains("genecards.org")){
+							genecards = true;
+						}
+					}
+					if(genecards){
+						n_gene_cards++;
+					}
+					if(wrank==0){
+						System.out.println("not on first page: "+gene.getGeneSymbol()+" "+wikiurl);
+						FileWriter fr = new FileWriter("/Users/bgood/data/NARupdate2011/google/not_on_first.txt", true);
+						fr.write(gene.getGeneID()+"\t"+gene.getGeneSymbol()+"\t"+wikiurl+"\n");
+						fr.close();
+						if(genecards){
+							n_gene_cards_not_gw++;
+						}
 					}
 					f.close();
 					if(newone){
@@ -169,6 +205,7 @@ public class NAR2ReportBuilder {
 		for(Entry<Float, Integer> val : vals.entrySet()){
 			System.out.println(val.getKey()+"\t"+val.getValue());
 		}
+		System.out.println("\nN gene cards "+n_gene_cards+" n gc not gene wiki "+n_gene_cards_not_gw);
 
 	}
 
