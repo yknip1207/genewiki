@@ -19,6 +19,6 @@ public interface RunnableFactory {
 	 * @return a new copy of your Runnable
 	 */
 	public Runnable newRunnable(List<?> tasks, int id);
-	
+
 
 }

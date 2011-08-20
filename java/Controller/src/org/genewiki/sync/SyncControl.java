@@ -13,7 +13,7 @@ import joptsimple.OptionSet;
 import org.genewiki.StatusMonitor;
 import org.genewiki.concurrent.Distributor;
 import org.genewiki.util.Serialize;
-import org.gnf.pbb.util.FileHandler;
+
 
 import com.google.common.io.Files;
 
@@ -97,12 +97,14 @@ public class SyncControl {
 		} else if (options.hasArgument("f")) {
 			try {
 				GWPages = (List<String>) Serialize.in((String) options.valueOf("f"));
+				/* what is this?
 				FileHandler fh = new FileHandler("export");
 				Files.createParentDirs(fh.getRoot());
 				fh.write("", "gimme.txt", 'o');
 				for (String title : GWPages) {
 					fh.write(title+"\n", "gimme.txt", 'a');
 				}
+				*/
 				System.out.println("Done writing.");
 			} catch (ClassCastException cce) {
 				System.out.println("Could not deserialized specified file into List<String>.");

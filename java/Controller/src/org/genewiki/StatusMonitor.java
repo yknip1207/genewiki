@@ -35,15 +35,15 @@ public enum StatusMonitor {
 	instance;
 	
 	private final Wiki wikipedia;
-	private final String wpUser = "genewikiplus";
-	private final String wpPass = "..";
+	private final String wpUser = "Pleiotrope";
+	private final String wpPass = "Cynosura42";
 	
 	private static final String template = "Template:GNF_Protein_box";
 	
 	private StatusMonitor() {
 		System.out.println("Initializing status monitor...");
 		wikipedia = new Wiki();
-		wikipedia.setMaxLag(10);
+		wikipedia.setMaxLag(0);
 		try {
 			wikipedia.login(wpUser, wpPass.toCharArray());
 		} catch (FailedLoginException e) {
@@ -60,7 +60,7 @@ public enum StatusMonitor {
 	 * @return list of titles for the corresponding articles
 	 */
 	public List<String> getAllGeneWikiPages() {
-	
+		System.out.println("Getting all gene wiki pages...");
 		try {	
 			String[] GWPages = wikipedia.whatTranscludesHere(template, 0);
 			List<String> GWPageTitles = Arrays.asList(GWPages);
@@ -209,8 +209,42 @@ public enum StatusMonitor {
 		return new ArrayList<String>(changed);	
 	}
 	
-	public void export(List<String> titles) {
-		
+	/**
+	 * Returns the number of revisions a certain page has been through.
+	 * @param title
+	 * @return
+	 */
+	public int getRevisionCount(String title) {
+		try {
+			if (title != null){
+				return wikipedia.getPageHistory(title).length;
+			} else {
+				return 0;
+			}
+		} catch (IOException e) {
+			return 0;
+		}
 	}
 	
+	/**
+	 * Makes an attempt to find the Genewiki page that contains the PBB template
+	 * associated with the entrez ID provided. Not guaranteed to find anything, or
+	 * be accurate.
+	 * @param entrez
+	 * @return
+	 * @throws IOException
+	 */
+	public String getGWPageFromEntrez(String entrez) throws IOException {
+		String[] linked = wikipedia.whatEmbedsThis("Template:PBB/"+entrez, 0, false);
+		
+		if (linked.length != 0) {
+			return linked[0];
+		} else {
+			return null;
+		}
+	}
+	
+	public Wiki getWiki() {
+		return this.wikipedia;
+	}
 }

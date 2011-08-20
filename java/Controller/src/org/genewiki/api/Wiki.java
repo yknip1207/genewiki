@@ -621,7 +621,7 @@ public class Wiki implements Serializable
     static
     {
         logger.logp(Level.CONFIG, "Wiki", "<init>", "Using Wiki.java " + version);
-        logger.setLevel(Level.OFF);
+        logger.setLevel(Level.CONFIG);
     }
 
     /**
@@ -1440,9 +1440,14 @@ public class Wiki implements Serializable
         info.put("exists", exists);
         if (exists)
         {
+        	// page id
+        	int a = line.indexOf("pageid=\"") + 8;
+        	int b = line.indexOf('\"', a);
+        	info.put("pageid", Integer.parseInt(line.substring(a, b)));
+        	
             // last edit time
-            int a = line.indexOf("touched=\"") + 9;
-            int b = line.indexOf('\"', a);
+            a = line.indexOf("touched=\"") + 9;
+            b = line.indexOf('\"', a);
             info.put("lastpurged", timestampToCalendar(convertTimestamp(line.substring(a, b))));
 
             // last revid
@@ -2140,7 +2145,8 @@ public class Wiki implements Serializable
      */
     public Revision getFirstRevision(String title) throws IOException
     {
-        String url = query + "action=query&prop=revisions&rvlimit=1&rvdir=newer&titles=" + URLEncoder.encode(title, "UTF-8");
+        String url = query + "action=query&prop=revisions&rvlimit=1&rvdir=newer" +
+        		"&rvprop=ids|size|user|flags|timestamp&titles=" + URLEncoder.encode(title, "UTF-8");
         String line = fetch(url, "getFirstRevision", false);
         int a = line.indexOf("<rev");
         int b = line.indexOf("/>", a);
@@ -2178,6 +2184,7 @@ public class Wiki implements Serializable
         StringBuilder url = new StringBuilder(query);
         url.append("action=query&prop=revisions&rvlimit=max&titles=");
         url.append(URLEncoder.encode(title, "UTF-8"));
+        url.append("&rvprop=size");
         if (end != null)
         {
             url.append("&rvend=");
@@ -2661,6 +2668,11 @@ public class Wiki implements Serializable
         b = xml.indexOf('\"', a);
         Calendar timestamp = timestampToCalendar(convertTimestamp(xml.substring(a, b)));
 
+        // size
+        a = xml.indexOf("size=\"") + 6;
+        b = xml.indexOf('\"', a);
+        long size = Long.parseLong(xml.substring(a, b));
+        
         // title
         if (title.isEmpty())
         {
@@ -3849,6 +3861,51 @@ public class Wiki implements Serializable
         while (!next.equals("done"));
 
         log(Level.INFO, "Successfully retrieved " + (redirects ? "redirects to " : "links to ") + title + " (" + pages.size() + " items)", "whatLinksHere");
+        return pages.toArray(new String[0]);
+    }
+    
+    public String[] whatEmbedsThis(String title, int namespace, boolean redirects) throws IOException {
+    	StringBuilder url = new StringBuilder(query);
+        url.append("action=query&list=embeddedin&eilimit=max&eititle=");
+        url.append(URLEncoder.encode(title, "UTF-8"));
+        if (namespace != ALL_NAMESPACES)
+        {
+            url.append("&einamespace=");
+            url.append(namespace);
+        }
+        if (redirects)
+            url.append("&eifilterredir=redirects");
+
+        // main loop
+        ArrayList<String> pages = new ArrayList<String>(6667); // generally enough
+        String temp = url.toString();
+        String next = "";
+        do
+        {
+            // fetch data
+            String line = fetch(temp + next, "whatEmbedsThis", false);
+
+            // set next starting point
+            if (line.contains("eicontinue"))
+            {
+                int a = line.indexOf("eicontinue=\"") + 12;
+                int b = line.indexOf('\"', a);
+                next = "&eicontinue=" + line.substring(a, b);
+            }
+            else
+                next = "done";
+
+            // parse items
+            while (line.contains("title"))
+            {
+                int x = line.indexOf("title=\"");
+                int y = line.indexOf("\" ", x);
+                pages.add(decode(line.substring(x + 7, y)));
+                line = line.substring(y + 4);
+            }
+        }
+        while (!next.equals("done"));
+
         return pages.toArray(new String[0]);
     }
 
@@ -5662,6 +5719,7 @@ public class Wiki implements Serializable
         private Calendar timestamp;
         private String user;
         private String title;
+        private long size;
         private String rollbacktoken = null;
 
         /**
@@ -5936,6 +5994,10 @@ public class Wiki implements Serializable
         public Calendar getTimestamp()
         {
             return timestamp;
+        }
+        
+        public long getSize() {
+        	return size;
         }
 
         /**
@@ -6447,7 +6509,7 @@ public class Wiki implements Serializable
      *  @see #calendarToTimestamp
      *  @since 0.08
      */
-    protected final Calendar timestampToCalendar(String timestamp)
+    public static final Calendar timestampToCalendar(String timestamp)
     {
         GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         int year = Integer.parseInt(timestamp.substring(0, 4));
