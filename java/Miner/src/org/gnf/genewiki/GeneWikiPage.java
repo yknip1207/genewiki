@@ -198,7 +198,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
-		testParseGeneWikiPage("Melatonin receptor 1B");
+		testParseGeneWikiPage("PTK2");
 
 	}
 
@@ -207,13 +207,20 @@ public class GeneWikiPage implements Serializable, Comparable{
 		prot.setTitle(title);
 		prot.defaultPopulate();
 
-		System.out.println("Headings");
+		System.out.println("Headings "+prot.getHeadings().size());
 		for(Heading h : prot.getHeadings()){
 			System.out.println(h.getPrettyText());
 		}
 		int refindex = prot.getPageContent().lastIndexOf("References");
 		
-		System.out.println("Sentences and references");
+		System.out.println("Sentences "+prot.getSentences().size());
+		System.out.println("References "+prot.getRefs().size());
+		System.out.println("ext links "+prot.getExtlinks().size());
+		
+		for(String link : prot.getExtlinks()){
+			System.out.println(link);
+		}
+		
 		for (Sentence sentence : prot.getSentences()) {
 			List<Reference> refs = prot.getRefsForSentence(sentence, refindex);
 			System.out.println(sentence.getStartIndex()+"-"+sentence.getStopIndex()+" "+sentence.getPrettyText());
@@ -221,6 +228,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 				System.out.println("\t"+ref);
 			}
 		}
+		
 
 	}
 	

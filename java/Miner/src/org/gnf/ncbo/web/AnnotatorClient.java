@@ -26,7 +26,7 @@ public class AnnotatorClient {
 		String text = "breast cancer and Schizophrenia are diseases, Tubulin and NG2 are genes, and Hydroxyzine is a drug.";// "Some apoptosis of the [[atypical antipsychotic]]s like [[aripiprazole]] are also [[partial agonist]]s at the 5-HT1A receptor and are sometimes used in low doses as augmentations to standard [[antidepressant]]s like the [[selective serotonin reuptake inhibitor]]s (SSRIs).";
 		boolean useGO = true; boolean useDO = true; boolean useFMA = false; boolean usePRO = true; boolean useOMIM = false; boolean useDrug = true;
 		boolean allowSynonyms = true;
-		List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms, Ontologies.MESH_ONT); //, useGO, useDO, useFMA, usePRO, useOMIM, useDrug
+		List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms); //, useGO, useDO, useFMA, usePRO, useOMIM, useDrug
 		//List<NcboAnnotation> annos = ncboAnnotateText(text, allowSynonyms);
 		
 		for(NcboAnnotation anno : annos){

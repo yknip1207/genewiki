@@ -31,6 +31,7 @@ import org.gnf.genewiki.associations.Filter;
 import org.gnf.genewiki.mapping.GenericTextToAnnotation;
 import org.gnf.genewiki.metrics.VolumeReport;
 import org.gnf.genewiki.ncbi.PubMed;
+import org.gnf.mesh.MeshRDF;
 import org.gnf.ncbo.Ontologies;
 import org.gnf.ncbo.web.AnnotatorClient;
 import org.gnf.ncbo.web.NcboAnnotation;
@@ -42,6 +43,8 @@ import org.gnf.util.BioInfoUtil;
 import org.gnf.util.MapFun;
 import org.gnf.util.MyGeneInfo;
 import org.gnf.util.SetComparison;
+
+import com.hp.hpl.jena.ontology.OntClass;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -69,6 +72,7 @@ public class GeneSetSelector {
 	Map<String, String> gene2gwtitle;
 	Map<String, Double> mesh2pubmedfreq;
 	UmlsDb db;
+	MeshRDF meshtree;
 
 
 	public GeneSetSelector() {
@@ -80,6 +84,7 @@ public class GeneSetSelector {
 		gw2meshes = getCachedGWMeshMap(gw_mesh_cache);
 		mesh2pubmedfreq = new HashMap<String, Double>();
 		db = new UmlsDb();
+		meshtree = new MeshRDF();
 
 		double total = 0;
 		//make counts
@@ -148,8 +153,8 @@ public class GeneSetSelector {
 		///////////////////
 		//Identify interesting MeSH topics
 		//////////////////
-		//String meshoutfile = "/Users/bgood/data/journal_collab/mesh_data.txt";
-		//g.buildMeshProfiles(infile, meshoutfile);
+		String meshoutfile = "/Users/bgood/data/journal_collab/mesh_data.txt";
+		g.buildMeshProfiles(infile, meshoutfile);
 
 		///////////////////
 		//build some specific reports
@@ -171,7 +176,7 @@ public class GeneSetSelector {
 		//			String meshout = "/Users/bgood/data/journal_collab/MeSHgeneSets/"+filename+".txt";
 		//			g.makeReportforMeSHterm(gene_profiles, protein_pages, mesh, meshout);
 		//		}
-		g.makeReportsForSemanticGroup(infile, "Chemicals & Drugs", "/Users/bgood/data/journal_collab/MeSHgeneSets/Chemicals_Drugs/");
+		//g.makeReportsForSemanticGroup(infile, "Chemicals & Drugs", "/Users/bgood/data/journal_collab/MeSHgeneSets/Chemicals_Drugs/");
 
 	}
 
@@ -363,14 +368,16 @@ public class GeneSetSelector {
 		"Mesh_Term\t"+
 		"Semantic Groups\t"+
 		"Semantic Types\t"+
+		"MeSH root\t"+
+		"MeSH parents\t"+
 		"Overall_pubmed_frequency\t"+
 		"Gene_count\t"+
 		"Median_overlap_in_genes\t" +
-		"N genes linked to term more than once\t" +
+		"N genes linked to term more than once\t";
 		//		"Mean_overlap_in_genes\t" +
 		//		"Max_overlap_in_in_genes\t" +
 		//		"Min_overlap_in_in_genes\t" +
-		"Genes\t";		
+		//"Genes\t";		
 	}
 
 	class MeshProfile{
@@ -382,9 +389,27 @@ public class GeneSetSelector {
 		DescriptiveStatistics f_overlaps;
 		DescriptiveStatistics intersects;
 		Set<String> genes;
+		Set<String> parents;
+		String meshroot;
 
 		MeshProfile(String t, List<GeneProfile> gene_profiles, Set<String> groups_, Set<String> types_){
 			term = t;
+			//having an issue with repeated queries eating up all the memory, going to virtual private memory, slowing down, and crashing..
+			//adding timer to reload when that starts happening
+			long time = System.currentTimeMillis();
+			OntClass mc = meshtree.getTermByLabel(t);
+			if(mc!=null){
+				parents = meshtree.getFamily(mc, true);
+				if(parents!=null){
+					meshroot = meshtree.getRoot(parents);
+				}
+			}
+			time = (System.currentTimeMillis() - time)/1000;
+			if(time>3){
+				System.out.println("Reloading mesh ontology");
+				meshtree.reload();
+			}
+			
 			n_genes = gene_profiles.size();
 			f_overlaps = new DescriptiveStatistics();
 			intersects = new DescriptiveStatistics();
@@ -411,14 +436,14 @@ public class GeneSetSelector {
 		String getAsString(int maxgenes){
 			String genetext = "";
 
-			int c = 0;
-			for(String gene : genes){
-				c++;
-				genetext+=gene+",";
-				if(c>=maxgenes){
-					break;
-				}
-			}
+//			int c = 0;
+//			for(String gene : genes){
+//				c++;
+//				genetext+=gene+",";
+//				if(c>=maxgenes){
+//					break;
+//				}
+//			}
 
 			String g = "";
 			if(groups!=null&&groups.size()>0){
@@ -434,17 +459,26 @@ public class GeneSetSelector {
 				}
 				t = t.substring(0,t.length()-1);
 			}
+			String meshparents = "";
+			if(parents!=null){
+				for(String p : parents){
+					meshparents += p+" ; ";
+				}
+			}
+			
 			return term+"\t"+
 			g+"\t"+
 			t+"\t"+
+			meshroot+"\t"+
+			meshparents+"\t"+
 			mesh2pubmedfreq.get(term)+"\t"+
 			n_genes+"\t"+
 			f_overlaps.getPercentile(50)+"\t"+
-			n_multi_linked_genes+"\t"+
+			n_multi_linked_genes+"\t";
 			//	f_overlaps.getMean()+"\t"+
 			//	f_overlaps.getMax()+"\t"+
 			//	f_overlaps.getMin()+"\t"+
-			genetext+"\t";
+			//genetext+"\t";
 		}
 	}
 
