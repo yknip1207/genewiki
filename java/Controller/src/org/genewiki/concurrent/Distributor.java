@@ -104,7 +104,6 @@ public class Distributor<K> {
 		println("Tasks completed.");
 	}
 	
-	
 	/* ---- PRIVATE METHODS ---- */
 	private void println(String str) {
 		System.out.println(str);
