@@ -8,14 +8,17 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Calendar;
 
-import org.sqlite.*;
-
 /**
- * Manages the Metrics database.
+ * Manages the Metrics database. All methods are 
+ * synchronized around an internal lock object 
+ * to prevent simultaneous write access attempts 
+ * (which would lead to a SQLException- SQLite 
+ * has only single-threaded write access.)
  * @author eclarke
  *
  */
@@ -24,7 +27,6 @@ public enum MetricsDatabase {
 	instance;
 	
 	private final Object lock = new Object(); // Synchronize on this to prevent conflicting write locks
-	private final Object lock2 = new Object();
 	private final String dbName = "metrics.db";
 	
 	private MetricsDatabase() { }
@@ -36,10 +38,7 @@ public enum MetricsDatabase {
 	
 	public void insertPageRow(
 			String title, int id, int entrez, int revs) throws SQLException {
-		
-		System.out.println("Waiting to write to Page table...");
 		synchronized (lock) {
-			System.out.println("Writing to Page table...");
 			Connection connection = this.connect();
 			PreparedStatement prep = connection.prepareStatement("insert into pages values (?,?,?,?);");
 			prep.setString(1, title);
@@ -54,18 +53,32 @@ public enum MetricsDatabase {
 		}
 	}
 	
-	public void insertPageViewRow(
-			int id, int month, int year, int views) throws SQLException {
-		
-		System.out.println("Waiting to write to Page_view table...");
-		synchronized (lock) {
-			System.out.println("Writing to Page_view table...");
+	public void updatePageInfo(int id, int pubmed_refs, int size) throws SQLException {
+		synchronized(lock) {
 			Connection connection = this.connect();
-			PreparedStatement prep = connection.prepareStatement("insert into page_views values (?,?,?,?);");
+			PreparedStatement prep = connection.prepareStatement("update page_info set pubmed_refs=? where page_id=?;");
+			prep.setInt(1, pubmed_refs);
+			prep.setInt(2, id);
+			prep.addBatch();
+			connection.setAutoCommit(false);
+			prep.executeBatch();
+			connection.setAutoCommit(true);
+			connection.close();
+		}
+	}
+	
+	
+	
+	public void insertPageViewRow(
+			int id, int month, int year, int views, int revs) throws SQLException {
+		synchronized (lock) {
+			Connection connection = this.connect();
+			PreparedStatement prep = connection.prepareStatement("insert into page_views values (?,?,?,?,?);");
 			prep.setInt(1, id);
 			prep.setInt(2, month);
 			prep.setInt(3, year);
 			prep.setInt(4, views);
+			prep.setInt(5, revs);
 			prep.addBatch();
 			connection.setAutoCommit(false);
 			prep.executeBatch();
@@ -76,9 +89,9 @@ public enum MetricsDatabase {
 	
 	public void insertEditorRow(
 			String editor, boolean is_bot, int page_id, long bytes_changed) throws SQLException {
-		System.out.println("Waiting to write to Editors table...");
+		
 		synchronized(lock) {
-			System.out.println("Writing to Editors table...");
+
 			Connection connection = this.connect();
 			PreparedStatement prep = connection.prepareStatement("insert into editors values (?,?,?,?);");
 			prep.setString(1, editor);
@@ -94,26 +107,26 @@ public enum MetricsDatabase {
 	}
 	
 	public void insertPageInfoRow(
-			int id, int bytes, int words, int links_out, int links_in, int external,
+			int id, String title, int entrez, int revs, int bytes, int words, int links_out, int links_in, int external,
 			int pubmed_refs, int redirects, int sentences, int media) throws SQLException {
-		try { Class.forName("org.sqlite.JDBC"); }
-		catch (ClassNotFoundException e) { e.printStackTrace(); };
-		System.out.println("Waiting to write to Page_info table...");
+
 		synchronized (lock) {
-			System.out.println("Writing to Page_info table...");
 			Connection connection = this.connect();
 			PreparedStatement prep = connection.prepareStatement("insert into page_info values (" +
-					"?,?,?,?,?,?,?,?,?,?);");
+					"?,?,?,?,?,?,?,?,?,?,?,?,?);");
 			prep.setInt(1, id);
-			prep.setInt(2, bytes);
-			prep.setInt(3, words);
-			prep.setInt(4, links_out);
-			prep.setInt(5, links_in);
-			prep.setInt(6, external);
-			prep.setInt(7, pubmed_refs);
-			prep.setInt(8, redirects);
-			prep.setInt(9, sentences);
-			prep.setInt(10, media);
+			prep.setString(2, title);
+			prep.setInt(3, entrez);
+			prep.setInt(4, revs);
+			prep.setInt(5, bytes);
+			prep.setInt(6, words);
+			prep.setInt(7, links_out);
+			prep.setInt(8, links_in);
+			prep.setInt(9, external);
+			prep.setInt(10, pubmed_refs);
+			prep.setInt(11, redirects);
+			prep.setInt(12, sentences);
+			prep.setInt(13, media);
 			prep.addBatch();
 			connection.setAutoCommit(false);
 			prep.executeBatch();
@@ -124,18 +137,48 @@ public enum MetricsDatabase {
 	}
 	
 	public void insertRevisionRow(
-			long rev_id, Calendar date, int page_id, long bytes_changed) throws SQLException {
-		try { Class.forName("org.sqlite.JDBC"); }
-		catch (ClassNotFoundException e) { e.printStackTrace(); };
-		System.out.println("Waiting to write to Revisions table...");
+			long rev_id, Calendar date, int page_id, long bytes_changed, String editor, boolean is_bot) throws SQLException {
+
 		synchronized (lock) {
-			System.out.println("Writing to revisions table...");
 			Connection connection = this.connect();
-			PreparedStatement prep = connection.prepareStatement("insert into revisions values (?,?,?,?);");
+			PreparedStatement prep = connection.prepareStatement("insert into revisions values (?,?,?,?,?,?);");
 			prep.setLong(1, rev_id);
 			prep.setDate(2, new Date(date.getTimeInMillis()));
 			prep.setInt(3, page_id);
 			prep.setLong(4, bytes_changed);
+			prep.setString(5, editor);
+			prep.setBoolean(6, is_bot);
+			prep.addBatch();
+			connection.setAutoCommit(false);
+			prep.executeBatch();
+			connection.setAutoCommit(true);
+			connection.close();
+		}
+	}
+	
+	public int getRevisionsBetweenDates(int page_id, Calendar start, Calendar end) throws SQLException {
+		long fStart = start.getTimeInMillis();
+		long fEnd = end.getTimeInMillis();
+		synchronized(lock) {
+			Connection connection = this.connect();
+			Statement statement = connection.createStatement();
+			
+			ResultSet rs = statement.executeQuery(
+					"select count(rev_id) from revisions where time between "+fEnd+" and "+fStart+";");
+			connection.close();
+			return rs.getInt("count(rev_id)");	
+		}
+	}
+	
+	public void updatePageViews(int page_id, int rev_count, int month, int year) throws SQLException {
+		synchronized(lock) {
+			Connection connection = this.connect();
+			PreparedStatement prep = connection.prepareStatement("" +
+					"update page_views set rev_count=? where page_id=? and month=? and year=?;");
+			prep.setInt(1, rev_count);
+			prep.setInt(2, page_id);
+			prep.setInt(3, month);
+			prep.setInt(4, year);
 			prep.addBatch();
 			connection.setAutoCommit(false);
 			prep.executeBatch();
@@ -148,9 +191,7 @@ public enum MetricsDatabase {
 	/**
 	 * Creates database with the following tables:
 	 * <code>
-	 * <p>pages: String title | int id | int entrez | int views | int bytes_changed | int revs
 	 * <p>page_views: int page_id | int month | int year | int views
-	 * <p>editors: String name | bool isBot | int page_id | int bytes_changed
 	 * <p>page_info: int page_id | int bytes | int words | int links_out | int links_in | int external
 	 * | int pubmed_refs | int redirects | int sentences | int media
 	 * <p>revisions: int rev_id | Date date | int page_id | int bytes_changed
@@ -167,25 +208,20 @@ public enum MetricsDatabase {
 			Class.forName("org.sqlite.JDBC");
 			Connection con = DriverManager.getConnection("jdbc:sqlite:"+db);
 			Statement stat = con.createStatement();
-			stat.executeUpdate("drop table if exists pages;");
-			stat.executeUpdate("create table pages(title, id, entrez, revs);");
-			
 			stat.executeUpdate("drop table if exists page_views;");
-			stat.executeUpdate("create table page_views(page_id, month, year, views);");
-			
-			stat.executeUpdate("drop table if exists editors;");
-			stat.executeUpdate("create table editors(name, is_bot, page_id, bytes_changed);");
+			stat.executeUpdate("create table page_views(page_id, month, year, views, rev_count);");
 			
 			stat.executeUpdate("drop table if exists page_info;");
 			stat.executeUpdate("create table page_info(" +
-					"page_id, bytes, words, links_out, links_in, external, pubmed_refs, redirects, sentences, media);");
+					"page_id, title, entrez, revs, bytes, words, links_out, links_in, external, " +
+					"pubmed_refs, redirects, sentences, media);");
 
 			stat.executeUpdate("drop table if exists revisions;");
-			stat.executeUpdate("create table revisions(rev_id, time, page_id, bytes_changed);");
+			stat.executeUpdate("create table revisions(rev_id, time, page_id, bytes_changed, editor, is_bot);");
 			
 			stat.executeUpdate("drop table if exists ontology;");
 			stat.executeUpdate("create table ontology(page_id, ontology_term, ont_id, ontology, date);");			
-			
+			System.out.println("Done.");
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -193,7 +229,7 @@ public enum MetricsDatabase {
 		}
 	}
 	
-	private Connection connect() throws SQLException {
+	public Connection connect() throws SQLException {
 		try { Class.forName("org.sqlite.JDBC"); }
 		catch (ClassNotFoundException e) { e.printStackTrace(); };
 		return DriverManager.getConnection("jdbc:sqlite:"+dbName);
