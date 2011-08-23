@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/jwbf/!svn/ver/263/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util
+END
+SupportedBy.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/jwbf/!svn/ver/232/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util/SupportedBy.java
+END
+MWAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/jwbf/!svn/ver/263/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util/MWAction.java
+END
+VersionException.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/jwbf/!svn/ver/232/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util/VersionException.java
+END
+RedirectFilter.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svnroot/jwbf/!svn/ver/232/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util/RedirectFilter.java
+END
+ApiException.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/jwbf/!svn/ver/232/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/util/ApiException.java
+END

@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/jwbf/!svn/ver/325/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki
+END
+NsTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/jwbf/!svn/ver/295/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/NsTest.java
+END
+MediaWikiTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/jwbf/!svn/ver/309/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/MediaWikiTest.java
+END
+VersionDetectionTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/jwbf/!svn/ver/234/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/VersionDetectionTest.java
+END
+SimpleCacheMWBotTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/jwbf/!svn/ver/247/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/SimpleCacheMWBotTest.java
+END
+LiveTestFather.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/jwbf/!svn/ver/309/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/LiveTestFather.java
+END
+BotFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/jwbf/!svn/ver/307/trunk/jwbf/test/net/sourceforge/jwbf/mediawiki/BotFactory.java
+END
