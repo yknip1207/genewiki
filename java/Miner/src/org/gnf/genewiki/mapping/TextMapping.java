@@ -9,6 +9,8 @@ public class TextMapping implements Comparable{
 	String concept_id;
 	String concept_preferred_term;
 	String ontology_id;
+	String ontology_name;
+	String purl;
 	String evidence;
 	double score;
 	
@@ -29,6 +31,7 @@ public class TextMapping implements Comparable{
 			this.concept_id = anno.getConcept().getLocalConceptId();
 			this.concept_preferred_term = anno.getConcept().getPreferredName();
 			this.ontology_id = anno.getConcept().getLocalOntologyId();
+			this.purl = anno.getConcept().getFullId();
 			this.evidence = evidence_context+"_direct";
 			this.score = anno.getScore();
 		}else{
@@ -130,6 +133,22 @@ public class TextMapping implements Comparable{
 
 	public void setConcept_preferred_term(String concept_preferred_term) {
 		this.concept_preferred_term = concept_preferred_term;
+	}
+
+	public String getOntology_name() {
+		return ontology_name;
+	}
+
+	public void setOntology_name(String ontology_name) {
+		this.ontology_name = ontology_name;
+	}
+
+	public String getPurl() {
+		return purl;
+	}
+
+	public void setPurl(String purl) {
+		this.purl = purl;
 	}
 	
 }

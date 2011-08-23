@@ -455,7 +455,8 @@ public class SNPediaMashup {
 						f = new FileWriter(outfile, true);		
 						if(worked){
 							System.out.println("#Processing text with NCBO Annotator...\n");
-							List<CandidateAnnotation> annos = GeneWikiPageMapper.annotateArticleNCBO(d_page, allowSynonyms, useGO, useDO, useFMA, usePRO);
+							GeneWikiPageMapper m = new GeneWikiPageMapper();
+							List<CandidateAnnotation> annos = m.annotateArticleNCBO(d_page, allowSynonyms, useGO, useDO, useFMA, usePRO);
 							if(annos!=null&&annos.size()>0){
 								System.out.println("#Entrez_gene\tArticle_title\tSection_header\tMost_recent_editor\tScore_from_Annotator\tNCBO_ont_id/Term_id\tTerm_name\tSurrounding_text\tInline-references");
 								for(CandidateAnnotation anno : annos){

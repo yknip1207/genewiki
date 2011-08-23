@@ -198,7 +198,7 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
-		testParseGeneWikiPage("PTK2");
+		testParseGeneWikiPage("NAP1L1");
 
 	}
 

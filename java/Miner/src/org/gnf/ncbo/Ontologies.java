@@ -58,12 +58,14 @@ public class Ontologies {
 					HttpMethodParams.USER_AGENT,
 					"Java1.6"
 			);
-			GetMethod method = new GetMethod("http://rest.bioontology.org/obs/ontologies");
-			// Execute the GET method
-			int statusCode = client.executeMethod(method);
+			
+			GetMethod get = new GetMethod("http://rest.bioontology.org/obs/ontologies?apikey=0d1e8183-6485-4866-8b8a-cbc35e8e77cc");
+			
+			
+			int statusCode = client.executeMethod(get);
 			if( statusCode != -1 && statusCode != 500) {
-				String contents = method.getResponseBodyAsString();
-				method.releaseConnection();
+				String contents = get.getResponseBodyAsString();
+				get.releaseConnection();
 
 				SAXBuilder builder = new SAXBuilder();
 				Document doc = builder.build(new ByteArrayInputStream(contents.getBytes("UTF-8")));

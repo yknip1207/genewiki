@@ -1,6 +1,8 @@
 package org.gnf.ncbo.web;
 
-public class NcboAnnotation {
+import org.gnf.genewiki.GeneWikiPage;
+
+public class NcboAnnotation implements Comparable{
 
 	double score;
 	Concept concept;
@@ -36,5 +38,30 @@ public class NcboAnnotation {
 			context.getFrom()+"\t"+context.getTo();
 		}
 	}
+	@Override
+	public int compareTo(Object o) {
+		if(! (o instanceof NcboAnnotation)){
+			return -1;
+		}
+		NcboAnnotation target = (NcboAnnotation)o;
+		return(this.getConcept().getFullId().compareTo(target.getConcept().getFullId()));
+	}
+
 	
+	@Override
+	public boolean equals(Object o) {
+		if(! (o instanceof NcboAnnotation)){
+			return false;
+		}
+		NcboAnnotation target = (NcboAnnotation)o;
+		return(this.getConcept().getFullId().equals(target.getConcept().getFullId()));
+	}
+
+	@Override
+	public int hashCode() {
+		int code = this.getConcept().getFullId().hashCode();
+		code = 31 * code;
+		return code;
+	}
+
 }

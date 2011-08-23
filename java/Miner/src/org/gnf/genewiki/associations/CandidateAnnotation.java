@@ -29,8 +29,10 @@ public class CandidateAnnotation implements Comparable{
 	String target_accession;
 	String target_preferred_term;
 	String target_vocabulary;
-	String vocabulary_branch;
-
+	String target_vocabulary_id;
+	String vocabulary_branch; //if available - e.g. biological process, molecular function, cellular component from GO
+	String target_uri;
+	
 	//information about the process used to establish the map from the target page to the vocabulary concept
 	String string_matching_method; //for GO link-mined, its one of {target_page_title||target_page_redirect --to-- term_preferred||term_syn_exact||term_syn_broader||term_syn_narrower||term_syn_related} 	
 
@@ -42,7 +44,7 @@ public class CandidateAnnotation implements Comparable{
 	boolean isPBB;
 	boolean hasBackLink;
 	
-	//wikitrust
+	//wikitrust scores
 	double wikitrust_page;
 	double wikitrust_sentence;
 	String wt_block;
@@ -139,13 +141,15 @@ public class CandidateAnnotation implements Comparable{
 		"Article_length\t"+
 //		"Target_wiki_page_title\t" +
 		"Target_accession\t" +
+		"Target_uri\t"+
 		"Target_preferred_term\t"+
 		"Target_vocabulary\t"+
+		"Target_vocabulary_id\t"+
 		"Vocabulary_branch\t" +
 		"Evidence\t"+
 		"Surrounding sentence\t"+
-		"References\t"+
-		"Is PBB\t";
+		"References\t";
+//		"Is PBB\t";
 //		"has backlink\t";
 //		"Tool\t" +
 //		"Method\t";
@@ -171,8 +175,10 @@ public class CandidateAnnotation implements Comparable{
 			this.getContentLength()+"\t"+
 	//		this.getTarget_wiki_page_title()+"\t"+
 			this.getTarget_accession()+"\t"+
+			this.getTarget_uri()+"\t"+
 			this.getTarget_preferred_term()+"\t"+
 			this.getTarget_vocabulary()+"\t"+
+			this.getTarget_vocabulary_id()+"\t"+
 			this.getVocabulary_branch()+"\t"+
 			this.getString_matching_method()+"\t";
 
@@ -191,7 +197,7 @@ public class CandidateAnnotation implements Comparable{
 		}else{
 			out+= "\t";
 		}
-		out+=this.isPBB()+"\t";
+//		out+=this.isPBB()+"\t";
 //		out+=this.isHasBackLink()+"\t";
 //		out+=this.getAnnotationTool()+"\t";
 //		out+=this.getAnnotationMethod()+"\t";
@@ -425,6 +431,22 @@ public class CandidateAnnotation implements Comparable{
 
 	public void setContentLength(int contentLength) {
 		this.contentLength = contentLength;
+	}
+
+	public String getTarget_uri() {
+		return target_uri;
+	}
+
+	public void setTarget_uri(String target_uri) {
+		this.target_uri = target_uri;
+	}
+
+	public String getTarget_vocabulary_id() {
+		return target_vocabulary_id;
+	}
+
+	public void setTarget_vocabulary_id(String target_vocabulary_id) {
+		this.target_vocabulary_id = target_vocabulary_id;
 	}
 
 }

@@ -22,6 +22,7 @@ public class AnnotateGwikiSimple {
 			System.out.println(getUsage());
 			return;
 		}
+		GeneWikiPageMapper m = new GeneWikiPageMapper();
 		String title = args[0];
 		//get the page
 		GeneWikiPage page = new GeneWikiPage(title);
@@ -33,7 +34,7 @@ public class AnnotateGwikiSimple {
 		boolean allowSynonyms = false; boolean useGO = true;  boolean useDO = true; boolean useFMA = false; boolean usePRO = false;
 		if(worked){
 			System.out.println("#Processing text with NCBO Annotator...\n");
-			List<CandidateAnnotation> annos = GeneWikiPageMapper.annotateArticleNCBO(page, allowSynonyms, useGO, useDO, useFMA, usePRO);
+			List<CandidateAnnotation> annos = m.annotateArticleNCBO(page, allowSynonyms, useGO, useDO, useFMA, usePRO);
 			if(annos!=null&&annos.size()>0){
 				System.out.println("#Entrez_gene\tArticle_title\tSection_header\tMost_recent_editor\tScore_from_Annotator\tNCBO_ont_id/Term_id\tTerm_name\tSurrounding_text\tInline-references");
 				for(CandidateAnnotation anno : annos){

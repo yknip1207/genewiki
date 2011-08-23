@@ -35,6 +35,7 @@ public class Concept {
 	
 	public Concept(Element concept){
 		setId(concept.getChildText("id"));
+		setFullId(concept.getChildText("fullId"));
 		setLocalConceptId(concept.getChildText("localConceptId"));
 		setTopLevel(Boolean.parseBoolean(concept.getChildText("isTopLevel")));
 		setLocalOntologyId(concept.getChildText("localOntologyId"));
