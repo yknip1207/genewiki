@@ -2,7 +2,7 @@ package edu.scripps.testing;
 
 import java.util.LinkedHashMap;
 
-import org.gnf.pbb.util.ConfigParser;
+import org.genewiki.pbb.util.ConfigParser;
 
 public class ConfigParserTest {
 	

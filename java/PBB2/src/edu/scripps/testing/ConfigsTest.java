@@ -1,7 +1,7 @@
 package edu.scripps.testing;
 
-import org.gnf.pbb.Configs;
-import org.gnf.pbb.exceptions.ConfigException;
+import org.genewiki.pbb.Configs;
+import org.genewiki.pbb.exceptions.ConfigException;
 
 public class ConfigsTest {
 	
