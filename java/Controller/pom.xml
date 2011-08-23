@@ -15,5 +15,22 @@
     	<artifactId>jopt-simple</artifactId>
     	<version>3.3</version>
     </dependency>
+    <dependency>
+    	<groupId>com.google.guava</groupId>
+    	<artifactId>guava-concurrent</artifactId>
+    	<version>r03</version>
+    	<type>jar</type>
+    	<scope>compile</scope>
+    </dependency>
+    <dependency>
+    	<groupId>commons-daemon</groupId>
+    	<artifactId>commons-daemon</artifactId>
+    	<version>1.0.5</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.xerial</groupId>
+    	<artifactId>sqlite-jdbc</artifactId>
+    	<version>3.7.2</version>
+    </dependency>
   </dependencies>
 </project>
