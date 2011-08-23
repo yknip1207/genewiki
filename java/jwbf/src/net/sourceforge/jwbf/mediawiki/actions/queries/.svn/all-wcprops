@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/jwbf/!svn/ver/326/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries
+END
+TemplateUserTitles.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/TemplateUserTitles.java
+END
+CategoryMembersSimple.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/CategoryMembersSimple.java
+END
+BacklinkTitles.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/BacklinkTitles.java
+END
+LogEvents.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/jwbf/!svn/ver/301/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/LogEvents.java
+END
+TitleQuery.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/jwbf/!svn/ver/232/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/TitleQuery.java
+END
+CategoryMembers.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/jwbf/!svn/ver/326/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/CategoryMembers.java
+END
+AllPageTitles.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/jwbf/!svn/ver/324/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/AllPageTitles.java
+END
+CategoryMembersFull.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/CategoryMembersFull.java
+END
+RecentchangeTitles.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/RecentchangeTitles.java
+END
+ImageUsageTitles.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/ImageUsageTitles.java
+END
+ImageInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/jwbf/!svn/ver/278/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/queries/ImageInfo.java
+END

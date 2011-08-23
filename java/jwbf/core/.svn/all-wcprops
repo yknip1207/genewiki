@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svnroot/jwbf/!svn/ver/235/trunk/jwbf/core
+END
+pom.xml
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svnroot/jwbf/!svn/ver/219/trunk/jwbf/core/pom.xml
+END
+build-mvn.xml
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svnroot/jwbf/!svn/ver/227/trunk/jwbf/core/build-mvn.xml
+END

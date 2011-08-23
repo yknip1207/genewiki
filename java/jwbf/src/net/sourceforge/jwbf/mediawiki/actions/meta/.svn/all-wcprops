@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svnroot/jwbf/!svn/ver/283/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/meta
+END
+Siteinfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/meta/Siteinfo.java
+END
+GetVersion.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/jwbf/!svn/ver/283/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/meta/GetVersion.java
+END
+GetUserinfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/jwbf/!svn/ver/276/trunk/jwbf/src/net/sourceforge/jwbf/mediawiki/actions/meta/GetUserinfo.java
+END

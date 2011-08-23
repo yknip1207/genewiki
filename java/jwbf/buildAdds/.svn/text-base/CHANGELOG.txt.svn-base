@@ -1,0 +1,230 @@
+-------------------------------------------------------------------------------
+JWBF 1.3 - svn:219    												   Jun 2009
+  * ContentAccessable#getLabel() is now getTitle()
+  * fix ImageInfo output format change
+  * add test for MW 1.15 
+  * domain login option with API
+  * more tests
+  * split in wiki core- and mediawiki related stuff  
+  * many cleanups
+  * FIX TemplateUserTitles and add a testcase
+  * add a query superclass for title iterations
+  * implement all list queries as an iterable type
+-------------------------------------------------------------------------------
+JWBF svn:191                                                           Mar 2009
+  * some zim updates thanks to Martin Koch
+-------------------------------------------------------------------------------
+JWBF svn:189                                                           Mar 2009
+  * write over api MW 1.13
+  * add ZimExample
+  * some fixes related to the Article class
+  * experiments with article cache
+-------------------------------------------------------------------------------
+JWBF svn:188                                                           Feb 2009
+  * change action class names
+  * fix categroy iteration
+  * add test for ImagelinkTitles
+  * add test for MW 1.14 
+--------------------------------------------------------------------------------
+JWBF svn:187                                                           Feb 2009
+  * small refactorings and pom changes
+--------------------------------------------------------------------------------
+JWBF-1.2.186                                                           Feb 2009
+  * switch to maven build 
+--------------------------------------------------------------------------------
+JWBF-1.2.183                                                           Feb 2009
+  * fix GetRecentchanges and GetAllPagesTitles with html entities 
+  * first step to maven
+--------------------------------------------------------------------------------
+JWBF-1.2.181                                                           Feb 2009
+  * fix GetRecentChangesTest
+--------------------------------------------------------------------------------
+JWBF-1.2.180                                                           Feb 2009
+  * start support for other wiki systems
+  * fix a the clone constructor of the Article class
+  * resorting package contens
+  * test and fix for simple page get in HttpBot
+  * new Action for Mediawiki GetRendering
+  * until now MediaWikiBot contains only the basic set of mehtods 
+    (reading, writing, ...), for more see MediaWikiAdapterBot
+  * detection if chosen action is a MultiAction
+  * fix BacklinkTitles encoding of namespace variable
+  * remove multiaction system
+--------------------------------------------------------------------------------
+JWBF-1.2.178                                                           Jan 2009
+  * some refactoring and javadoc
+  * fix GetRecentChanges
+--------------------------------------------------------------------------------
+JWBF-1.2.177                                                           Jan 2009
+--------------------------------------------------------------------------------
+  * join with refactoring branch - branches/refactoring081015
+--------------------------------------------------------------------------------
+JWBF-1.2.163                                                               2008
+--------------------------------------------------------------------------------
+  * begin refactoring
+--------------------------------------------------------------------------------
+JWBF-1.2.162                                                               2008
+--------------------------------------------------------------------------------
+  * javadoc
+  * build file cleaned
+--------------------------------------------------------------------------------
+JWBF-1.2.161                                                               2008
+--------------------------------------------------------------------------------
+  * GetToken und PostDelete without use of XPath (out of additional Jaxen lib)
+--------------------------------------------------------------------------------
+JWBF-1.2.160                                                               2008
+--------------------------------------------------------------------------------
+  * PostDelete splitted to PostDelete and GetToken
+--------------------------------------------------------------------------------
+JWBF-1.2.159                                                               2008
+--------------------------------------------------------------------------------
+  * comment out WriteApi detection
+--------------------------------------------------------------------------------
+JWBF-1.2.158                                                               2008
+--------------------------------------------------------------------------------
+  * apply patch from Max Gensthaler (PostDelete)
+  * javadocs
+  * set ant build to java 1.5
+  * added GetUserinfo + test
+  * tests for getRecentchangesTitles and Delete
+--------------------------------------------------------------------------------
+JWBF-1.2.157                                                               2008
+--------------------------------------------------------------------------------
+  * test cleanup for Siteinfo
+  * javadoc cleanup for MediaWikiBot
+  * some other refactorings
+--------------------------------------------------------------------------------
+JWBF-1.2.156                                                               2008
+--------------------------------------------------------------------------------
+  * added GetBacklinkTitles functionality for old MediaWiki versions
+--------------------------------------------------------------------------------
+JWBF-1.2.153                                                               2008
+--------------------------------------------------------------------------------
+  * refactor version fork for GetCategoryMembers and GetImageInfo
+--------------------------------------------------------------------------------
+JWBF-1.2.152                                                               2008
+--------------------------------------------------------------------------------
+  * optimize interfaces for SimpleArticle (ArticleMeta and ContentAccessable)
+  * add tests for get backlinks (first step)
+--------------------------------------------------------------------------------
+JWBF-1.2.151                                                               2008
+--------------------------------------------------------------------------------
+  * fixed bug in getBacklinkTitles
+  * added support for redirect filtering to getBacklinkTitles
+--------------------------------------------------------------------------------
+JWBF-1.2.150 release                                                       2008
+--------------------------------------------------------------------------------
+  * first small steps for:
+  ** new write api
+  ** improve uploading for MW 1.12 and higher
+--------------------------------------------------------------------------------
+JWBF-1.2.149                                                               2008
+--------------------------------------------------------------------------------
+  * add tests and support for mediawiki 1.13
+  * check if given url ends with slash or .php
+--------------------------------------------------------------------------------
+JWBF-1.2.148                                                               2008
+--------------------------------------------------------------------------------
+  * add ability to get timestamp of last change
+  * compete tests for getAllPages
+--------------------------------------------------------------------------------
+JWBF-1.2.147                                                               2008
+--------------------------------------------------------------------------------
+  * some up- and download tests
+  * test with local installed mw packages
+  * new query to get image meta data
+  * better mw version detection
+--------------------------------------------------------------------------------
+JWBF-1.2.146                                                               2008
+--------------------------------------------------------------------------------
+  * package refactoring
+  * Siteinfo tests
+--------------------------------------------------------------------------------
+JWBF-1.2.145                                                               2008
+--------------------------------------------------------------------------------
+  * add some doku fixes
+  * test: GetAllpages
+  * update: mediawiki version sensitiv
+  * add open paches from tracker
+--------------------------------------------------------------------------------
+JWBF-1.2.144                                                               2008
+--------------------------------------------------------------------------------
+  * patch: from Justus Bisser for uploading files - thanks
+--------------------------------------------------------------------------------
+JWBF-1.2.143                                                               2008
+--------------------------------------------------------------------------------
+  * add: mediawiki version sensitiv api requests for:
+  		category members (MW1_11)
+  * fix: category read over 'limit' members
+--------------------------------------------------------------------------------
+JWBF-1.2.141 and 142                                                        2008
+--------------------------------------------------------------------------------
+  * package refactoring
+  * some test fixes
+--------------------------------------------------------------------------------
+JWBF-1.2.140 release                                                       2008
+--------------------------------------------------------------------------------
+  * fix: problems with actual mediawiki api
+--------------------------------------------------------------------------------
+JWBF-1.2.127                                                               2008
+--------------------------------------------------------------------------------
+  * fix: SimpleArticle with ContentAccessable constructor
+--------------------------------------------------------------------------------
+JWBF-1.2.126                                                               2008
+--------------------------------------------------------------------------------
+  * Added class MediaWikiThreadBot
+  * getCategorymembers with NS attribute
+  * fix: building svnversion.jar
+--------------------------------------------------------------------------------
+JWBF-1.2.125                                                               2008
+--------------------------------------------------------------------------------
+  * svnignore
+--------------------------------------------------------------------------------
+JWBF-1.2.124                                                               2008
+--------------------------------------------------------------------------------
+  * Change versionnumbers by useing parts of svnversion from project
+  * adding build helper jars
+--------------------------------------------------------------------------------
+JWBF-1.2.0.2                                                                2007
+--------------------------------------------------------------------------------
+  * Add new versions of log4j and httpclient
+  * fix utf8 encoding problems
+  * add some new features for mediwaiki api, see Javadocs
+  * add unit tests
+  * fix ant build script
+--------------------------------------------------------------------------------
+JWBF-1.2.0.0                                                                2007
+--------------------------------------------------------------------------------
+  Features(MediaWiki):
+  * For supported MW API functions, see Javadocs at
+  	http://jwbf.sourceforge.net/doc/net/sourceforge/jwbf/bots/MediaWikiBot.html
+  	there are special tags javadoc tags, that informs about it.
+
+  Internal(MediaWiki):
+  * Confiramtion if requested MW API function is available
+  * switch to MediaWikiAPI
+  * optimize iterable
+  * new exception for handle inner action exceptions
+--------------------------------------------------------------------------------
+JWBF-1.1.0.2                                                      April 21, 2007
+--------------------------------------------------------------------------------
+  Features:
+  * add get articles by whatlinkshere
+
+  Internal:
+  * add Junit Tests for MediaWiki 1.10
+  * add htmlparser
+  * extract log4j properies
+--------------------------------------------------------------------------------
+JWBF-1.1.0.1                                                      March 26, 2007
+--------------------------------------------------------------------------------
+  Fixed:
+  * forgotten Nullpointerexception
+--------------------------------------------------------------------------------
+JWBF-1.1.0.0 - Initial sf.net release                             March 22, 2007
+--------------------------------------------------------------------------------
+  Supported Mediawiki Functions
+  * get all articles from a category
+  * read/write article content
+  * login
+  * delete article
