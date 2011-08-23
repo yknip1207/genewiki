@@ -48,29 +48,38 @@ public class GeneWikiPageMapper {
 	 */
 	public static void main(String[] args) {
 		GeneWikiPageMapper m = new GeneWikiPageMapper();
+		String swt = "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/";
+		String out = "/Users/bgood/data/NARupdate2011/ncbo_annotations/";
+		m.annotateGeneWikiArticlesWithNCBO(1000000, true, swt, out);
 		System.out.println(CandidateAnnotation.getHeader());
-		GeneWikiPage page = new GeneWikiPage();
-		page.setTitle("Calreticulin");
-		page.defaultPopulateWikiTrust();
-		List<CandidateAnnotation> annos = m.annotateArticleNCBO(page, true);
-		int i = 0;
-		for(CandidateAnnotation anno : annos){
-			i++;
-			if(i<10000){
-				System.out.println(anno);
-			}
-		}
-		System.out.println("Found "+i);
+//		GeneWikiPage page = new GeneWikiPage();
+//		page.setTitle("Calreticulin");
+//		page.defaultPopulateWikiTrust();
+//		List<CandidateAnnotation> annos = m.annotateArticleNCBO(page, true);
+//		int i = 0;
+//		for(CandidateAnnotation anno : annos){
+//			i++;
+//			if(i<10000){
+//				System.out.println(anno);
+//			}
+//		}
+//		System.out.println("Found "+i);
 	}
 
-	public void annotateGeneWikiArticlesWithNCBO(int limit, boolean allowSynonyms, boolean useGO, boolean useDO, boolean useFMA, boolean usePRO){
-		File folder = new File(Config.gwikidir_wt);
+	public void annotateGeneWikiArticlesWithNCBO(int limit, boolean allowSynonyms, String serialized_wiktrust, String outputfolder){
+		File folder = new File(serialized_wiktrust);
 		//check which files have already been processed
-		Set<String> donegeneids = GeneWikiUtils.getDoneGeneIds(Config.text_mined_annos);
-
+		File done = new File(outputfolder);
+		Set<String> donegeneids = new HashSet<String>();
+		if(done.isDirectory()){			
+			for(String f : done.list()){
+				donegeneids.add(f.substring(0,f.length()-4));
+			}
+		}
+		
 		if(folder.isDirectory()){
 			int n = 0;
-			for(String title : folder.list()){
+			for(String geneid : folder.list()){
 				n++;
 				if(n%100==0){
 					System.out.print("finished annotating "+n+"\t");
@@ -81,13 +90,13 @@ public class GeneWikiPageMapper {
 				if(n>limit){
 					break;
 				}
-				if(donegeneids.contains(title)){
+				if(donegeneids.contains(geneid)){
 					continue;
 				}
-				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir_wt+title);				
-				List<CandidateAnnotation> annos = annotateArticleNCBO(page, allowSynonyms, useGO, useDO, useFMA, usePRO);
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);				
+				List<CandidateAnnotation> annos = annotateArticleNCBO(page, allowSynonyms);
 				try {
-					FileWriter w = new FileWriter(Config.text_mined_annos, true);
+					FileWriter w = new FileWriter(outputfolder+geneid+".txt");
 					for(CandidateAnnotation anno : annos){
 						w.write(anno.toString()+"\n");
 					}

@@ -85,7 +85,10 @@ public class AnnotatorClient {
 		}
 		params.put("longestOnly", "true");
 		params.put("wholeWordOnly", "true"); //setting this to false gives really ridiculous results like 'r' matching 'aortic valve insufficiency
-		params.put("stopWords", "protein,gene,disease,disorder,syndrome,chromosome,receptor,cell,orphan,thumb,center,with,involved,image");
+		params.put("stopWords", "protein,gene,disease,disorder,syndrome,chromosome,receptor,cell,orphan,thumb,center,with,involved,image,type,known," +
+				"encoded,this,both,human,second,near,observed,from,family,width,name,caption,state,structure,MEROPS,Pfam,domain,Symbol,SMART,crystal," +
+				"analogue,protein family,SCOP,InterPro,EC number,Name,group,related,then,Some,form,http,abstract,content,liter,levels,enzyme," +
+				"drugs,into,slow,intermediate,bound,Citation,when,down,After");
 		//params.put("withDefaultStopWords", "true");
 		params.put("scored", "true");
 		return params;
