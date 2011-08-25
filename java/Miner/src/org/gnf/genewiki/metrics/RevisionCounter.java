@@ -77,19 +77,24 @@ public class RevisionCounter {
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-		List<String> titles = new ArrayList<String>();
-	//	Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
-	//	titles.addAll(gene_wiki.values());
-	//	Collections.sort(titles);
-		String article_names = "/users/bgood/data/wikiportal/facebase_genes.txt";
-		titles.addAll(FileFun.readOneColFile(article_names));
 		Calendar latest = Calendar.getInstance();
-		Calendar earliest = Calendar.getInstance();
-		earliest.add(Calendar.YEAR, -1);
-		String outfile = "/Users/bgood/data/wikiportal/fb_denver/networks/fb_gene_editor";
-		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);	
-		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
-		System.out.println(revs.size());
+	//	latest.add(Calendar.MONTH, -2);
+		GWRevision rev = rc.getRevisionOnDay(latest, "CD90", true);
+		GeneWikiPage p = new GeneWikiPage(rev, rc.user, true);
+		System.out.println(rev.getRevid()+" "+rev.getTimestamp()+"\n"+p.getPageContent());
+//		List<String> titles = new ArrayList<String>();
+//	//	Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
+//	//	titles.addAll(gene_wiki.values());
+//	//	Collections.sort(titles);
+//		String article_names = "/users/bgood/data/wikiportal/facebase_genes.txt";
+//		titles.addAll(FileFun.readOneColFile(article_names));
+//		Calendar latest = Calendar.getInstance();
+//		Calendar earliest = Calendar.getInstance();
+//		earliest.add(Calendar.YEAR, -1);
+//		String outfile = "/Users/bgood/data/wikiportal/fb_denver/networks/fb_gene_editor";
+//		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);	
+//		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
+//		System.out.println(revs.size());
 		
 	}
 	
@@ -195,6 +200,50 @@ public class RevisionCounter {
 		return revs;
 	}
 
+	/**
+	 * Get a the most recent revision up to the specified day, return null if none
+	 * @param theday
+	 * @param title
+	 * @param getContent
+	 * @return
+	 */
+	public GWRevision getRevisionOnDay(Calendar theday, String title, boolean getContent){
+		GWRevision grev = null;
+		List<String> a = new ArrayList<String>();
+		a.add(title);
+		ParserAccess parser = new ParserAccess();
+		String props2get = "user|timestamp|ids|size|flags|comment";
+		if(getContent){
+			props2get+="|content";
+		}
+
+		SimpleDateFormat timestamp = new SimpleDateFormat("yyyyMMddHHmmss");
+		TimeZone tz = TimeZone.getTimeZone("GMT");
+		timestamp.setTimeZone(tz);
+		String t0 = timestamp.format(theday.getTime());
+
+		String[] revQuery = { 
+				"prop", "revisions",
+				"redirects","true",
+				"rvlimit", "1",
+				"rvdir", "older",
+				"rvstart", t0,  // 20110204000000  
+				"rvprop", props2get
+		};
+
+		Connector connector = user.getConnector();
+		String pagesXML = connector.queryXML(user, a,revQuery);
+		//		connector.getManager().closeIdleConnections(0);
+		//		connector.getManager().deleteClosedConnections();
+		List<GWRevision> newrevs = parser.parseRevisionsXml(pagesXML);
+		if(newrevs!=null&&newrevs.size()==1){
+			grev = new GWRevision(newrevs.get(0), title);
+		}else{
+			return null;
+		}
+		return grev;
+	}
+	
 	public List<GWRevision> getRevisions(Calendar latest, Calendar earliest, String title, boolean getContent, List<GWRevision> alreadyHave){
 		if(latest.before(earliest)){
 			System.out.println("latest can't be before earliest");

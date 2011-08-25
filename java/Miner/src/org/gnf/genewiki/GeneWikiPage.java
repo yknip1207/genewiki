@@ -198,14 +198,14 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
-		testParseGeneWikiPage("NAP1L1");
+		testParseGeneWikiPage("Novartis");
 
 	}
 
 	public static void testParseGeneWikiPage(String title){
 		GeneWikiPage prot = new GeneWikiPage();//GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/genewiki/intermediate/javaobj/1812"); //5354
 		prot.setTitle(title);
-		prot.defaultPopulate();
+		prot.defaultPopulateWikiTrust();
 
 		System.out.println("Headings "+prot.getHeadings().size());
 		for(Heading h : prot.getHeadings()){
