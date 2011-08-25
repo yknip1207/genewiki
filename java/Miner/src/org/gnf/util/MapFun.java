@@ -64,6 +64,31 @@ public class MapFun {
 		return keys;
 	}
 
+	public static Map<String, Float> convertCountsToPercentages(Map<String, Integer> inmap){
+		Map<String, Float> outmap = new HashMap<String, Float>();
+		float sum = 0;
+		for(Integer i : inmap.values()){
+			sum+= i;
+		}
+		for(String key : inmap.keySet()){
+			outmap.put(key, (float)inmap.get(key)/sum);
+		}
+		return outmap;
+	}
+	
+	
+//	public static Map<Integer, Float> convertBinSumsToPercentages(Map<Integer, Float> inmap){
+//		Map<Integer, Float> outmap = new HashMap<Integer, Float>();
+//		float sum = 0;
+//		for(Float i : inmap.values()){
+//			sum+= i;
+//		}
+//		for(Integer key : inmap.keySet()){
+//			outmap.put(key, (float)inmap.get(key)/sum);
+//		}
+//		return outmap;
+//	}
+	
 	public static Map<String, Set<String>> flipMapStringGOs(Map<String, Set<GOterm>> inmap){
 		Map<String, Set<String>> outmap = new HashMap<String, Set<String>>();
 		for(Entry<String, Set<GOterm>> in : inmap.entrySet()){

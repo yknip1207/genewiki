@@ -26,6 +26,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.gnf.genewiki.GeneWikiPage;
 import org.gnf.genewiki.Reference;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,14 +44,13 @@ public class WikiTrustClient {
 	public static void main(String[] args) {
 		
 //14118313&revid=381448016
-		String o = getTrustForWikiPage("14118313", "381448016", "rawquality", 0); //"quality" "gettext" "rawquality"
-		Map<String, Object> v = parseRawTrust(o);
-		System.out.println("editor score "+v.get("Reputation"));
-		//System.out.println(o.substring(0, o.indexOf(",")));
-		System.out.println(o);
-		//List<WikiTrustBlock> blocks = getTrustBlocks(o);
-		//System.out.println(blocks.size());
-		//System.out.println(summarizeEditorTrust(blocks));
+		//String o = getTrustForWikiPage("14118313", "381448016", "rawquality", 0); //"quality" "gettext" "rawquality"
+		String title = "DC-SIGN"; 
+		GeneWikiPage prot = new GeneWikiPage(title);
+		prot.defaultPopulateWikiTrust();		
+		List<WikiTrustBlock> blocks = getTrustBlocks(prot.getPageContent());
+		System.out.println(blocks.size());
+	//	System.out.println(summarizeEditorTrust(blocks));
 		//{{#t:3,173948108,Boghog2}}bla bla bla bla  {{#t:3,169980927,ProteinBoxBot}}
 		//means
 		//{{trust is 3, revision id was 173948108, editor for this revision was BogHog2}} for the following text 'bla bla bla bla ' {{starting next one..
@@ -82,56 +82,6 @@ public class WikiTrustClient {
 	public static String zapTrust(String annotatedtext){
 		String text = annotatedtext.replaceAll("\\{\\{\\#.+?}}", "");
 		return text;
-	}
-	
-	public static String summarizeEditorTrust(List<WikiTrustBlock> blocks){
-		String trusty = "";
-		//trusts for all edits
-		Map<String, List<Double>> user_trusts = new HashMap<String, List<Double>>();
-		//number revisions saved
-		Map<String, Set<Integer>> user_revs = new HashMap<String, Set<Integer>>();
-		//amount of text touched
-		Map<String, Integer> user_texts = new HashMap<String, Integer>();
-		for(WikiTrustBlock tb : blocks){
-			List<Double> trusts = user_trusts.get(tb.getEditor());
-			if(trusts==null){
-				trusts = new ArrayList<Double>();
-			}
-			trusts.add(tb.getTrust());
-			user_trusts.put(tb.getEditor(), trusts);
-			Set<Integer> edits = user_revs.get(tb.getEditor());
-			if(edits == null){
-				edits = new HashSet<Integer>();
-			}
-			edits.add(tb.getRevid());
-			user_revs.put(tb.getEditor(), edits);
-			Integer textamount = user_texts.get(tb.getEditor());
-			if(textamount == null){
-				textamount = 0;
-			}
-			textamount += tb.getText().length();
-			user_texts.put(tb.getEditor(), textamount);
-		}
-		Map<String, Double> user_trust = new HashMap<String, Double>();
-		trusty+="User\tMean trust for page\n";
-		for(Entry<String, List<Double>> ut : user_trusts.entrySet()){
-			double m = 0;
-			for(Double t : ut.getValue()){
-				m+=t;
-			}
-			m = m/(double)ut.getValue().size();
-			user_trust.put(ut.getKey(), m);
-			trusty+=ut.getKey()+"\t"+m+"\n";
-		}
-		trusty+="\nUser\tRevisions\n";
-		for(Entry<String, Set<Integer>> rev : user_revs.entrySet()){
-			trusty+=rev.getKey()+"\t"+rev.getValue().size()+"\n";
-		}
-		trusty+="\nUser\tLength of text touched\n";
-		for(Entry<String, Integer> text : user_texts.entrySet()){
-			trusty+=text.getKey()+"\t"+text.getValue()+"\n";
-		}
-		return trusty;
 	}
 	
 	public static List<WikiTrustBlock> getTrustBlocks(String trusttext){
