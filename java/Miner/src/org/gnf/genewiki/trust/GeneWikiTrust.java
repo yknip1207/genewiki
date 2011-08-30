@@ -42,7 +42,7 @@ public class GeneWikiTrust {
 	public static void main(String[] args) {
 		//		test();
 		GeneWikiTrust wt = new GeneWikiTrust();
-		wt.measureAuthorContributions(1000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/editor_info", true);
+		wt.measureAuthorContributions(1, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/reelin_rank_info_with_bots.txt", false);
 		//		collectAllWikiTrustRawData(1000000);
 		//		GeneWikiPage p = GeneWikiUtils.deserializeGeneWikiPage(Config.gwroot+"intermediate/javaobj_wt/10000");
 		//		System.out.println("size "+p.getSize());
@@ -239,6 +239,8 @@ public class GeneWikiTrust {
 
 
 	class EditorInfo{
+		//wiki page title
+		String title;
 		//trusts for all edits
 		Map<String, List<Double>> user_trusts;
 		//number revisions saved
@@ -247,10 +249,10 @@ public class GeneWikiTrust {
 		Map<String, Integer> user_texts;
 
 
-		public EditorInfo(Map<String, List<Double>> user_trusts,
+		public EditorInfo(String title, Map<String, List<Double>> user_trusts,
 				Map<String, Set<Integer>> user_revs,
 				Map<String, Integer> user_texts) {
-			super();
+			this.title = title;
 			this.user_trusts = user_trusts;
 			this.user_revs = user_revs;
 			this.user_texts = user_texts;
@@ -275,7 +277,7 @@ public class GeneWikiTrust {
 		}
 
 		public String getAllAsString(){
-			String trusty ="User\tMean trust for page\n";
+			String trusty =title+"\nUser\tMean trust for page\n";
 			for(Entry<String, List<Double>> ut : user_trusts.entrySet()){
 				double m = 0;
 				for(Double t : ut.getValue()){
@@ -294,9 +296,15 @@ public class GeneWikiTrust {
 			}
 			return trusty;
 		}
+		public String getTitle() {
+			return title;
+		}
+		public void setTitle(String title) {
+			this.title = title;
+		}
 
 	}
-	public EditorInfo summarizeEditorTrust(List<WikiTrustBlock> blocks){
+	public EditorInfo summarizeEditorTrust(List<WikiTrustBlock> blocks, String title){
 		//trusts for all edits
 		Map<String, List<Double>> user_trusts = new HashMap<String, List<Double>>();
 		//number revisions saved
@@ -323,7 +331,7 @@ public class GeneWikiTrust {
 			textamount += tb.getText().length();
 			user_texts.put(tb.getEditor(), textamount);
 		}
-		return new EditorInfo(user_trusts, user_revs, user_texts);
+		return new EditorInfo(title, user_trusts, user_revs, user_texts);
 	}
 
 	public void measureAuthorContributions(int limit, String serialized_wiktrust, String outputfile, boolean nobots){
@@ -337,7 +345,8 @@ public class GeneWikiTrust {
 				if(n>limit){
 					break;
 				}
-				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);				
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+			//	System.out.println(page.getTitle());
 				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
 				if(nobots){
 					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
@@ -346,13 +355,14 @@ public class GeneWikiTrust {
 							botless.add(block);
 						}
 					}
-					e_info.add(summarizeEditorTrust(botless));
+					e_info.add(summarizeEditorTrust(botless, page.getTitle()));
 				}else{
-					e_info.add(summarizeEditorTrust(blocks));
+					e_info.add(summarizeEditorTrust(blocks, page.getTitle()));
 				}
 			}
 			Map<Integer, Float> bin_total = new HashMap<Integer, Float>();
 			Map<Integer, Integer> bin_count = new HashMap<Integer, Integer>();
+			float max_editors = 0;
 			for(EditorInfo e : e_info){
 				Map<String, Integer> user_cont = e.getUser_texts();
 				Map<String, Float> user_fraction = MapFun.convertCountsToPercentages(user_cont);
@@ -364,30 +374,32 @@ public class GeneWikiTrust {
 					Float fraction = user_fraction.get(key);
 					Float ctotal = bin_total.get(i);
 					if(ctotal==null){
-						Float f = new Float(fraction);
-						bin_total.put(i, f);
+						bin_total.put(i, fraction);
 						bin_count.put(i, 1);
 					}else{
 						int bc = bin_count.get(i)+1;
 						bin_count.put(i, bc);
 						bin_total.put(i,(ctotal+fraction));
+						if(bc>max_editors){
+							max_editors = bc;
+						}
 					}
 				}
 
 			}
 			TreeMap<Integer, Float> t = new TreeMap<Integer, Float>(bin_total);
-			for(Entry<Integer, Float> e : t.entrySet()){
-				System.out.println(e.getKey()+"\t"+e.getValue()/n);
-			}
 
-			//			try {
-			//				FileWriter w = new FileWriter(outputfile, true);
-			//				
-			//				w.close();
-			//			} catch (IOException e) {
-			//				// TODO Auto-generated catch block
-			//				e.printStackTrace();
-			//			}
+			try {
+				FileWriter w = new FileWriter(outputfile);
+				for(Entry<Integer, Float> e : t.entrySet()){
+					w.write(e.getKey()+"\t"+e.getValue()+"\t"+e.getValue()/max_editors+"\t"+bin_count.get(e.getKey())+"\t"+e.getValue()/bin_count.get(e.getKey())+"\n");
+					System.out.println(e.getKey()+"\t"+e.getValue()+"\t"+e.getValue()/max_editors+"\t"+bin_count.get(e.getKey())+"\t"+e.getValue()/bin_count.get(e.getKey()));
+				}
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
