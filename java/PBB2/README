@@ -1,0 +1,52 @@
+====================
+| ProteinBoxBot v2 |
+====================
+== Introduction ==
+ProteinBoxBot is a Java program to automatically update
+the infoboxes on GeneWiki pages. For more information, see
+the bot's userpage at 
+http://en.wikipedia.org/wiki/User:ProteinBoxBot
+or visit the GeneWiki project portal at 
+http://en.wikipedia.org/wiki/Portal:GeneWiki.
+
+== License ==
+ProteinBoxBot is distributed under the Creative Commons
+Share-Alike license, available here at 
+creativecommons.org/licenses/by-sa/3.0. Libraries bundled
+with or used by ProteinBoxBot remain under their specific
+licenses. 
+ProteinBoxBot v2 was developed by the Su Lab at The Scripps
+Research Institute, 2011.
+
+=== Installation ===
+System requirements:
+  1. Java JRE 1.6 or higher
+  2. PyMOL (for image rendering module)
+Installation procedure:
+  1. If desired, install PyMOL on the local
+     host to enable protein structure image
+     rendering and upload. If you do, note the
+     path of the PyMOL binary.
+  2. Run ./setup.sh to interactively set up
+     the bot.properties file as well as the
+     logging database (SQLite) and appropriate
+     directory structure.
+
+=== Running ProteinBoxBot ===
+ProteinBoxBot can be run in one of two ways:
+Using main menu:
+  1. In the directory containing the jar file,
+     execute the command:
+       java -jar ProteinBoxBot.jar
+  2. Select desired operation from the menu.
+Using command-line arguments:
+  1. Execute the command:
+       java -jar ProteinBoxBot.jar [args]
+     where [args] consist of the following options:
+     resume   - selects ids that have not been updated from db
+     restart  - clears updated status of all ids and starts from
+     	      	scratch
+     ids      - prompts for specific ids to update
+     init     - re-initializes database (disabled)
+     help     - prints help message
+
