@@ -6,12 +6,15 @@ package org.gnf.genewiki.trust;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -40,17 +43,12 @@ public class GeneWikiTrust {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
 		//		test();
 		GeneWikiTrust wt = new GeneWikiTrust();
-		wt.measureAuthorContributions(1, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/reelin_rank_info_with_bots.txt", false);
-		//		collectAllWikiTrustRawData(1000000);
-		//		GeneWikiPage p = GeneWikiUtils.deserializeGeneWikiPage(Config.gwroot+"intermediate/javaobj_wt/10000");
-		//		System.out.println("size "+p.getSize());
-		//		List<CandidateAnnotation> annos = GeneWikiPageMapper.annotateArticleNCBO(p, false, true, true, true, false);
-		//		System.out.println(CandidateAnnotation.getHeader());
-		//		for(CandidateAnnotation anno : annos){
-		//			System.out.println(anno);
-		//		}
+		boolean nobots = false;
+	//	wt.measureTopAuthorContributions(10000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/top_authors_with_bots.txt", nobots);
+
 	}
 
 	/**
@@ -303,6 +301,56 @@ public class GeneWikiTrust {
 			this.title = title;
 		}
 
+		public void getRankInfo(String outputfile){
+			Map<Integer, Float> bin_total = new HashMap<Integer, Float>();
+			Map<Integer, Integer> bin_count = new HashMap<Integer, Integer>();
+			float max_editors = 0;
+			Map<String, Integer> user_cont = getUser_texts();
+			Map<String, Float> user_fraction = MapFun.convertCountsToPercentages(user_cont);
+			List<String> sorted = MapFun.sortMapByValue(user_cont);			
+			Collections.reverse(sorted);
+			for(int i = 0; i<sorted.size(); i++){
+				String key = sorted.get(i);
+
+				Float fraction = user_fraction.get(key);
+				Float ctotal = bin_total.get(i);
+				if(ctotal==null){
+					bin_total.put(i, fraction);
+					bin_count.put(i, 1);
+					max_editors = 1;
+				}else{
+					int bc = bin_count.get(i)+1;
+					bin_count.put(i, bc);
+					bin_total.put(i,(ctotal+fraction));
+					if(bc>max_editors){
+						max_editors = bc;
+					}
+				}
+			}
+			int total_editors = sorted.size();
+			TreeMap<Integer, Float> t = new TreeMap<Integer, Float>(bin_total);
+
+			try {
+				FileWriter w = new FileWriter(outputfile, true);
+				int i = 0;
+				for(Entry<Integer, Float> e : t.entrySet()){
+					String rank = e.getKey()+"";
+					String contributions_at_rank = e.getValue()+"";
+					w.write(getTitle()+"\t"+contributions_at_rank+"\t"+total_editors+"\t"+sorted.get(i)+"\n");
+					System.out.println(getTitle()+"\t"+contributions_at_rank+"\t"+total_editors+"\t"+sorted.get(i));
+					i++;
+					if(i>0){
+						break;
+					}
+				}
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+
 	}
 	public EditorInfo summarizeEditorTrust(List<WikiTrustBlock> blocks, String title){
 		//trusts for all edits
@@ -341,12 +389,13 @@ public class GeneWikiTrust {
 			int n = 0;
 			List<EditorInfo> e_info = new ArrayList<EditorInfo>();
 			for(String geneid : folder.list()){
+				//geneid = "1017";//cdk2 "7157"; //p53//insulin "3630";// "5649"; //reelin
 				n++;
 				if(n>limit){
 					break;
 				}
 				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
-			//	System.out.println(page.getTitle());
+				//	System.out.println(page.getTitle());
 				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
 				if(nobots){
 					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
@@ -403,4 +452,49 @@ public class GeneWikiTrust {
 		}
 
 	}
+
+
+	/**
+	 * report the total fraction contributed to each gene wiki page by the most prolific author for that page
+	 * @param limit
+	 * @param serialized_wiktrust
+	 * @param outputfile
+	 * @param nobots
+	 */
+	public void measureTopAuthorContributions(int limit, String serialized_wiktrust, String outputfile, boolean nobots){
+		File folder = new File(serialized_wiktrust);
+
+		if(folder.isDirectory()){
+			int n = 0;
+			//	List<EditorInfo> e_info = new ArrayList<EditorInfo>();
+			for(String geneid : folder.list()){
+				//geneid = "1017";//cdk2 "7157"; //p53//insulin "3630";// "5649"; //reelin
+				n++;
+				if(n>limit){
+					break;
+				}
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+				//	System.out.println(page.getTitle());
+				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
+				EditorInfo einfo = null;
+				if(nobots){
+					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
+					for(WikiTrustBlock block : blocks){
+						if(!(block.editor.contains("bot")||block.editor.contains("Bot"))){
+							botless.add(block);
+						}
+					}
+					einfo = summarizeEditorTrust(botless, page.getTitle());
+				}else{
+					einfo = summarizeEditorTrust(blocks, page.getTitle());
+				}
+				//	e_info.add(einfo);
+				einfo.getRankInfo(outputfile);
+			}
+
+
+		}
+
+	}
+
 }

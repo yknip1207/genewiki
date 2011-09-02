@@ -1,5 +1,6 @@
 package org.gnf.genewiki.ncbi;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -14,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.axis2.AxisFault;
+import org.gnf.util.BioInfoUtil;
 import org.gnf.util.MapFun;
 
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub;
@@ -62,25 +64,13 @@ public class PubMed {
 		//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
 		//		System.out.println(pmid_meshes.get("3458201"));
 
-		try {
-			Set<String> pmids = new HashSet<String>();
-			pmids.add("3458201");
-			pmids.add("2465923");
-			pmids.add("11259612");
-			Map<String, Set<String>> pmid_meshs = getMeshTerms(pmids);
-			System.out.println(pmid_meshs.get("3458201"));
-			System.out.println(pmid_meshs.get("2465923"));
-			System.out.println(pmid_meshs.get("11259612"));
-			//			boolean cache = false;
-			//			Map<String, String> pmid_texts = getPubmedTitlesAndAbstracts(pmids,"/tmp/tmp", cache);
-			//			for(Entry<String, String> pmid_text : pmid_texts.entrySet()){
-			//				System.out.println(pmid_text.getKey()+"\t"+pmid_text.getValue());
-			//			}
+		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/bioinfo/gene2pubmed");
 
-		} catch (AxisFault e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Set<String> pmids = new HashSet<String>(MapFun.flipMapStringListStrings(gene2pub).keySet());
+		System.out.println(pmids.size()+" ");
+		PubMed pm = new PubMed();
+		pm.buildPubmedSummaryCache(pmids, "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt");
+
 	}
 
 	/**
@@ -203,6 +193,74 @@ public class PubMed {
 			System.out.println("on "+c+" of "+idlist.size());
 		}
 		return pmid_meshs;
+	}
+
+	public Map<String, PubmedSummary> readCachedPubmedsums(String cachefile){
+		Map<String, PubmedSummary> pmid_sums = new HashMap<String, PubmedSummary>();
+		try {
+			BufferedReader f = new BufferedReader(new FileReader(cachefile));
+			String line = f.readLine();
+			while(line!=null){
+				String[] row = line.split("\t");
+				if(row!=null&&row.length>1){
+					PubmedSummary sum = new PubmedSummary(row);
+					pmid_sums.put(sum.Pmid, sum);
+				}
+				line = f.readLine();
+			}
+			f.close();
+		}catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pmid_sums;
+	}
+
+	public void buildPubmedSummaryCache(Set<String> pmids, String cachefile){
+		Map<String, PubmedSummary> old_pmid_sums = new HashMap<String, PubmedSummary>();
+		File cache = new File(cachefile);
+		try {
+			if(!cache.createNewFile()){
+				old_pmid_sums = readCachedPubmedsums(cachefile);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Total pmids done = "+old_pmid_sums.keySet().size());
+		pmids.removeAll(old_pmid_sums.keySet());
+		System.out.println("Total pmids to get = "+pmids.size());
+		int max_batch = 100;
+		int c = 0; int n = 0;
+		String plist = "";
+		if(pmids!=null&&pmids.size()>0){
+			for(String pmid : pmids){
+				plist+=pmid+",";
+				c++;
+				n++;
+				if(c==max_batch||c==pmids.size()){
+					System.out.println("Getting pubmed sums - at "+n);
+					plist = plist.substring(0, plist.length()-1);
+					Map<String, PubmedSummary> tmp_sums = getPubmedSummaries(plist);
+					try {
+						FileWriter f = new FileWriter(cachefile, true);
+						for(PubmedSummary psum : tmp_sums.values()){
+							f.write(psum.toString()+"\n");
+							System.out.println(psum.toString());
+						}
+						f.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					plist = "";
+					c=0;
+				}
+			}
+		}				
 	}
 
 	public static Map<String, String> getPubmedTitlesAndAbstracts(Set<String> idlist, String pubcache, boolean cache) throws AxisFault{
@@ -432,7 +490,7 @@ public class PubMed {
 					//uncomment to see all the available fields
 					//System.out.println("    " + res.getDocSum()[i].getItem()[k].getName()+": " + res.getDocSum()[i].getItem()[k].getItemContent());
 					if(res.getDocSum()[i].getItem()[k].getName().equals("AuthorList")){
-					Set<String> auths = new HashSet<String>();
+						Set<String> auths = new HashSet<String>();
 						if(res.getDocSum()[i].getItem()[k]!=null){
 							ItemType[] items = res.getDocSum()[i].getItem()[k].getItem();
 							if(items!=null){
@@ -458,6 +516,452 @@ public class PubMed {
 
 
 		return authors;
+	}
+
+	public static Map<String, String> getPubmedDates(Set<String> idlist){
+		String ids = "";
+		for(String s : idlist){
+			ids+=s+",";
+		}
+		ids = ids.substring(0, ids.length()-1);
+		return getPubmedDates(ids);
+	}
+
+	
+	public String convertSeasonToMonth(String season){
+		String month = season;
+		
+		if(month.contains("Autumn")){
+			month = month.replace("Autumn", "Sep");
+		} else if(month.contains("Fall")){
+			month = month.replace("Fall", "Sep");
+		} else if(month.contains("Winter")){
+			month = month.replace("Winter","Dec");
+		} else if(month.contains("Spring")){
+			month = month.replace("Spring","Mar");
+		} else if(month.contains("Summer")){
+			month = month.replace("Summer","Jun");
+		}
+		
+		return month;
+	}
+
+	public class PubmedSummary{
+		String Pmid;
+		String PubDate; //: 2001 Apr
+		String EPubDate;
+		String Source;// Mol Pharmacol
+		String AuthorList;// null
+		String LastAuthor;// Zhou QY
+		String Title;// Identification of two prokineticin cDNAs: recombinant proteins potently contract gastrointestinal smooth muscle.
+		String Volume;// 59
+		String Issue;// 4
+		String Pages;// 692-8
+		String LangList;// null
+		String NlmUniqueID;// 0035623
+		String ISSN;// 0026-895X
+		String ESSN;// 1521-0111
+		String PubTypeList;// null
+		String RecordStatus;// PubMed - indexed for MEDLINE
+		String PubStatus;// ppublish
+		String ArticleIds;// null
+		String History;// null
+		String References;// null
+		String HasAbstract;// 1
+		String PmcRefCount;// 39
+		String FullJournalName;// Molecular pharmacology
+		String ELocationID;// null
+		String SO;// 2001 Apr;59(4):692-8
+		public PubmedSummary(String pmid, String pubDate, String ePubDate, String source,
+				String authorList, String lastAuthor, String title,
+				String volume, String issue, String pages, String langList,
+				String nlmUniqueID, String iSSN, String eSSN,
+				String pubTypeList, String recordStatus, String pubStatus,
+				String articleIds, String history, String references,
+				String hasAbstract, String pmcRefCount, String fullJournalName,
+				String eLocationID, String sO) {
+			super();
+			Pmid = pmid;
+			PubDate = pubDate;
+			EPubDate = ePubDate;
+			Source = source;
+			AuthorList = authorList;
+			LastAuthor = lastAuthor;
+			Title = title;
+			Volume = volume;
+			Issue = issue;
+			Pages = pages;
+			LangList = langList;
+			NlmUniqueID = nlmUniqueID;
+			ISSN = iSSN;
+			ESSN = eSSN;
+			PubTypeList = pubTypeList;
+			RecordStatus = recordStatus;
+			PubStatus = pubStatus;
+			ArticleIds = articleIds;
+			History = history;
+			References = references;
+			HasAbstract = hasAbstract;
+			PmcRefCount = pmcRefCount;
+			FullJournalName = fullJournalName;
+			ELocationID = eLocationID;
+			SO = sO;
+		}
+		public PubmedSummary(String[] row) {
+			super();
+			if(row.length>23){
+				Pmid = row[0];
+				PubDate = row[1];
+				EPubDate = row[2];
+				Source = row[3];
+				AuthorList = row[4];
+				LastAuthor = row[5];
+				Title = row[6];
+				Volume = row[7];
+				Issue = row[8];
+				Pages = row[9];
+				LangList = row[10];
+				NlmUniqueID = row[11];
+				ISSN = row[12];
+				ESSN = row[13];
+				PubTypeList = row[14];
+				RecordStatus = row[15];
+				PubStatus = row[16];
+				ArticleIds = row[17];
+				History = row[18];
+				References = row[19];
+				HasAbstract = row[20];
+				PmcRefCount = row[21];
+				FullJournalName = row[22];
+				ELocationID = row[23];
+				SO = row[24];
+			}
+		}
+
+		public String toString(){
+			String psum = 
+				Pmid+"\t"+
+				PubDate+"\t"+
+				EPubDate+"\t"+
+				Source+"\t"+
+				AuthorList+"\t"+
+				LastAuthor+"\t"+
+				Title+"\t"+
+				Volume+"\t"+
+				Issue+"\t"+
+				Pages+"\t"+
+				LangList+"\t"+
+				NlmUniqueID+"\t"+
+				ISSN+"\t"+
+				ESSN+"\t"+
+				PubTypeList+"\t"+
+				RecordStatus+"\t"+
+				PubStatus+"\t"+
+				ArticleIds+"\t"+
+				History+"\t"+
+				References+"\t"+
+				HasAbstract+"\t"+
+				PmcRefCount+"\t"+
+				FullJournalName+"\t"+
+				ELocationID+"\t"+
+				SO;
+
+			return psum;
+		}
+		public String getPmid() {
+			return Pmid;
+		}
+		public void setPmid(String pmid) {
+			Pmid = pmid;
+		}
+		public String getPubDate() {
+			return PubDate;
+		}
+		public void setPubDate(String pubDate) {
+			PubDate = pubDate;
+		}
+		public String getEPubDate() {
+			return EPubDate;
+		}
+		public void setEPubDate(String ePubDate) {
+			EPubDate = ePubDate;
+		}
+		public String getSource() {
+			return Source;
+		}
+		public void setSource(String source) {
+			Source = source;
+		}
+		public String getAuthorList() {
+			return AuthorList;
+		}
+		public void setAuthorList(String authorList) {
+			AuthorList = authorList;
+		}
+		public String getLastAuthor() {
+			return LastAuthor;
+		}
+		public void setLastAuthor(String lastAuthor) {
+			LastAuthor = lastAuthor;
+		}
+		public String getTitle() {
+			return Title;
+		}
+		public void setTitle(String title) {
+			Title = title;
+		}
+		public String getVolume() {
+			return Volume;
+		}
+		public void setVolume(String volume) {
+			Volume = volume;
+		}
+		public String getIssue() {
+			return Issue;
+		}
+		public void setIssue(String issue) {
+			Issue = issue;
+		}
+		public String getPages() {
+			return Pages;
+		}
+		public void setPages(String pages) {
+			Pages = pages;
+		}
+		public String getLangList() {
+			return LangList;
+		}
+		public void setLangList(String langList) {
+			LangList = langList;
+		}
+		public String getNlmUniqueID() {
+			return NlmUniqueID;
+		}
+		public void setNlmUniqueID(String nlmUniqueID) {
+			NlmUniqueID = nlmUniqueID;
+		}
+		public String getISSN() {
+			return ISSN;
+		}
+		public void setISSN(String iSSN) {
+			ISSN = iSSN;
+		}
+		public String getESSN() {
+			return ESSN;
+		}
+		public void setESSN(String eSSN) {
+			ESSN = eSSN;
+		}
+		public String getPubTypeList() {
+			return PubTypeList;
+		}
+		public void setPubTypeList(String pubTypeList) {
+			PubTypeList = pubTypeList;
+		}
+		public String getRecordStatus() {
+			return RecordStatus;
+		}
+		public void setRecordStatus(String recordStatus) {
+			RecordStatus = recordStatus;
+		}
+		public String getPubStatus() {
+			return PubStatus;
+		}
+		public void setPubStatus(String pubStatus) {
+			PubStatus = pubStatus;
+		}
+		public String getArticleIds() {
+			return ArticleIds;
+		}
+		public void setArticleIds(String articleIds) {
+			ArticleIds = articleIds;
+		}
+		public String getHistory() {
+			return History;
+		}
+		public void setHistory(String history) {
+			History = history;
+		}
+		public String getReferences() {
+			return References;
+		}
+		public void setReferences(String references) {
+			References = references;
+		}
+		public String getHasAbstract() {
+			return HasAbstract;
+		}
+		public void setHasAbstract(String hasAbstract) {
+			HasAbstract = hasAbstract;
+		}
+		public String getPmcRefCount() {
+			return PmcRefCount;
+		}
+		public void setPmcRefCount(String pmcRefCount) {
+			PmcRefCount = pmcRefCount;
+		}
+		public String getFullJournalName() {
+			return FullJournalName;
+		}
+		public void setFullJournalName(String fullJournalName) {
+			FullJournalName = fullJournalName;
+		}
+		public String getELocationID() {
+			return ELocationID;
+		}
+		public void setELocationID(String eLocationID) {
+			ELocationID = eLocationID;
+		}
+		public String getSO() {
+			return SO;
+		}
+		public void setSO(String sO) {
+			SO = sO;
+		}
+
+	}
+
+
+	/**
+	 * return a map linking pubmed id to date published	
+	 * @param idlist
+	 * @return
+	 */
+	public Map<String, PubmedSummary> getPubmedSummaries(String idlist){
+		if(idlist==null){
+			return null;
+		}
+		Map<String, PubmedSummary> sums = new HashMap<String, PubmedSummary>();
+		String info = ""; 
+
+		EUtilsServiceStub service = null;
+		try {
+			service = new EUtilsServiceStub();
+		} catch (AxisFault e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// call NCBI ESummary utility
+		EUtilsServiceStub.ESummaryRequest req = new EUtilsServiceStub.ESummaryRequest();
+		req.setDb("pubmed");
+		req.setId(idlist);
+		EUtilsServiceStub.ESummaryResult res;
+		try {
+			res = service.run_eSummary(req);
+
+			// results output
+			for(int i=0; i<res.getDocSum().length; i++)
+			{
+				//System.out.println("ID: "+res.getDocSum()[i].getId());
+				String pmid = res.getDocSum()[i].getId();
+				String PubDate = ""; //: 2001 Apr
+				String EPubDate = "";
+				String Source = "";// Mol Pharmacol
+				String AuthorList = "";// null
+				String LastAuthor = "";// Zhou QY
+				String Title = "";// Identification of two prokineticin cDNAs: recombinant proteins potently contract gastrointestinal smooth muscle.
+				String Volume = "";// 59
+				String Issue = "";// 4
+				String Pages = "";// 692-8
+				String LangList = "";// null
+				String NlmUniqueID = "";// 0035623
+				String ISSN = "";// 0026-895X
+				String ESSN = "";// 1521-0111
+				String PubTypeList = "";// null
+				String RecordStatus = "";// PubMed - indexed for MEDLINE
+				String PubStatus = "";// ppublish
+				String ArticleIds = "";// null
+				String History = "";// null
+				String References = "";// null
+				String HasAbstract = "";// 1
+				String PmcRefCount = "";// 39
+				String FullJournalName = "";// Molecular pharmacology
+				String ELocationID = "";// null
+				String SO = "";// 2001 Apr;59(4):692-8
+				for (int k = 0; k < res.getDocSum()[i].getItem().length; k++)
+				{
+					if(res.getDocSum()[i].getItem()[k].getName().equals("PubDate")){
+						PubDate = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("EPubDate")){
+						EPubDate = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("Source")){
+						Source = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("AuthorList")){
+						AuthorList = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("LastAuthor")){
+						LastAuthor = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("Title")){
+						Title = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("Volume")){
+						Volume = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("Issue")){
+						Issue = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("Pages")){
+						Pages = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("LangList")){
+						LangList = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("NlmUniqueID")){
+						NlmUniqueID = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("ISSN")){
+						ISSN = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("ESSN")){
+						ESSN = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("PubTypeList")){
+						PubTypeList = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("RecordStatus")){
+						RecordStatus = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("PubStatus")){
+						PubStatus = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("ArticleIds")){
+						ArticleIds = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("History")){
+						History = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("HasAbstract")){
+						HasAbstract = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("PmcRefCount")){
+						PmcRefCount = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("FullJournalName")){
+						FullJournalName = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("ELocationID")){
+						ELocationID = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+					else if(res.getDocSum()[i].getItem()[k].getName().equals("SO")){
+						SO = res.getDocSum()[i].getItem()[k].getItemContent()+" "; //"\t"						
+					}
+
+				}
+				PubmedSummary psum = new PubmedSummary(pmid, PubDate, EPubDate, Source, AuthorList, LastAuthor, Title, Volume, Issue, Pages, LangList, NlmUniqueID, ISSN, ESSN, PubTypeList, RecordStatus, PubStatus, ArticleIds, History, References, HasAbstract, PmcRefCount, FullJournalName, ELocationID, SO);
+				sums.put(pmid, psum);
+				info+="\t";
+			}
+		} catch (RemoteException e) {
+			System.out.println(idlist);
+			e.printStackTrace();
+		}		
+
+
+		return sums;
 	}
 
 	/**
