@@ -19,12 +19,9 @@ public class WikiTrustBlock {
 	String text;
 	int start;
 	int stop;
+	String title;
 	
-	
-	public static void main(String[] args) {
-		
 
-	}
 
 	public String getEditor() {
 		return editor;
@@ -72,6 +69,14 @@ public class WikiTrustBlock {
 
 	public void setStop(int stop) {
 		this.stop = stop;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	

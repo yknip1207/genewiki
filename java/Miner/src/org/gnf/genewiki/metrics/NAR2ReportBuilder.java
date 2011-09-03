@@ -51,7 +51,7 @@ public class NAR2ReportBuilder {
 
 	}
 
-
+//TODO - finish up and link to gene wiki growth
 	public static void buildPublicationGrowthTable(){
 		String pubmed_sum_cache = "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt";
 		PubMed pm = new PubMed();
@@ -61,7 +61,7 @@ public class NAR2ReportBuilder {
 		Map<Calendar, List<PubMed.PubmedSummary>> month_psums = new TreeMap<Calendar, List<PubMed.PubmedSummary>>();
 		for(PubMed.PubmedSummary psum : pmid_sum.values()){
 			String d = psum.getPubDate();
-			if(d!=null&&d.length()>=8){
+			if(d!=null&&d.length()>=8&&!(d.contains("-"))){
 				d = pm.convertSeasonToMonth(d); // there are a few cases where NLM puts a season like 'summer' in place of the month..
 				Calendar pub_date = Calendar.getInstance();
 				pub_date.clear();
@@ -80,8 +80,11 @@ public class NAR2ReportBuilder {
 			}
 		}
 		//print out the counts
+		int total = 0;
 		for(Entry<Calendar, List<PubMed.PubmedSummary>> month_psumlist : month_psums.entrySet()){
-			System.out.println(p_time.format(month_psumlist.getKey().getTime())+"\t"+month_psumlist.getValue().size());
+			int monthly = month_psumlist.getValue().size();
+			total+=monthly;
+			System.out.println(p_time.format(month_psumlist.getKey().getTime())+"\t"+month_psumlist.getValue().size()+"\t"+total);
 		}
 	}
 
