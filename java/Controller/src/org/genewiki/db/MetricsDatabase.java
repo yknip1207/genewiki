@@ -14,7 +14,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.genewiki.util.Serialize;
 
@@ -55,9 +59,12 @@ public enum MetricsDatabase {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws SQLException, InterruptedException, FileNotFoundException {
 		MetricsDatabase db = MetricsDatabase.instance;
-		db.buildDb(db.dbName, true);
-		List<String> failed = (List<String>) Serialize.in("/Users/eclarke/Desktop/failed.list.string");
-		System.out.println(failed.toString());
+//		db.buildDb(db.dbName, true);
+//		List<String> failed = (List<String>) Serialize.in("failed.list.string");
+//		List<String> completed = (List<String>) Serialize.in("completed.list.string");
+//		System.out.println(failed.toString());
+//		System.out.println(completed.toString());
+		db.fixMonths();
 	}
 	
 	/**
@@ -311,6 +318,7 @@ public enum MetricsDatabase {
 			prep.setInt(12, sentences);
 			prep.setInt(13, media);
 			prep.setDate(14, new Date(created.getTimeInMillis()));
+			
 			prep.setString(15, creator);
 			prep.addBatch();
 			connection.setAutoCommit(false);
@@ -361,14 +369,30 @@ public enum MetricsDatabase {
 			prep.setInt(11, redirects);
 			prep.setInt(12, sentences);
 			prep.setInt(13, media);
-			prep.setDate(14, new Date(created.getTimeInMillis()));
+			prep.setLong(14, created.getTimeInMillis());
 			prep.setString(15, creator);
-			prep.setDate(16, new Date(date.getTimeInMillis()));
+			prep.setLong(16, date.getTimeInMillis());
 			prep.addBatch();
 			connection.setAutoCommit(false);
 			prep.executeBatch();
 			connection.setAutoCommit(true);
 			connection.close();
+		}
+	}
+	
+	public void fixMonths(long start, long end) throws SQLException {
+		synchronized(lock) {
+			Connection conn = this.connect();
+			PreparedStatement prep = conn.prepareStatement("update monthly3 set date=? where date between ? and ?;");
+			
+			prep.setLong(1, start);
+			prep.setLong(2, start);
+			prep.setLong(3, end);
+			prep.addBatch();
+			conn.setAutoCommit(false);
+			prep.executeBatch();
+			conn.setAutoCommit(true);
+			conn.close();
 		}
 	}
 	
@@ -444,6 +468,27 @@ public enum MetricsDatabase {
 		}
 	}
 	
+	public void updatePageViewRow(int page_id, int month, int year, int views,
+			int rev_count) throws SQLException {
+
+		synchronized (lock) {
+			Connection connection = this.connect();
+			PreparedStatement prep = connection.prepareStatement("" +
+					"update page_views set views=?, rev_count=? where page_id=? and month=? and year=?;");
+			prep.setInt(1, views);
+			prep.setInt(2, rev_count);
+			prep.setInt(3, page_id);
+			prep.setInt(4, month);
+			prep.setInt(5, year);
+			prep.addBatch();
+			connection.setAutoCommit(false);
+			prep.executeBatch();
+			connection.setAutoCommit(true);
+			connection.close();
+		}
+		
+	}
+	
 	
 	/**
 	 * Creates database with the required tables.
@@ -459,24 +504,21 @@ public enum MetricsDatabase {
 			Class.forName("org.sqlite.JDBC");
 			Connection con = DriverManager.getConnection("jdbc:sqlite:"+db);
 			Statement stat = con.createStatement();
-			stat.executeUpdate("drop table if exists page_views;");
-			stat.executeUpdate("create table page_views(page_id, month, year, views, rev_count, identifier);");
-			
-			stat.executeUpdate("drop table if exists page_info;");
-			stat.executeUpdate("create table page_info(" +
-					"page_id, title, entrez, revs, bytes, words, links_out, links_in, external, " +
-					"pubmed_refs, redirects, sentences, media, created, creator);");
+//			stat.executeUpdate("drop table if exists page_views;");
+//			stat.executeUpdate("create table page_views(page_id, month, year, views, rev_count, identifier);");
+//			
+//			stat.executeUpdate("drop table if exists page_info;");
+//			stat.executeUpdate("create table page_info(" +
+//					"page_id, title, entrez, revs, bytes, words, links_out, links_in, external, " +
+//					"pubmed_refs, redirects, sentences, media, created, creator);");
 
 			stat.executeUpdate("drop table if exists revisions;");
 			stat.executeUpdate("create table revisions(rev_id, time, page_id, bytes_changed, editor, is_bot);");
 			
-			stat.executeUpdate("drop table if exists ontology;");
-			stat.executeUpdate("create table ontology(page_id, ontology_term, ont_id, ontology, date);");
-			
 			stat.executeUpdate("drop table if exists monthly;");
 			stat.executeUpdate("create table monthly(" +
 					"page_id, title, entrez, revs, bytes, words, links_out, links_in, external, " +
-					"pubmed_refs, redirects, sentences, media, created, creator, date);");
+					"pubmed_refs, redirects, sentences, media, created, creator, date, unique(title, date));");
 			stat.close();
 			con.close();
 			System.out.println("Done.");
@@ -492,6 +534,75 @@ public enum MetricsDatabase {
 		catch (ClassNotFoundException e) { e.printStackTrace(); };
 		return DriverManager.getConnection("jdbc:sqlite:"+dbName);
 	}
+
+	public LinkedHashMap<String, String> makeEntrezTitleMap() {
+		LinkedHashMap<String, String> map = new LinkedHashMap<String, String>();
+		try {
+			Connection con = connect();
+			Statement state = con.createStatement();
+			ResultSet results = state.executeQuery("select entrez, title from page_info;");
+			while (results.next()) {
+				map.put(results.getString("entrez"), results.getString("title"));
+			}
+		} catch (SQLException e) {
+			// boo hoo
+		}
+		return map;
+	}
+
+	/**
+	 * Subtracts a month from every date in the Revisions table
+	 * @throws SQLException
+	 */
+	public void fixMonths() throws SQLException {
+		synchronized (lock) {
+			Connection con = connect();
+			Statement stat = con.createStatement();
+			ResultSet res = stat.executeQuery("select time,rev_id from revisions;");
+			Map<String, String> times = new HashMap<String, String>();
+			while (res.next()) {
+				times.put(res.getString("rev_id"), res.getString("time"));
+			}
+			stat.close();
+			int count = 0;
+			int size = times.size();
+			for (String rev_id : times.keySet()) {
+				Calendar newTime = new GregorianCalendar();
+				newTime.setTimeInMillis(Long.parseLong(times.get(rev_id)));
+				newTime.add(Calendar.MONTH, -1);
+				newTime.getTimeInMillis();
+				PreparedStatement prep = con.prepareStatement("update revisions set time=? where time=?;");
+				prep.setLong(1, newTime.getTimeInMillis());
+				prep.setLong(2, Long.parseLong(times.get(rev_id)));
+				prep.addBatch();
+				//con.setAutoCommit(false);
+				prep.executeBatch();
+				//con.setAutoCommit(true);
+				count++;
+				prep.close();
+				System.out.println(count);
+			}
+			con.close();
+			
+		}
+	}
+
+	public void fixPageIds(String title, int page_id, int entrez) throws SQLException {
+		synchronized (lock) {
+			Connection con = connect();
+			PreparedStatement prep = con.prepareStatement("update monthly set page_id=?, entrez=? where title =?");
+			prep.setInt(1, page_id);
+			prep.setInt(2, entrez);
+			prep.setString(3, title);
+			prep.addBatch();
+			con.setAutoCommit(false);
+			prep.executeBatch();
+			con.setAutoCommit(true);
+			con.close();
+		}
+		
+	}
+	
 	
 	
 	
