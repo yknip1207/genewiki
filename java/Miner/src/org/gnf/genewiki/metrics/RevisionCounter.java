@@ -77,24 +77,28 @@ public class RevisionCounter {
 		String credfile = "/Users/bgood/workspace/Config/gw_creds.txt";
 		Map<String, String> creds = GeneWikiUtils.read2columnMap(credfile);
 		RevisionCounter rc = new RevisionCounter(creds.get("wpid"), creds.get("wppw"));
-		Calendar latest = Calendar.getInstance();
+	//	Calendar latest = Calendar.getInstance();
 	//	latest.add(Calendar.MONTH, -2);
-		GWRevision rev = rc.getRevisionOnDay(latest, "CD90", true);
-		GeneWikiPage p = new GeneWikiPage(rev, rc.user, true);
-		System.out.println(rev.getRevid()+" "+rev.getTimestamp()+"\n"+p.getPageContent());
+//		GWRevision rev = rc.getRevisionOnDay(latest, "CD90", true);
+//		GeneWikiPage p = new GeneWikiPage(rev, rc.user, true);
+//		System.out.println(rev.getRevid()+" "+rev.getTimestamp()+"\n"+p.getPageContent());
 //		List<String> titles = new ArrayList<String>();
+//		titles.add("VLDL_receptor");
 //	//	Map<String, String> gene_wiki = GeneWikiUtils.read2columnMap("./gw_data/gene_wiki_index.txt");
 //	//	titles.addAll(gene_wiki.values());
 //	//	Collections.sort(titles);
 //		String article_names = "/users/bgood/data/wikiportal/facebase_genes.txt";
 //		titles.addAll(FileFun.readOneColFile(article_names));
-//		Calendar latest = Calendar.getInstance();
-//		Calendar earliest = Calendar.getInstance();
-//		earliest.add(Calendar.YEAR, -1);
+		Calendar latest = Calendar.getInstance();
+		Calendar earliest = Calendar.getInstance();
+		earliest.add(Calendar.YEAR, -3);
 //		String outfile = "/Users/bgood/data/wikiportal/fb_denver/networks/fb_gene_editor";
 //		rc.generateBatchReport(new HashSet<String>(titles), latest, earliest, outfile);	
-//		List<GWRevision> revs = rc.checkListForRevisionsInRange(latest, earliest, titles);
-//		System.out.println(revs.size());
+		List<GWRevision> revs = rc.getRevisions(latest, earliest, "VLDL_receptor", false, null);
+		System.out.println(revs.size()+" hello ");
+		for(GWRevision rev : revs){
+			System.out.println(rev.getRevid()+"\t"+rev.getTimestamp());
+		}
 		
 	}
 	

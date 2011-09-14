@@ -6,12 +6,15 @@ package org.gnf.genewiki.trust;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -20,6 +23,7 @@ import org.gnf.genewiki.GeneWikiLink;
 import org.gnf.genewiki.GeneWikiPage;
 import org.gnf.genewiki.GeneWikiUtils;
 import org.gnf.genewiki.Heading;
+import org.gnf.genewiki.Reference;
 import org.gnf.genewiki.Sentence;
 import org.gnf.genewiki.associations.CandidateAnnotation;
 import org.gnf.genewiki.mapping.GeneWikiPageMapper;
@@ -40,17 +44,16 @@ public class GeneWikiTrust {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
 		//		test();
 		GeneWikiTrust wt = new GeneWikiTrust();
-		wt.measureAuthorContributions(1000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/editor_info", true);
-		//		collectAllWikiTrustRawData(1000000);
-		//		GeneWikiPage p = GeneWikiUtils.deserializeGeneWikiPage(Config.gwroot+"intermediate/javaobj_wt/10000");
-		//		System.out.println("size "+p.getSize());
-		//		List<CandidateAnnotation> annos = GeneWikiPageMapper.annotateArticleNCBO(p, false, true, true, true, false);
-		//		System.out.println(CandidateAnnotation.getHeader());
-		//		for(CandidateAnnotation anno : annos){
-		//			System.out.println(anno);
-		//		}
+		boolean nobots = true;
+		//wt.measureAuthorContributions(10000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/all_authors_no_bots_no_refs.txt", nobots);
+		//	wt.measureTopAuthorContributions(10000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/top_authors_no_bots_no_refs.txt", nobots);
+			EditorInfo info = wt.getEditorInfoForPage("7372", nobots, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/");
+			System.out.println(info.getAllAsString());
+		//wt.buildCumulativeAuthorContributionTable(10000000, "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/", "/Users/bgood/data/NARupdate2011/author_trust_info.txt", false);
+		
 	}
 
 	/**
@@ -239,21 +242,27 @@ public class GeneWikiTrust {
 
 
 	class EditorInfo{
+		//wiki page title
+		String title;
 		//trusts for all edits
 		Map<String, List<Double>> user_trusts;
 		//number revisions saved
 		Map<String, Set<Integer>> user_revs;
 		//amount of text touched
 		Map<String, Integer> user_texts;
+		//pages touched
+		Map<String, Set<String>> user_pages;
 
 
-		public EditorInfo(Map<String, List<Double>> user_trusts,
+		public EditorInfo(String title, Map<String, List<Double>> user_trusts,
 				Map<String, Set<Integer>> user_revs,
-				Map<String, Integer> user_texts) {
-			super();
+				Map<String, Integer> user_texts,
+				Map<String, Set<String>> user_pages) {
+			this.title = title;
 			this.user_trusts = user_trusts;
 			this.user_revs = user_revs;
 			this.user_texts = user_texts;
+			this.user_pages = user_pages;
 		}
 		public Map<String, List<Double>> getUser_trusts() {
 			return user_trusts;
@@ -273,37 +282,114 @@ public class GeneWikiTrust {
 		public void setUser_texts(Map<String, Integer> user_texts) {
 			this.user_texts = user_texts;
 		}
+		public String getTitle() {
+			return title;
+		}
+		public void setTitle(String title) {
+			this.title = title;
+		}
+		public Map<String, Set<String>> getUser_pages() {
+			return user_pages;
+		}
+		public void setUser_pages(Map<String, Set<String>> user_pages) {
+			this.user_pages = user_pages;
+		}	
 
 		public String getAllAsString(){
-			String trusty ="User\tMean trust for page\n";
+			String trusty ="Title\tUser\tMean trust\trevisions_counted\ttext touched\tdistinct_pages_touched\n";
+			
+			Map<String, Double> user_avgtrust = new HashMap<String, Double>();
 			for(Entry<String, List<Double>> ut : user_trusts.entrySet()){
 				double m = 0;
 				for(Double t : ut.getValue()){
 					m+=t;
 				}
 				m = m/(double)ut.getValue().size();
-				trusty+=ut.getKey()+"\t"+m+"\n";
+				user_avgtrust.put(ut.getKey(), m);
 			}
-			trusty+="\nUser\tRevisions\n";
-			for(Entry<String, Set<Integer>> rev : user_revs.entrySet()){
-				trusty+=rev.getKey()+"\t"+rev.getValue().size()+"\n";
-			}
-			trusty+="\nUser\tLength of text touched\n";
-			for(Entry<String, Integer> text : user_texts.entrySet()){
-				trusty+=text.getKey()+"\t"+text.getValue()+"\n";
+			
+			List<String> sorted = MapFun.sortMapByValue(user_texts);			
+			Collections.reverse(sorted);
+			for(int i = 0; i<sorted.size(); i++){
+				trusty+=
+					title+"\t"+
+					sorted.get(i)+"\t"+
+					user_avgtrust.get(sorted.get(i))+"\t"+
+					user_revs.get(sorted.get(i)).size()+"\t"+
+					user_texts.get(sorted.get(i))+"\t"+
+					user_pages.get(sorted.get(i)).size()+"\n";
 			}
 			return trusty;
 		}
 
+
+		public void getRankInfo(String outputfile){
+			Map<Integer, Float> bin_total = new HashMap<Integer, Float>();
+			Map<Integer, Integer> bin_count = new HashMap<Integer, Integer>();
+			float max_editors = 0;
+			Map<String, Integer> user_cont = getUser_texts();
+			Map<String, Float> user_fraction = MapFun.convertCountsToPercentages(user_cont);
+			List<String> sorted = MapFun.sortMapByValue(user_cont);			
+			Collections.reverse(sorted);
+			for(int i = 0; i<sorted.size(); i++){
+				String key = sorted.get(i);
+
+				Float fraction = user_fraction.get(key);
+				Float ctotal = bin_total.get(i);
+				if(ctotal==null){
+					bin_total.put(i, fraction);
+					bin_count.put(i, 1);
+					max_editors = 1;
+				}else{
+					int bc = bin_count.get(i)+1;
+					bin_count.put(i, bc);
+					bin_total.put(i,(ctotal+fraction));
+					if(bc>max_editors){
+						max_editors = bc;
+					}
+				}
+			}
+			int total_editors = sorted.size();
+			TreeMap<Integer, Float> t = new TreeMap<Integer, Float>(bin_total);
+
+			try {
+				FileWriter w = new FileWriter(outputfile, true);
+				int i = 0;
+				for(Entry<Integer, Float> e : t.entrySet()){
+					String rank = e.getKey()+"";
+					String contributions_at_rank = e.getValue()+"";
+					w.write(getTitle()+"\t"+contributions_at_rank+"\t"+total_editors+"\t"+sorted.get(i)+"\n");
+					System.out.println(getTitle()+"\t"+contributions_at_rank+"\t"+total_editors+"\t"+sorted.get(i));
+					i++;
+					if(i>0){
+						break;
+					}
+				}
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+
+
 	}
-	public EditorInfo summarizeEditorTrust(List<WikiTrustBlock> blocks){
+	public EditorInfo summarizeEditorTrust(List<WikiTrustBlock> blocks, String title){
 		//trusts for all edits
 		Map<String, List<Double>> user_trusts = new HashMap<String, List<Double>>();
 		//number revisions saved
 		Map<String, Set<Integer>> user_revs = new HashMap<String, Set<Integer>>();
 		//amount of text touched
 		Map<String, Integer> user_texts = new HashMap<String, Integer>();
+		//number of articles touched in this block set
+		Map<String, Set<String>> user_pages = new HashMap<String, Set<String>>();
+		
 		for(WikiTrustBlock tb : blocks){
+			//check if its a revision to a citation (almost always reformatting)
+			//if it is, replace it with one letter (for some credit..)
+			tb.text = tb.text.replaceAll(Reference.regexP, "r");
+						
 			List<Double> trusts = user_trusts.get(tb.getEditor());
 			if(trusts==null){
 				trusts = new ArrayList<Double>();
@@ -314,16 +400,88 @@ public class GeneWikiTrust {
 			if(edits == null){
 				edits = new HashSet<Integer>();
 			}
-			edits.add(tb.getRevid());
+			edits.add(tb.getRevid());			
 			user_revs.put(tb.getEditor(), edits);
+			
 			Integer textamount = user_texts.get(tb.getEditor());
 			if(textamount == null){
 				textamount = 0;
 			}
 			textamount += tb.getText().length();
 			user_texts.put(tb.getEditor(), textamount);
+			
+			Set<String> pages = user_pages.get(tb.getEditor());
+			if(pages==null){
+				pages = new HashSet<String>();
+			}
+			pages.add(tb.title);
+			user_pages.put(tb.getEditor(), pages);
+			
 		}
-		return new EditorInfo(user_trusts, user_revs, user_texts);
+		return new EditorInfo(title, user_trusts, user_revs, user_texts, user_pages);
+	}
+
+	public EditorInfo getEditorInfoForPage(String geneid, boolean nobots, String serialized_wiktrust){
+		EditorInfo info = null;
+		GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+		//	System.out.println(page.getTitle());
+		List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
+		if(nobots){
+			List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
+			for(WikiTrustBlock block : blocks){
+				if(!(block.editor.contains("bot")||block.editor.contains("Bot"))){
+					botless.add(block);
+				}
+			}
+			info = summarizeEditorTrust(botless, page.getTitle());
+		}else{
+			info = summarizeEditorTrust(blocks, page.getTitle());
+		}
+		return info;
+	}
+
+
+
+	public void buildAuthorContributionTable(int limit, String serialized_wiktrust, String outputfile, boolean nobots){
+		File folder = new File(serialized_wiktrust);
+		int n = 0;
+		if(folder.isDirectory()){
+			List<WikiTrustBlock> allblocks = new ArrayList<WikiTrustBlock>();
+			for(String geneid : folder.list()){
+				//geneid = "1017";//cdk2 "7157"; //p53//insulin "3630";// "5649"; //reelin
+				n++;
+				if(n>limit){
+					break;
+				}
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+				//	System.out.println(page.getTitle());
+				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
+				for(WikiTrustBlock block : blocks){
+					block.title = page.getTitle();
+				}
+				if(nobots){
+					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
+					for(WikiTrustBlock block : blocks){
+						if(!(block.editor.contains("bot")||block.editor.contains("Bot"))){
+							botless.add(block);
+						}
+					}
+					allblocks.addAll(botless);
+				}else{
+					allblocks.addAll(blocks);
+				}
+			}
+			EditorInfo einfo = summarizeEditorTrust(allblocks,"ALL");
+			String cumulative = einfo.getAllAsString();
+			try {
+				FileWriter f = new FileWriter(outputfile);
+				f.write(cumulative);
+				f.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void measureAuthorContributions(int limit, String serialized_wiktrust, String outputfile, boolean nobots){
@@ -333,11 +491,13 @@ public class GeneWikiTrust {
 			int n = 0;
 			List<EditorInfo> e_info = new ArrayList<EditorInfo>();
 			for(String geneid : folder.list()){
+				//geneid = "1017";//cdk2 "7157"; //p53//insulin "3630";// "5649"; //reelin
 				n++;
 				if(n>limit){
 					break;
 				}
-				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);				
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+				//	System.out.println(page.getTitle());
 				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
 				if(nobots){
 					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
@@ -346,13 +506,14 @@ public class GeneWikiTrust {
 							botless.add(block);
 						}
 					}
-					e_info.add(summarizeEditorTrust(botless));
+					e_info.add(summarizeEditorTrust(botless, page.getTitle()));
 				}else{
-					e_info.add(summarizeEditorTrust(blocks));
+					e_info.add(summarizeEditorTrust(blocks, page.getTitle()));
 				}
 			}
 			Map<Integer, Float> bin_total = new HashMap<Integer, Float>();
 			Map<Integer, Integer> bin_count = new HashMap<Integer, Integer>();
+			float max_editors = 0;
 			for(EditorInfo e : e_info){
 				Map<String, Integer> user_cont = e.getUser_texts();
 				Map<String, Float> user_fraction = MapFun.convertCountsToPercentages(user_cont);
@@ -364,31 +525,78 @@ public class GeneWikiTrust {
 					Float fraction = user_fraction.get(key);
 					Float ctotal = bin_total.get(i);
 					if(ctotal==null){
-						Float f = new Float(fraction);
-						bin_total.put(i, f);
+						bin_total.put(i, fraction);
 						bin_count.put(i, 1);
 					}else{
 						int bc = bin_count.get(i)+1;
 						bin_count.put(i, bc);
 						bin_total.put(i,(ctotal+fraction));
+						if(bc>max_editors){
+							max_editors = bc;
+						}
 					}
 				}
 
 			}
 			TreeMap<Integer, Float> t = new TreeMap<Integer, Float>(bin_total);
-			for(Entry<Integer, Float> e : t.entrySet()){
-				System.out.println(e.getKey()+"\t"+e.getValue()/n);
-			}
 
-			//			try {
-			//				FileWriter w = new FileWriter(outputfile, true);
-			//				
-			//				w.close();
-			//			} catch (IOException e) {
-			//				// TODO Auto-generated catch block
-			//				e.printStackTrace();
-			//			}
+			try {
+				FileWriter w = new FileWriter(outputfile);
+				for(Entry<Integer, Float> e : t.entrySet()){
+					w.write(e.getKey()+"\t"+e.getValue()+"\t"+e.getValue()/max_editors+"\t"+bin_count.get(e.getKey())+"\t"+e.getValue()/bin_count.get(e.getKey())+"\n");
+					System.out.println(e.getKey()+"\t"+e.getValue()+"\t"+e.getValue()/max_editors+"\t"+bin_count.get(e.getKey())+"\t"+e.getValue()/bin_count.get(e.getKey()));
+				}
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
+
+
+	/**
+	 * report the total fraction contributed to each gene wiki page by the most prolific author for that page
+	 * @param limit
+	 * @param serialized_wiktrust
+	 * @param outputfile
+	 * @param nobots
+	 */
+	public void measureTopAuthorContributions(int limit, String serialized_wiktrust, String outputfile, boolean nobots){
+		File folder = new File(serialized_wiktrust);
+
+		if(folder.isDirectory()){
+			int n = 0;
+			//	List<EditorInfo> e_info = new ArrayList<EditorInfo>();
+			for(String geneid : folder.list()){
+				//geneid = "1017";//cdk2 "7157"; //p53//insulin "3630";// "5649"; //reelin
+				n++;
+				if(n>limit){
+					break;
+				}
+				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);			
+				//	System.out.println(page.getTitle());
+				List<WikiTrustBlock> blocks = WikiTrustClient.getTrustBlocks(page.getPageContent());
+				EditorInfo einfo = null;
+				if(nobots){
+					List<WikiTrustBlock> botless = new ArrayList<WikiTrustBlock>(blocks.size());
+					for(WikiTrustBlock block : blocks){
+						if(!(block.editor.contains("bot")||block.editor.contains("Bot"))){
+							botless.add(block);
+						}
+					}
+					einfo = summarizeEditorTrust(botless, page.getTitle());
+				}else{
+					einfo = summarizeEditorTrust(blocks, page.getTitle());
+				}
+				//	e_info.add(einfo);
+				einfo.getRankInfo(outputfile);
+			}
+
+
+		}
+
+	}
+
 }

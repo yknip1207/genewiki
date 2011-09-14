@@ -11,16 +11,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.gnf.genewiki.GeneWikiUtils;
 import org.gnf.genewiki.journal.Prioritizer;
+import org.gnf.genewiki.ncbi.PubMed;
+import org.gnf.genewiki.ncbi.PubMed.PubmedSummary;
 import org.gnf.go.GOterm;
 import org.gnf.search.GoogleSearch;
 import org.gnf.util.BioInfoUtil;
@@ -39,47 +45,54 @@ public class NAR2ReportBuilder {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//getGenePubGoCounts();
-		runGoogleRankAnalysis();
-		
+		//getGenePubGoWordCounts();
+		//runGoogleRankAnalysis();
+		buildPublicationGrowthTable();
+
 	}
 
-	
-	
-	public static Map<String, List<String>> getUrlsForGeneSymbols(String google_cache_file){
-		Map<String, List<String>> gene_urls = new HashMap<String, List<String>>();
-		if(google_cache_file!=null){
-			File in = new File(google_cache_file);
-			if(in.canRead()){
+//TODO - finish up and link to gene wiki growth
+	public static void buildPublicationGrowthTable(){
+		String pubmed_sum_cache = "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt";
+		PubMed pm = new PubMed();
+		SimpleDateFormat p_time = new SimpleDateFormat("yyyy MMM");
+		Map<String, PubMed.PubmedSummary> pmid_sum = pm.readCachedPubmedsums(pubmed_sum_cache);
+		//build a map of pubs by month
+		Map<Calendar, List<PubMed.PubmedSummary>> month_psums = new TreeMap<Calendar, List<PubMed.PubmedSummary>>();
+		for(PubMed.PubmedSummary psum : pmid_sum.values()){
+			String d = psum.getPubDate();
+			if(d!=null&&d.length()>=8&&!(d.contains("-"))){
+				d = pm.convertSeasonToMonth(d); // there are a few cases where NLM puts a season like 'summer' in place of the month..
+				Calendar pub_date = Calendar.getInstance();
+				pub_date.clear();
 				try {
-					BufferedReader f = new BufferedReader(new FileReader(google_cache_file));
-					String line = f.readLine().trim();
-					while(line!=null){
-						String[] item = line.split("\t");
-						if(item!=null&&item.length>1){
-							List<String> urls = gene_urls.get(item[0]);
-							if(urls == null){
-								urls = new ArrayList<String>();
-							}
-							urls.add(item[3]);
-							gene_urls.put(item[0], urls);
-						}
-						line = f.readLine();
-					}
-				} catch (FileNotFoundException e) {
+					pub_date.setTime(p_time.parse(d));				
+				} catch (ParseException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
+				List<PubMed.PubmedSummary> have = month_psums.get(pub_date);
+				if(have==null){
+					have = new ArrayList<PubMed.PubmedSummary>();
+				}
+				have.add(psum);
+				month_psums.put(pub_date, have);
 			}
 		}
-		return gene_urls;
+		//print out the counts
+		int total = 0;
+		for(Entry<Calendar, List<PubMed.PubmedSummary>> month_psumlist : month_psums.entrySet()){
+			int monthly = month_psumlist.getValue().size();
+			total+=monthly;
+			System.out.println(p_time.format(month_psumlist.getKey().getTime())+"\t"+month_psumlist.getValue().size()+"\t"+total);
+		}
 	}
 
+
+	/**
+	 * Collects and renders data regarding the rank in the google results (first page only) for gene wiki pages when searching by official gene symbol
+	 */
 	public static void runGoogleRankAnalysis(){
-		//get gene symbol list for gene wiki pages
 
 		//work from local cache of index
 		String index = "/users/bgood/data/bioinfo/gene_wiki_index.txt";
@@ -208,15 +221,49 @@ public class NAR2ReportBuilder {
 		System.out.println("\nN gene cards "+n_gene_cards+" n gc not gene wiki "+n_gene_cards_not_gw);
 
 	}
+	public static Map<String, List<String>> getUrlsForGeneSymbols(String google_cache_file){
+		Map<String, List<String>> gene_urls = new HashMap<String, List<String>>();
+		if(google_cache_file!=null){
+			File in = new File(google_cache_file);
+			if(in.canRead()){
+				try {
+					BufferedReader f = new BufferedReader(new FileReader(google_cache_file));
+					String line = f.readLine().trim();
+					while(line!=null){
+						String[] item = line.split("\t");
+						if(item!=null&&item.length>1){
+							List<String> urls = gene_urls.get(item[0]);
+							if(urls == null){
+								urls = new ArrayList<String>();
+							}
+							urls.add(item[3]);
+							gene_urls.put(item[0], urls);
+						}
+						line = f.readLine();
+					}
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return gene_urls;
+	}
 
-	public static void getGenePubGoCounts(){
+	/**
+	 * builds a table allowing containing gene, n related pubmed articles (filtered  remove massive gene pubs), n related go terms, and n words form gene wiki article
+	 */
+	public static void getGenePubGoWordCounts(){
 		double total_in_gene = 20473; // 42159 for all.. //See NCBI Gene with query (alive[prop] AND txid9606 )
 		//count genes linked go (from ncbi gene2go) 
 		boolean skipIEA = true; boolean only_human = true;
 		Map<String, Set<GOterm>> gene2go = BioInfoUtil.readGene2GO("/Users/bgood/data/bioinfo/gene2go", skipIEA, only_human ); //updated Aug. 9, 2011
 
 		//count genes linked to pubmed articles		
-		String gene2pubmedcountfile = "/Users/bgood/data/NARupdate2011/gene2pmedGO_noIEA_pcoding_no_mega_pub.txt";
+		String gene2pubmedcountfile = "/Users/bgood/data/NARupdate2011/gene2pmedGO_noIEA_pcoding_no_mega_pub_gw_words.txt";
 		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/bioinfo/gene2pubmed"); //updated Aug. 9, 2011
 		boolean filter_mega_gene_pubs = true;
 		//System.out.println("pmids before filter "+MapFun.flipMapStringListStrings(gene2pub).keySet().size());
@@ -251,12 +298,23 @@ public class NAR2ReportBuilder {
 		double genes_with_5_plus_go = 0;
 		double genes_with_any_go = 0;		
 
+		MetricsDB db = new MetricsDB();
 		try {
 			FileWriter f = new FileWriter(gene2pubmedcountfile);
-			f.write("gene\tpmid_count\tgo_count\n");
+			f.write("gene\ttitle\tGW_word_count\tpmid_count\tgo_count\n");
 
 			for(String gene : genes){
-				String r = gene+"\t";
+				String title = "";
+				String words = "";
+				try {
+					title = db.getTitleByGeneID(gene);
+					words = db.getWordsByGeneID(gene);
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				String r = gene+"\t"+title+"\t"+words+"\t";
 				if(gene2pub.get(gene)!=null){
 					genes_with_any++;
 					if(gene2pub.get(gene).size()>5){		
