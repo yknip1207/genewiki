@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.genewiki.pbb.exceptions.ExceptionHandler;
@@ -24,6 +28,39 @@ public class FileHandler {
 	private ExceptionHandler botState;
 	private File root;
 
+	public static void main(String[] args) throws IOException {
+		FileHandler fh = new FileHandler(true);
+		System.out.println("Root: "+fh.getRoot().getCanonicalPath());
+		System.out.println("Testing curl: ");
+		List<String> lines = fh.curl("http://xanthus.scripps.edu/style.css");
+		for (String line : lines) {
+			System.out.println(line);
+		}
+	}
+	
+	/**
+	 * Finds the directory in which the jarfile lives
+	 * @param findRoot
+	 */
+	public FileHandler(boolean findRoot) {
+		String rootLoc = "";
+		try {
+			// Returns the actual path to the class in the jarfile
+			rootLoc = FileHandler.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String[] exploded = rootLoc.split("/");
+		StringBuffer newfile = new StringBuffer();
+		// Pieces together the file up until the jar to give the jar's directory
+		for (String folder:exploded) {
+			if (!folder.endsWith(".jar"))
+				newfile.append(folder+"/");
+		}
+		root = new File(newfile.toString());
+	}
+	
 	public FileHandler(String root) {
 		
 		/* -- Test write capabilities to specified location -- */
@@ -37,6 +74,10 @@ public class FileHandler {
 		}
 	}
 	
+	public FileHandler() {
+		// TODO Auto-generated constructor stub
+	}
+
 	/**
 	 * @return the root path that this FileHandler is using
 	 */
@@ -98,5 +139,25 @@ public class FileHandler {
 			botState.fatal(e1);
 		}
 		
+	}
+	
+	/**
+	 * Returns the content of a URL as a string (like curl on unix)
+	 * @param url
+	 * @return content
+	 */
+	public List<String> curl(String url) {
+		try {
+			InputSupplier<InputStreamReader> insupply = Resources.newReaderSupplier(new URL(url), utf8);
+			InputStreamReader in = insupply.getInput();
+			List<String> content = Resources.readLines(new URL(url), utf8);
+			return content;
+		} catch (MalformedURLException mue) {
+			mue.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

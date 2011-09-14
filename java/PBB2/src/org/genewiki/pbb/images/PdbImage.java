@@ -6,13 +6,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import net.sourceforge.jwbf.core.actions.util.ActionException;
-import net.sourceforge.jwbf.core.actions.util.ProcessException;
-import net.sourceforge.jwbf.mediawiki.actions.editing.FileUpload;
-import net.sourceforge.jwbf.mediawiki.actions.util.VersionException;
-import net.sourceforge.jwbf.mediawiki.bots.MediaWikiBot;
-import net.sourceforge.jwbf.mediawiki.contentRep.SimpleFile;
+import javax.security.auth.login.LoginException;
 
+import org.genewiki.api.Wiki;
 import org.genewiki.pbb.Configs;
 import org.genewiki.pbb.exceptions.ConfigException;
 import org.genewiki.pbb.util.FileHandler;
@@ -110,9 +106,9 @@ public class PdbImage {
 	 * @return
 	 */
 	private String downloadPdbFile(String pdbId) {
-		System.out.print("Downloading pdb file from RCSB... ");
+//		System.out.print("Downloading pdb file from RCSB... ");
 		filer.wget("http://www.rcsb.org/pdb/files/"+pdbId+".pdb", pdbId+".pdb");
-		System.out.println("download complete.");
+//		System.out.println("download complete.");
 		return pdbId+".pdb";
 	}
 	
@@ -129,7 +125,7 @@ public class PdbImage {
 		String filename = "Protein_"+entrez+"_PDB_"+pdbId+".png";
 		
 
-		System.out.print("Rendering image for "+this.pdbId+"... ");
+//		System.out.print("Rendering image for "+this.pdbId+"... ");
 		
 		// The following assumes you've left 'pdb' set as the FileHandler root.
 		// If not, change each instance in the two strings below.
@@ -141,8 +137,8 @@ public class PdbImage {
 		Process process = rt.exec(pymol);
 		
 		// Comment this out if you don't want to see pymol's chatter
-		InputStream stdout = process.getInputStream();
-		ByteStreams.copy(stdout, System.out);
+//		InputStream stdout = process.getInputStream();
+//		ByteStreams.copy(stdout, System.out);
 		
 		// Wait for PyMOL to finish before continuing
 		try {
@@ -154,7 +150,7 @@ public class PdbImage {
 		}
 		
 		
-		System.out.println("rendering complete.");
+//		System.out.println("rendering complete.");
 		return filename;
 		
 	}
@@ -165,32 +161,16 @@ public class PdbImage {
 	 * this method after initializing your PdbImage object, and requires valid
 	 * usernames and passwords set in the bot.properties file, and valid
 	 * Wikimedia Commons base URL.
-	 * @throws ConfigException if URL or credentials are invalid
 	 */
 	public void uploadPdbImg() {
+		Wiki wmc = new Wiki(commonsRoot);
 		try {
-			MediaWikiBot commonsBot = new MediaWikiBot(new URL(commonsRoot));
-			commonsBot.login(this.username, this.password);
-			
-			SimpleFile file = new SimpleFile(new File(filer.getRoot(), this.pdbImage));
-			file.addText(this.description); // Forms the 
-			FileUpload fu = new FileUpload(file, commonsBot);
-			
-			System.out.print("Uploading file... ");
-			commonsBot.performAction(fu);
-			System.out.println(this.pdbImage+" uploaded to Wikimedia Commons.");
-			
-		} catch (MalformedURLException e) {
+		wmc.login(username, password.toCharArray());
+		File file = new File(filer.getRoot(), this.pdbImage);
+		wmc.upload(file, this.pdbImage, this.description, "New rendering of molecular structure for Gene Wiki template.");
+		} catch (LoginException e) {
 			e.printStackTrace();
-			throw new ConfigException("Bad URL set for Wikimedia Commons in the config file.");			
-		} catch (ActionException e) {
-			e.printStackTrace();
-			throw new ConfigException("Bad credentials for Wikimedia Commons.");
-		} catch (VersionException e) {
-			// This shouldn't show up if you're working with Wikipedia and WM Commons
-			e.printStackTrace();
-		} catch (ProcessException e) {
-
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -199,7 +179,7 @@ public class PdbImage {
 		try {
 			Configs.GET.setFromFile("bot.properties");
 			PdbImage img = new PdbImage("1B09", "1401");
-			System.out.println(img.description);
+//			System.out.println(img.description);
 			//img.uploadPdbImg();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

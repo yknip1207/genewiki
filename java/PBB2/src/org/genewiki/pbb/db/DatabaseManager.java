@@ -36,22 +36,23 @@ public class DatabaseManager {
 	 */
 	public static void init(boolean force) {
 		if ((new File(DBNAME).exists()) && !force) {
-			System.out.println("Database found.");
-		}
-		try {
-			Class.forName("org.sqlite.JDBC");
-			Connection conn = DriverManager.getConnection("jdbc:sqlite:"+DBNAME);
-			Statement stat = conn.createStatement();
-			stat.executeUpdate("drop table if exists general;");
-			stat.executeUpdate("create table general (gene, updated, fields_changed, time);");
-			stat.executeUpdate("drop table if exists changes;");
-			stat.executeUpdate("create table changes (gene, field, old, new, time);");
-			conn.close();
-			System.out.println("Created database.");
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new FatalException("Error setting up general database.");
-		} finally {
+			//System.out.println("Database found.");
+		} else {
+			try {
+				Class.forName("org.sqlite.JDBC");
+				Connection conn = DriverManager.getConnection("jdbc:sqlite:"+DBNAME);
+				Statement stat = conn.createStatement();
+				stat.executeUpdate("drop table if exists general;");
+				stat.executeUpdate("create table general (gene, updated, fields_changed, time);");
+				stat.executeUpdate("drop table if exists changes;");
+				stat.executeUpdate("create table changes (gene, field, old, new, time);");
+				conn.close();
+				//System.out.println("Created database.");
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new FatalException("Error setting up general database.");
+			} finally {
+			}
 		}
 	}
 	

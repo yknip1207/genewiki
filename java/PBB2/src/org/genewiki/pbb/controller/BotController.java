@@ -13,7 +13,7 @@ import org.genewiki.pbb.exceptions.ValidationException;
 import org.genewiki.pbb.mygeneinfo.MyGeneInfoParser;
 import org.genewiki.pbb.wikipedia.InfoboxParser;
 import org.genewiki.pbb.wikipedia.ProteinBox;
-import org.genewiki.pbb.wikipedia.WikipediaController;
+import org.genewiki.pbb.wikipedia.WikipediaInterface;
 
 import com.google.common.base.Preconditions;
 
@@ -24,7 +24,7 @@ public class BotController implements Runnable {
 	protected final DatabaseManager dbManager;	// Manages SQLite db to track changes
 	protected final ExceptionHandler botState;	// ExceptionHandler to communicate bot state
 	
-	protected 	WikipediaController wpControl;
+	protected	WikipediaInterface	wpi;
 	
 	public		List<String> identifiers;
 	protected 	List<String> completed;
@@ -42,7 +42,7 @@ public class BotController implements Runnable {
 		dbManager = new DatabaseManager();
 		botState = exh;
 		
-		this.wpControl = new WikipediaController(botState, Configs.GET);
+		this.wpi = new WikipediaInterface(botState, Configs.GET);
 		
 		this.delay = 3;
 		this.identifiers = new ArrayList<String>();
@@ -51,7 +51,7 @@ public class BotController implements Runnable {
 				Integer.parseInt(id);
 				this.identifiers.add(id);
 			} catch (NumberFormatException e) {
-				System.out.println("Identifier \""+e+"\" is not a valid Entrez ID, omitting.");
+//				System.out.println("Identifier \""+e+"\" is not a valid Entrez ID, omitting.");
 			}
 		}
 		this.completed = new ArrayList<String>(0);
@@ -133,7 +133,7 @@ public class BotController implements Runnable {
 	 */
 	public boolean update(ProteinBox update) throws Exception {
 		if (botState.isFine() || Configs.GET.flag("dryrun")) {
-			wpControl.putContent(update.toString(), update.getId(), update.getSummary());
+			wpi.putTemplate(update.toString(), update.getId(), update.getSummary());
 			DatabaseManager.updateDb("true", update.getId(), update.getChangedFields());
 			return true;
 		} else {
@@ -164,7 +164,7 @@ public class BotController implements Runnable {
 	}
 	
 	private ProteinBox importWikipediaData(String id) {
-		String content = wpControl.getContentForId(id);
+		String content = wpi.getContentForId(id);
 		InfoboxParser parser = InfoboxParser.factory(content);
 		try {
 			ProteinBox result = parser.parse();

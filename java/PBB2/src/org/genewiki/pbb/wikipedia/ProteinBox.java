@@ -217,13 +217,13 @@ public class ProteinBox {
 			
 			// If we have a pdb value and no previous image:
 			if (!pdb.equals("") && prevImg.equals("")) {
-				System.out.print("Searching for existing image on Commons... ");
+//				System.out.print("Searching for existing image on Commons... ");
 				img = ImageFinder.getImage(sym, pdb.toLowerCase());
 				if (img != null) {
-					System.out.println("image found and linked.");
+//					System.out.println("image found and linked.");
 					imgSrc = "Rendering of "+sym+" from [[Protein Data Bank | PDB]] {{PDB2|"+pdb+"}}";
 				} else {
-					System.out.println("no image found, attempting render and upload.");
+//					System.out.println("no image found, attempting render and upload.");
 					try {
 						PdbImage pdbImg = new PdbImage(pdb, sym);
 						pdbImg.uploadPdbImg();
@@ -244,9 +244,9 @@ public class ProteinBox {
 				singleValFields.put("image_source", imgSrc);
 			} else {
 				if (pdb.equals("")) {
-					System.out.println("No PDB values found to search for or generate image from.");
+//					System.out.println("No PDB values found to search for or generate image from.");
 				} else {
-					System.out.println("Previous image already set.");
+//					System.out.println("Previous image already set.");
 				}
 			}
 			return this;
@@ -358,7 +358,7 @@ public class ProteinBox {
 				continue;
 			} else if (sourceValue == null) {
 				// Nothing to update.
-				System.out.println("WARNING: mygene.info potentially missing information in field "+ key);
+//				System.out.println("WARNING: mygene.info potentially missing information in field "+ key);
 //				try {
 //					db.addMissingFromSource(entrez, key, thisValue);
 //				} catch (SQLException e) {
@@ -368,7 +368,7 @@ public class ProteinBox {
 				
 			} else if (thisValue == null) {
 				// Definitely update.
-				System.out.printf("Field %s in original is empty.", key);
+//				System.out.printf("Field %s in original is empty.", key);
 			} else if (thisValue.equalsIgnoreCase(sourceValue)) {
 				// No need to update.
 				builder.add(key, thisValue);
@@ -423,7 +423,7 @@ public class ProteinBox {
 				DatabaseManager.addChange(entrez, "image_source", "", image_source);
 				updated += 2;
 			} else {
-				System.out.println("No image found or created. Moving on...");
+//				System.out.println("No image found or created. Moving on...");
 			}
 		} catch (IndexOutOfBoundsException e) {
 			// No image for us this time.

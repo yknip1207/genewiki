@@ -1,7 +1,6 @@
 package org.genewiki.pbb;
 
 import java.io.BufferedReader;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -18,9 +18,9 @@ import org.genewiki.pbb.controller.BotController;
 import org.genewiki.pbb.db.DatabaseManager;
 import org.genewiki.pbb.exceptions.ExceptionHandler;
 import org.genewiki.pbb.exceptions.Severity;
-import org.genewiki.pbb.util.FileHandler;
+import org.genewiki.pbb.util.PageList;
 import org.genewiki.pbb.wikipedia.ProteinBox;
-import org.genewiki.pbb.wikipedia.WikipediaController;
+import org.genewiki.pbb.wikipedia.WikipediaInterface;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.User;
 
@@ -28,6 +28,10 @@ public class ProteinBoxBot {
 	static ExceptionHandler exHandler; // Bridge between the bot state and this controller
 	
 	public static void main(String[] args) {
+		org.apache.log4j.BasicConfigurator.configure();
+		org.apache.log4j.Logger logger = org.apache.log4j.Logger.getRootLogger();
+		logger.setLevel(org.apache.log4j.Level.OFF);
+		
 		OptionParser parser = new OptionParser("i:o:");
 		parser.accepts("resume");
 		parser.accepts("restart");
@@ -243,7 +247,7 @@ public class ProteinBoxBot {
 		exHandler = exHandler.INSTANCE;	
 		Generator gen = new Generator();
 		BotController bot = new BotController(ids);
-		WikipediaController wpcontrol = new WikipediaController(exHandler, Configs.GET);
+		WikipediaInterface wpi = new WikipediaInterface(exHandler, Configs.GET);
 		User user = new User(Configs.GET.str("username"), Configs.GET.str("password"),
 				"http://commons.wikimedia.org/w/api.php");
 		
@@ -262,14 +266,14 @@ public class ProteinBoxBot {
 			String[] valuePairs = {"titles", title};
 			String response = connector.queryXML(user, valuePairs);
 			if (response.contains("missing=\"\"")) {
-				wpcontrol.putArticle(stub, title, summary);
+				wpi.putArticle(stub, title, summary);
 				print("Created new stub with title: "+title);
 			} else {
 				print("That title already exists. Please select another: ");
 				title = waitForReturn();
 				print("I'm not checking again, so please verify this is the title you want... ");
 				waitForReturn();
-				wpcontrol.putArticle(stub, title, summary);
+				wpi.putArticle(stub, title, summary);
 			}
 		}
 	}
@@ -294,20 +298,47 @@ public class ProteinBoxBot {
 	 * @return true if exists
 	 */
 	public static boolean checkExistence(String title) {
-		if (!Configs.GET.initialized())
-			Configs.GET.setFromFile("bot.properties");
-		User user = new User(Configs.GET.str("username"), Configs.GET.str("password"),
-				"http://commons.wikimedia.org/w/api.php");
-		Connector connector = new Connector();
-		String[] valuePairs = {"titles", title};
-		String response = connector.queryXML(user, valuePairs);
-		if (response.contains("missing=\"\"")) {
-			System.out.println(0);
+		Map<String, String> map = null;
+		try {
+			map = PageList.in();
+		} catch (FileNotFoundException e) {
+			PageList.out();
+			System.out.println("Created new entrez-title map.");
+		//	checkExistence(title); // recursion! kind of
 			return false;
-		} else {
-			System.out.println(1); // these are not exit codes
-			return true;
 		}
+		
+		if (map.containsKey(title)) {
+			System.out.print(map.get(title));
+			return true;
+		} else if (map.containsValue(title)) {
+			System.out.print(title);
+			return true;
+		} else {
+			if (!Configs.GET.initialized())
+				Configs.GET.setFromFile("bot.properties");
+			User user = new User(Configs.GET.str("username"), Configs.GET.str("password"),
+					"http://en.wikipedia.org/w/api.php");
+			Connector connector = new Connector();
+			String[] valuePairs = {"titles", title, "redirects",""};
+			String response = connector.queryXML(user, valuePairs);
+			if (response.contains("missing=\"\"")) {
+				System.out.print("_false");
+				return false;
+			} else if (response.contains("<redirects>")){
+				String line = "<r from="+title+" to=";
+				int a = response.indexOf(line, response.indexOf("<redirects>")+11)+line.length();
+				int b = response.indexOf(" />", a);
+				String redirectedTitle = response.substring(a, b);
+				
+				System.out.print(redirectedTitle);
+				return true;
+			} else {
+				System.out.print(title);
+				return true;
+			}
+		}
+		
 		
 	}
 	

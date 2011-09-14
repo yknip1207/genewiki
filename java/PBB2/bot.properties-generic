@@ -23,8 +23,8 @@ commonsPassword =
 # Template information
 templatePrefix = Template:PBB/
 templateName = GNF_Protein_box
-api_root = http://en.wikipedia.org/w/
-commonsRoot = http://commons.wikimedia.org/w/
+api_root = en.wikipedia.org
+commonsRoot = commons.wikimedia.org
 
 # Miscellaneous
 loggerLevel = Info
