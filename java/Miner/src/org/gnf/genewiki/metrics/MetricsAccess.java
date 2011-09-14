@@ -9,6 +9,7 @@ import org.gnf.wikiapi.Page;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -33,6 +34,9 @@ import org.json.JSONObject;
  */
 public class MetricsAccess {
 
+	static SimpleDateFormat yearMonthDay = DateFun.yearMonthDay();
+	static SimpleDateFormat year_month_day = DateFun.year_month_day();
+	
 	/**
 	 * Example args for gene wiki, limit 100, for one year interval, and all metrics gathered 
 	 * -pv -vl -rv -t Template:GNF_Protein_box -L 10 -t0 20100801 -t1 20110801 -o "/Users/bgood/data/wikiportal/gene_wiki_metrics_aug2011/", -c -c /Users/bgood/workspace/Config/gw_creds.txt
@@ -143,8 +147,8 @@ public class MetricsAccess {
 		Calendar earliest = Calendar.getInstance();
 		if(t0_in!=null&&t1_in!=null){
 			try {
-				earliest.setTime(DateFun.yearMonthDay.parse(t0_in));
-				latest.setTime(DateFun.yearMonthDay.parse(t1_in));
+				earliest.setTime(yearMonthDay.parse(t0_in));
+				latest.setTime(yearMonthDay.parse(t1_in));
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -156,7 +160,7 @@ public class MetricsAccess {
 		//do the page views
 		if(pageviews){
 			System.out.println("Attempting to collect page views");
-			System.out.println("Requesting page view info from http://stats.grok.se/json/en/ for "+titles.size()+" articles in date range "+DateFun.year_month_day.format(earliest.getTime()) +" : "+ DateFun.year_month_day.format(latest.getTime()));
+			System.out.println("Requesting page view info from http://stats.grok.se/json/en/ for "+titles.size()+" articles in date range "+year_month_day.format(earliest.getTime()) +" : "+ year_month_day.format(latest.getTime()));
 			Map<String, DescriptiveStatistics> page_views = PageViewCounter.getPageViewSummaryForDateRange(titles, earliest, latest);
 			System.out.println("Finished getting page views, now writing files to "+output_dir);
 			JSONObject vreport = PageViewCounter.generatePageSetViewReportJSON(page_views, earliest, latest);			
@@ -170,7 +174,7 @@ public class MetricsAccess {
 				f.close();
 				//write table for spreadsheet
 				f = new FileWriter(output_dir+"all_views.txt");
-				String range = DateFun.yearMonthDay.format(earliest.getTime()) +" : "+ DateFun.yearMonthDay.format(latest.getTime());
+				String range = yearMonthDay.format(earliest.getTime()) +" : "+ yearMonthDay.format(latest.getTime());
 				f.write(range+"\ttitle\ttotal page views\tmean /day\tmedian/day\tmax/day\n");
 				for(Entry<String, DescriptiveStatistics> page_view : page_views.entrySet()){
 					DescriptiveStatistics stats = page_view.getValue();
@@ -185,7 +189,7 @@ public class MetricsAccess {
 		}
 		//do the revisions
 		if(revisions){
-			System.out.println("Getting revision data from wikipedia for "+titles.size()+" articles in date range "+DateFun.year_month_day.format(earliest.getTime()) +" : "+ DateFun.year_month_day.format(latest.getTime()));
+			System.out.println("Getting revision data from wikipedia for "+titles.size()+" articles in date range "+year_month_day.format(earliest.getTime()) +" : "+ year_month_day.format(latest.getTime()));
 			if(wp_user.equals("")||wp_pw.equals("")){
 				System.out.println("Accessing Wikipedia anonymously - you might want to enter your user name and password (e.g. -u youruser -p yourpassword");
 			}
@@ -206,7 +210,7 @@ public class MetricsAccess {
 		}
 		//do the volume
 		if(volume){
-			System.out.println("Getting volume data from wikipedia for "+titles.size()+" articles in date range "+DateFun.year_month_day.format(earliest.getTime()) +" : "+ DateFun.year_month_day.format(latest.getTime()));
+			System.out.println("Getting volume data from wikipedia for "+titles.size()+" articles in date range "+year_month_day.format(earliest.getTime()) +" : "+ year_month_day.format(latest.getTime()));
 			System.out.println("What you are going to see is the current snapshot");
 			if(wp_user.equals("")||wp_pw.equals("")){
 				System.out.println("Accessing Wikipedia anonymously - you might want to enter your user name and password (e.g. -u youruser -p yourpassword");
@@ -226,7 +230,7 @@ public class MetricsAccess {
 				pages.add(page);
 			}
 			VolumeReport r = VolumeCounter.summarizeArticleVolumes(VolumeCounter.getArticleVolumes(pages), output_dir+"volume");
-			r.setTimestamp(DateFun.year_month_day.format(Calendar.getInstance().getTime()));
+			r.setTimestamp(year_month_day.format(Calendar.getInstance().getTime()));
 			JSONArray a = new JSONArray();
 			a.put(r.toJSON());		
 			FileWriter f;
@@ -244,7 +248,7 @@ public class MetricsAccess {
 		FileWriter f;
 		try {
 			f = new FileWriter(output_dir+"ReportConfig.txt");
-			f.write("Report finished generating at: "+DateFun.wp_format.format(Calendar.getInstance().getTime())+"\n");
+			f.write("Report finished generating at: "+DateFun.wp_format().format(Calendar.getInstance().getTime())+"\n");
 			for(String arg : args){
 				f.write(arg+" ");
 			}

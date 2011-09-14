@@ -95,7 +95,7 @@ public class PageViewCounter {
 		vr.setMean_day((float)all_pvs.getMean());
 		vr.setMedian_day((int)all_pvs.getPercentile(50));
 		vr.setTotal_views((int)all_pvs.getSum());
-		vr.setTimespan(DateFun.year_month_day.format(earliest.getTime()) +" : "+ DateFun.year_month_day.format(latest.getTime()));
+		vr.setTimespan(DateFun.year_month_day().format(earliest.getTime()) +" : "+ DateFun.year_month_day().format(latest.getTime()));
 		vr.setRank(0);
 
 		return vr.getJSON();
@@ -104,7 +104,7 @@ public class PageViewCounter {
 
 	public static String summarizeSetInRange(Set<String> titles, Calendar t1, Calendar t2, String outfile){
 		String report = "";
-		System.out.println("Requesting "+titles.size()+" pages for range: "+DateFun.wp_format.format(t1.getTime())+" "+DateFun.wp_format.format(t2.getTime()));
+		System.out.println("Requesting "+titles.size()+" pages for range: "+DateFun.wp_format().format(t1.getTime())+" "+DateFun.wp_format().format(t2.getTime()));
 		Map<String, DescriptiveStatistics> page_views = getPageViewSummaryForDateRange(titles, t1, t2);
 		//now start counting
 		//average page views per month for all articles

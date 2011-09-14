@@ -61,7 +61,7 @@ public class VolumeCounter {
 			pages.add(page);
 		}
 		VolumeReport r = summarizeArticleVolumes(getArticleVolumes(pages), outdir+"_volume");
-		r.setTimestamp(DateFun.year_month_day.format(Calendar.getInstance().getTime()));
+		r.setTimestamp(DateFun.year_month_day().format(Calendar.getInstance().getTime()));
 		JSONArray a = new JSONArray();
 		a.put(r.toJSON());
 		System.out.println(a.toString());

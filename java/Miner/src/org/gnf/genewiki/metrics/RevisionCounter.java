@@ -49,6 +49,7 @@ public class RevisionCounter {
 	String wikiapi;
 	ParserAccess parser;
 	Page wikidetails; 
+	SimpleDateFormat wp_format = DateFun.wp_format();
 
 	public RevisionCounter(String wikipedia_user, String wikipedia_password){
 		init(wikipedia_user, wikipedia_password);
@@ -104,7 +105,7 @@ public class RevisionCounter {
 	
 	public RevisionsReport generateBatchReport(Set<String> titles, Calendar latest, Calendar earliest, String outfile){
 		RevisionsReport report = null;
-		String timespan = DateFun.yearMonthDay.format(earliest.getTime())+"-"+DateFun.yearMonthDay.format(latest.getTime());
+		String timespan = DateFun.yearMonthDay().format(earliest.getTime())+"-"+DateFun.yearMonthDay().format(latest.getTime());
 		int n = 0;
 		try {
 			FileWriter f = new FileWriter(outfile+"_all.txt");
@@ -132,7 +133,7 @@ public class RevisionCounter {
 			f.close();
 			f = new FileWriter(outfile+"_summary.txt");
 			report = new RevisionsReport(allrevs);
-			report.setTimespan(DateFun.year_month_day.format(earliest.getTime())+" - "+DateFun.year_month_day.format(latest.getTime()));
+			report.setTimespan(DateFun.year_month_day().format(earliest.getTime())+" - "+DateFun.year_month_day().format(latest.getTime()));
 			f.write(RevisionsReport.getSummaryHeader()+"\n");
 			f.write(report.getSummaryString()+"\n");
 			f.close();
@@ -140,7 +141,7 @@ public class RevisionCounter {
 			f = new FileWriter(outfile+"_editors.txt");
 			f.write("Editor\tEdit_count\tMost_recent\n");
 			for(String editor : report.getUser_edits().keySet()){
-				f.write(editor+"\t"+report.getUser_edits().get(editor)+"\t"+DateFun.wp_format.format(report.getUser_lastedit().get(editor).getTime())+"\n");
+				f.write(editor+"\t"+report.getUser_edits().get(editor)+"\t"+wp_format.format(report.getUser_lastedit().get(editor).getTime())+"\n");
 			}
 			f.close();
 			System.out.println(RevisionsReport.getSummaryHeader());
@@ -284,6 +285,10 @@ public class RevisionCounter {
 
 		Connector connector = user.getConnector();
 		String pagesXML = connector.queryXML(user, a,revQuery);
+		
+		// Homebrew revisions parser!
+		
+		
 		//		connector.getManager().closeIdleConnections(0);
 		//		connector.getManager().deleteClosedConnections();
 		List<GWRevision> newrevs = parser.parseRevisionsXml(pagesXML);
@@ -301,10 +306,13 @@ public class RevisionCounter {
 		}
 		GWRevision lastone = revs.get(revs.size()-1);
 		Date lastdate = null;
+		
 		try {
-			lastdate = DateFun.wp_format.parse(lastone.getTimestamp());
+			lastdate = wp_format.parse(lastone.getTimestamp());
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		}
 		//latest.setTime(lastdate);

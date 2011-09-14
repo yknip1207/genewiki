@@ -71,7 +71,7 @@ public class RevisionsReport {
 			//users by most recent edit
 			Date thisdate = null;
 			try {
-				thisdate = DateFun.wp_format.parse(r.getTimestamp());
+				thisdate = DateFun.wp_format().parse(r.getTimestamp());
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -164,7 +164,7 @@ public class RevisionsReport {
 		article_edits.get(title)+"\t"+
 		article_editors.get(title).size()+"\t"+
 		article_bytes.get(title)+"\t"+
-		DateFun.wp_format.format(article_lastedit.get(title).getTime())+"\t";
+		DateFun.wp_format().format(article_lastedit.get(title).getTime())+"\t";
 		return row;
 	}
 	

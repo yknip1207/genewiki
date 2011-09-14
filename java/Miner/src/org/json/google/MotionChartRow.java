@@ -30,7 +30,7 @@ public class MotionChartRow {
 	}
 	
 	public String toString(){
-		String s = entity+"\t"+DateFun.year_month_day.format(date.getTime())+"\t";
+		String s = entity+"\t"+DateFun.year_month_day().format(date.getTime())+"\t";
 		for(Object o : vals){
 			s+=o+"\t";
 		}
