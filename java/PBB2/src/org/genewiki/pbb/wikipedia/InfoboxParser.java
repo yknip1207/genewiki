@@ -50,9 +50,9 @@ public class InfoboxParser {
 	
 	public static InfoboxParser factory(String rawText) {
 		try {
-			return new InfoboxParser(rawText, Configs.GET.flag("strictChecking"), 
-					Configs.GET.flag("verbose"),
-					Configs.GET.str("templateName"),
+			return new InfoboxParser(rawText, Configs.INSTANCE.flag("strictChecking"), 
+					Configs.INSTANCE.flag("verbose"),
+					Configs.INSTANCE.str("templateName"),
 					ExceptionHandler.INSTANCE);		
 		} catch (ConfigException e) {
 			ExceptionHandler.INSTANCE.fatal(e);

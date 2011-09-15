@@ -123,8 +123,8 @@ public class MyGeneInfoParser {
 			
 			builder.add("Hs_EntrezGene", Integer.toString(root.get("entrezgene").getIntValue()));
 			builder.add("Hs_Ensembl", root.path("ensembl").path("gene").getTextValue());
-			builder.add("Hs_RefseqProtein", safeGetFirstEntry(parseArrayNode(root.path("refseq").path("protein")))); // We only care about the first value 
-			builder.add("Hs_RefseqmRNA", safeGetFirstEntry(parseArrayNode(root.path("refseq").path("rna"))));		 // Same
+			builder.add("Hs_RefseqProtein", safeGetFirstEntry(root.path("refseq").findValuesAsText("protein"))); // We only care about the first value 
+			builder.add("Hs_RefseqmRNA", safeGetFirstEntry(root.path("refseq").findValuesAsText("rna")));		 // Same
 			builder.add("Hs_GenLoc_chr", root.path("genomic_pos").path("chr").getTextValue()); 
 			builder.add("Hs_GenLoc_start", Integer.toString(root.path("genomic_pos").path("start").getIntValue()));
 			builder.add("Hs_GenLoc_end", Integer.toString(root.path("genomic_pos").path("end").getIntValue()));
@@ -137,7 +137,6 @@ public class MyGeneInfoParser {
 			// the first element being 10090 (the mouse taxon id) and then grab the corresponding
 			// gene id for that taxon id.
 			
-			//FIXME bizarre for loop 
 			Iterator<JsonNode> homologArray = root.path("homologene").path("genes").getElements();
 			int mouseId = 0;
 			for (int i =0; homologArray.hasNext(); i++) {
@@ -157,6 +156,7 @@ public class MyGeneInfoParser {
 				builder.add("Mm_GenLoc_chr", root.path("genomic_pos").path("chr").getTextValue()); // mygene.info returns this as a string, its not
 				builder.add("Mm_GenLoc_start", Integer.toString(root.path("genomic_pos").path("start").getIntValue()));
 				builder.add("Mm_GenLoc_end", Integer.toString(root.path("genomic_pos").path("end").getIntValue()));
+				builder.add("Mm_Uniprot", findReviewedUniprotEntry(root.path("uniprot")));
 			}
 			
 			// set the GenLoc db numbers from mygene.info's metadata file

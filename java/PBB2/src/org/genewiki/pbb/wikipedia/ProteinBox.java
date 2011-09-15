@@ -159,7 +159,7 @@ public class ProteinBox {
 			if (!(name == null) || !(entrezId == null)) {
 				singleValFields.put("Name", name);
 				singleValFields.put("Hs_EntrezGene", entrezId);
-			} else if (Configs.GET.flag("canCreate")){
+			} else if (Configs.INSTANCE.flag("canCreate")){
 				throw new IllegalArgumentException("Name and/or EntrezId fields cannot be null.");
 			}
 		}

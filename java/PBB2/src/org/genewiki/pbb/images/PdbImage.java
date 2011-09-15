@@ -56,10 +56,10 @@ public class PdbImage {
 	 * @throws IOException
 	 */
 	public PdbImage(String pdbId, String symbol) throws IOException {
-		pymol = Configs.GET.str("pymol");
-		username = Configs.GET.str("commonsUsername");
-		password = Configs.GET.str("commonsPassword");
-		commonsRoot = Configs.GET.str("commonsRoot");
+		pymol = Configs.INSTANCE.str("pymol");
+		username = Configs.INSTANCE.str("commonsUsername");
+		password = Configs.INSTANCE.str("commonsPassword");
+		commonsRoot = Configs.INSTANCE.str("commonsRoot");
 		filer = new FileHandler("pdb");
 		this.pdbId = pdbId;
 		this.entrez = symbol;
@@ -177,7 +177,7 @@ public class PdbImage {
 	
 	public static void main(String[] args) {
 		try {
-			Configs.GET.setFromFile("bot.properties");
+			Configs.INSTANCE.setFromFile("bot.properties");
 			PdbImage img = new PdbImage("1B09", "1401");
 //			System.out.println(img.description);
 			//img.uploadPdbImg();

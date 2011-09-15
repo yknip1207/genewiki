@@ -13,20 +13,26 @@ import org.genewiki.pbb.exceptions.FatalException;
 
 public enum Configs {
 	
-	GET;	 // Not a method, this is the singleton instance of Config. Use it as such:
-			 // Config configs = Config.GET
+	INSTANCE;
 	
 	private HashMap<String, Boolean> flags   = new HashMap<String, Boolean>();
 	private HashMap<String, String>	 strings = new HashMap<String, String>();
 	
-	private final String[] keys = {"name", "dryRun", "useCache", "strictChecking", 
-			"verbose", "debug", "cacheLocation", "logs", "username", "password",
-			"commonsUsername", "commonsPassword", "templatePrefix", "templateName", "api_root", 
-			"commonsRoot", "loggerLevel", "pymol"};
+	private final String[] keys = {
+			"name", 			"dryRun", 			"useCache", 
+			"strictChecking", 	"verbose", 			"debug", 
+			"cacheLocation", 	"logs", 			"username", 
+			"password", 		"commonsUsername", 	"commonsPassword", 
+			"templatePrefix", 	"templateName", 	"api_root", 
+			"commonsRoot", 		"loggerLevel", 		"pymol"
+			};
 	
 
-	/* ---- Initialization Code ---- */
-	Configs() {
+	/**
+	 * When the Configs object is created by the JRE, the configurations
+	 * still need to be set by calling setFromFile(). Until then
+	 */
+	private Configs() {
 		flags.put("initialized", false); // Unusable until initialized
 	}
 	
@@ -71,7 +77,7 @@ public enum Configs {
 							"missing key \""+key+"\".");
 				}
 			}
-			flags.put("initialized", true);	// We've successfully loaded the bot properties
+			initialize();	// We've successfully loaded the bot properties
 		} catch (FileNotFoundException e) {
 			throw new FatalException("Configuration file not found.");
 		} catch (IOException e) {
@@ -80,11 +86,30 @@ public enum Configs {
 		}
 	}
 	
-	/* ---- Public Code ---- */
+	/**
+	 * Check whether the Configs have been set and are 
+	 * ready to use.
+	 * @return
+	 */
 	public boolean initialized() {
 		return flags.get("initialized");
 	}
 	
+	/**
+	 * Indicate that the Configs object is ready-to-use.
+	 */
+	public void initialize() {
+		flags.put("initialized", true);
+	}
+	
+	/**
+	 * Returns a boolean value (flag) for the specified key.
+	 * @param key
+	 * @return true or false
+	 * @throws ConfigException if key is does not map to
+	 * a boolean value, if the key is invalid, or if the Configs
+	 * singleton has not been initialized. 
+	 */
 	public boolean flag(String key) {
 		Boolean flag = flags.get(key);
 		if (initialized() && flag != null) {
@@ -96,6 +121,11 @@ public enum Configs {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public String str(String key) {
 		String str = strings.get(key);
 		if (initialized() && str != (null)) {

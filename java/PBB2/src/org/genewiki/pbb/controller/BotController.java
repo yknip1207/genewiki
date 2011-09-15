@@ -16,7 +16,24 @@ import org.genewiki.pbb.wikipedia.ProteinBox;
 import org.genewiki.pbb.wikipedia.WikipediaInterface;
 
 import com.google.common.base.Preconditions;
-
+/**
+ * <p>BotController iterates through a list of identifiers (Entrez gene ids)
+ * and updates the corresponding template on Wikipedia. 
+ * <p> It collects structured, authoritative information from
+ * http://mygene.info and parses it into a ProteinBox object. It then does
+ * the same for the GNF_Protein_box template specified by the identifier on
+ * Wikipedia. Once the two ProteinBoxes are created, they are compared and 
+ * a new ProteinBox is formed using the updated information.
+ * <p> That information is then posted to Wikipedia through the BotController's
+ * WikipediaInterface, the update is marked as completed, and the bot moves on
+ * to the next update. If any recoverable exception is flagged in the ExceptionHandler,
+ * the bot skips that identifier and moves on, preferring to simply drop problematic
+ * templates rather than failing completely. 
+ * <p> If the bot finishes, or a fatal exception is flagged, the bot exits and prints 
+ * a summary report that includes any identifiers the bot was unable to process. 
+ * @author eclarke@scripps.edu
+ *
+ */
 public class BotController implements Runnable {
 
 	/* ---- Declarations ---- */
@@ -42,7 +59,7 @@ public class BotController implements Runnable {
 		dbManager = new DatabaseManager();
 		botState = exh;
 		
-		this.wpi = new WikipediaInterface(botState, Configs.GET);
+		this.wpi = new WikipediaInterface(botState, Configs.INSTANCE);
 		
 		this.delay = 3;
 		this.identifiers = new ArrayList<String>();
@@ -132,7 +149,7 @@ public class BotController implements Runnable {
 	 * Updates using the given ProteinBox object.
 	 */
 	public boolean update(ProteinBox update) throws Exception {
-		if (botState.isFine() || Configs.GET.flag("dryrun")) {
+		if (botState.isFine() || Configs.INSTANCE.flag("dryrun")) {
 			wpi.putTemplate(update.toString(), update.getId(), update.getSummary());
 			DatabaseManager.updateDb("true", update.getId(), update.getChangedFields());
 			return true;

@@ -16,7 +16,7 @@ public class WikipediaInterfaceTest {
 	@Before
 	public void setUp() throws Exception {
 		ExceptionHandler exh = ExceptionHandler.INSTANCE;
-		Configs cfg = Configs.GET;
+		Configs cfg = Configs.INSTANCE;
 		cfg.setFromFile("bot.properties");
 		cfg.set("templatePrefix", "User:Pleiotrope/sandbox/Template:PBB/");
 		exh.reset();

@@ -5,15 +5,12 @@ package org.genewiki;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.genewiki.pbb.Configs;
-import org.genewiki.pbb.Generator;
 import org.genewiki.pbb.controller.BotController;
 import org.genewiki.pbb.exceptions.ExceptionHandler;
 import org.genewiki.pbb.util.PageList;
@@ -30,13 +27,14 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 /**
- * @author eclarke
+ * The main entry point for code generation and page-existence utilities.
+ * @author eclarke@scripps.edu
  *
  */
 public class GeneWikiUtils {
 	static ExceptionHandler exHandler = ExceptionHandler.INSTANCE; // Bridge between the bot state and this controller
 	static {
-		Configs.GET.setFromFile("bot.properties");
+		Configs.INSTANCE.setFromFile("bot.properties");
 	}
 	private static boolean upload = false;
 	private static String uploadTitle = null;
@@ -91,7 +89,7 @@ public class GeneWikiUtils {
 				if (debug) 
 					uploadTitle = "User:Pleiotrope/sandbox/"+uploadTitle;
 			} else if (options.has(templates)) {
-				Configs.GET.set("templatePrefix", "User:Pleiotrope/sandbox/");
+				Configs.INSTANCE.set("templatePrefix", "User:Pleiotrope/sandbox/");
 			} else if (options.has(stubs)) {
 				System.out.println("Stub upload requires the specification of a title.");
 				printHelp(parser);
@@ -105,7 +103,7 @@ public class GeneWikiUtils {
 			if (infile != null || outfile != null) {
 				templates(infile, outfile);
 			} else {
-				if (options.hasArgument("template")) {
+				if (options.hasArgument(templates)) {
 					List<String> ids = options.valuesOf(templates);
 					templates(ids);
 				}
@@ -180,7 +178,7 @@ public class GeneWikiUtils {
 			System.exit(1);
 			return Collections.emptyList();
 		}
-		Configs.GET.setFromFile("bot.properties");
+		Configs.INSTANCE.setFromFile("bot.properties");
 		Generator gen = new Generator();
 		BotController bot = new BotController(ids);
 		for (String id : ids) {
@@ -230,9 +228,9 @@ public class GeneWikiUtils {
 			System.out.print(title);
 			return true;
 		} else {
-			if (!Configs.GET.initialized())
-				Configs.GET.setFromFile("bot.properties");
-			User user = new User(Configs.GET.str("username"), Configs.GET.str("password"),
+			if (!Configs.INSTANCE.initialized())
+				Configs.INSTANCE.setFromFile("bot.properties");
+			User user = new User(Configs.INSTANCE.str("username"), Configs.INSTANCE.str("password"),
 					"http://en.wikipedia.org/w/api.php");
 			Connector connector = new Connector();
 			String[] valuePairs = {"titles", title, "redirects",""};

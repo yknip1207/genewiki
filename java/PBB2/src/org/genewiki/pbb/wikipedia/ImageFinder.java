@@ -58,7 +58,7 @@ public class ImageFinder {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Configs.GET.setFromFile("bot.properties");
+		Configs.INSTANCE.setFromFile("bot.properties");
 		try {
 			System.out.println(Preconditions.checkNotNull(ImageFinder.getImage("CRP","1b09")));
 		} catch (NullPointerException e) {
@@ -77,7 +77,7 @@ class SimpleWpCtrl {
 	 * @return true if page exists
 	 */
 	public static boolean pageExists(String title) {
-		User user = new User(Configs.GET.str("username"), Configs.GET.str("password"),
+		User user = new User(Configs.INSTANCE.str("username"), Configs.INSTANCE.str("password"),
 				"http://commons.wikimedia.org/w/api.php");
 		String[] valuePairs =  {"titles", title};
 		Connector connector = new Connector();
