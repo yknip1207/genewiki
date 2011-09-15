@@ -1,10 +1,13 @@
-====================
-| ProteinBoxBot v2 |
-====================
+==========================
+#   ProteinBoxBot v0.9   #
+==========================
 == Introduction ==
 ProteinBoxBot is a Java program to automatically update
-the infoboxes on GeneWiki pages. For more information, see
-the bot's userpage at 
+the infoboxes on GeneWiki pages. It also includes utilities
+for automatic code generation of article stubs and infoboxes
+for users to create their own Gene Wiki articles.
+
+For more information, see the bot's userpage at 
 http://en.wikipedia.org/wiki/User:ProteinBoxBot
 or visit the GeneWiki project portal at 
 http://en.wikipedia.org/wiki/Portal:GeneWiki.
@@ -15,8 +18,9 @@ Share-Alike license, available here at
 creativecommons.org/licenses/by-sa/3.0. Libraries bundled
 with or used by ProteinBoxBot remain under their specific
 licenses. 
-ProteinBoxBot v2 was developed by the Su Lab at The Scripps
-Research Institute, 2011.
+ProteinBoxBot v0.9 was developed by the Su Lab at The Scripps
+Research Institute, 2011. It is maintained by eclarke@scripps.edu,
+who on Wikipedia goes by User:Pleiotrope.
 
 === Installation ===
 System requirements:
@@ -50,3 +54,19 @@ Using command-line arguments:
      init     - re-initializes database (disabled)
      help     - prints help message
 
+=== Notes, Known Bugs, and Future Improvements ===
+1. 	The cache options in the bot.properties file have no effect and 
+	will be removed in the future.
+2. 	There is no method to automatically generate a list of Gene Wiki
+	pages to populate the database. This file was created by hand in
+	the past but a method to generate it automatically will be available
+	soon. The API query to generate a list of templates is here (one line):
+		http://en.wikipedia.org/w/api.php?action=query&list=embeddedin&
+		eititle=Template:GNF_Protein_box&eilimit=15000&einamespace=10
+	and a list of pages is likewise available by changing the einamespace
+	field to 0 instead of 10.
+3.	Logging to stdout is inconsistent at best- the best way to monitor
+	progress is by watching the SQLite database.
+4.	Code generation utilities are not available through the main entry
+	point at ProteinBoxBot.main() and require building a jarfile using 
+	the GeneWikiUtils.main() method.

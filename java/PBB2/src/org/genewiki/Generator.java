@@ -22,11 +22,34 @@ import org.gnf.util.BioInfoUtil;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 
+/**
+ * The Generator class provides utilities for creating new GNF_Protein_box templates
+ * and article stubs. It draws on information from <a href="http://mygene.info">mygene.info</a>
+ * as well as a gene2pubmed file that is available from 
+ * <a href="ftp://ftp.ncbi.nih.gov/gene/DATA/">NCBI's FTP site</a>. This file must exist in a 
+ * decompressed form either in the same directory as the caller or in the same directory as the
+ * jarfile (if being used as a jar).
+ * <p> Template generation is currently provided by a call to ProteinBoxBot's ProteinBox class,
+ * which has in it methods to parse and update the necessary information from mygene.info.
+ * On the machine in which this was developed, it can take approximately 2-3s to return the raw
+ * wikitext.
+ * <p> Article stub generation uses a very large map of gene-pubmed links to create citations. To
+ * speed up processing time, a private class called GeneToPubmedDB can make this mapping into a 
+ * SQLite3 database, which can be queried and provide results two orders of magnitude faster than
+ * using the traditional hashmap. If this code is being used in a production capacity, i.e. as
+ * a backend to a CGI script, it is highly recommended to set up the sqlite database. The code
+ * should automatically detect it and use the database if it is available.
+ * @author eclarke@scripps.edu
+ *
+ */
 public class Generator {
 
 	private final MyGeneInfoParser parser;
 	private ProteinBox box;
 	private String symbol;
+	/**
+	 * Returns a new Generator with a parser for mygene.info.
+	 */
 	public Generator() {
 		parser = new MyGeneInfoParser();
 	}
@@ -56,12 +79,28 @@ public class Generator {
 		return box.toString();
 	}
 
+	/**
+	 * Returns the most recently created ProteinBox. Throws NullPointerException if the box is null.
+	 * @return
+	 */
 	public ProteinBox getBox() {
-		return box;
+		if (box != null) {
+			return box;
+		} else {
+			throw new NullPointerException("ProteinBox has not been created yet- call generateTemplate() to create one.");
+		}
 	}
 	
+	/**
+	 * Returns the most recently created gene symbol. Throws NullPointerException if symbol is null or blank.
+	 * @return
+	 */
 	public String getSymbol() {
-		return symbol;
+		if (symbol != null && symbol != "") {
+			return symbol;
+		} else {
+			throw new NullPointerException("Symbol has not been created yet- call generateStub() to create one.");
+		}
 	}
 
 	/**
@@ -92,10 +131,19 @@ public class Generator {
 		out.append("==References== \n {{reflist}} \n");
 		out.append("==Further reading == \n {{refbegin | 2}}\n");
 		
-//		Map<String, List<String>> g2p = getGene2PubList();
-//		List<String> badpmids = filterPMIDsAboveLevel(g2p, 100);
-		List<String> pmids = db.getFilteredPubmedsForGene(id, 100);
-//		pmids.removeAll(badpmids);
+		
+		List<String> pmids = null;
+		// Trys to use the database methods to retrieve filtered PMIDs, but if db isn't available,
+		// it uses manual methods (much slower)
+		try {
+			pmids = db.getFilteredPubmedsForGene(id, 100);
+		} catch (SQLException e) {
+			Map<String, List<String>> g2p = getGene2PubList();	
+			pmids = g2p.get(id);
+			List<String> badpmids = filterPMIDsAboveLevel(g2p, 100);
+			pmids.removeAll(badpmids);
+		}
+		
 		for (int i = 0; i < 10; i++ ) {
 			try {
 				out.append("{{Cite pmid|"+pmids.get(i)+"}}\n");
@@ -110,7 +158,11 @@ public class Generator {
 	/**
 	 * Translates the gene2pubmed file into a map specifying gene:pubmed list. If a serialized
 	 * copy of the gene2pub map is already available, and the serialized copy was made less
-	 * than 30 days ago, it will use that instead.
+	 * than 30 days ago, it will use that instead. 
+	 * <p>This method takes ~12 seconds if the a serialized
+	 * copy is not available, and ~3 seconds if it is available. It is preferred to not use this
+	 * in a live environment (i.e. as a method called by a CGI) as it may cause unacceptable delays.
+	 * Set up the GeneToPubmed database and use those methods instead.
 	 * @return map of genes to the pubmed ids that reference them
 	 */
 
@@ -147,6 +199,7 @@ public class Generator {
 	 * @param map
 	 * @param level
 	 * @return
+	 * @deprecated use the database method GeneToPubmedDB.getFilteredPubmedsForGene()
 	 */
 	@Deprecated
 	public List<String> filterPMIDsAboveLevel(Map<String, List<String>> gene2pubmed, int level) {
@@ -168,10 +221,20 @@ public class Generator {
 	
 }
 
+/**
+ * Handles a small SQLite database that contains a mapping between each gene<->pubmed link, as well
+ * as a table listing the number of genes each pubmed article cites. Calling init() and populate() 
+ * with a pre-existing mapping of the genes to pubmed ids will set up the database for future use. 
+ * @author eclarke@scripps.edu
+ *
+ */
 class GeneToPubmedDB {
 	
 	private final String dbName = "g2p.db";
 	
+	/**
+	 * Creates database structure
+	 */
 	public void init() {
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -188,13 +251,21 @@ class GeneToPubmedDB {
 		}
 	}
 	
+	/**
+	 * Provides a connection to the database.
+	 * @return connection
+	 * @throws SQLException
+	 */
 	public Connection connect() throws SQLException {
 		try { Class.forName("org.sqlite.JDBC"); }
 		catch (ClassNotFoundException e) { e.printStackTrace(); };
 		return DriverManager.getConnection("jdbc:sqlite:"+dbName);
 	}
 	
-
+	/**
+	 * Populates the database with the appropriate gene->pubmed links
+	 * @param g2p map
+	 */
 	public void populate(Map<String, List<String>> g2p) {
 		try {
 			Connection con = connect();
@@ -223,6 +294,11 @@ class GeneToPubmedDB {
 		}
 	}
 	
+	/**
+	 * Returns "megapubs": pubmed articles which reference large numbers of genes
+	 * @param limit
+	 * @return megapubs
+	 */
 	public List<String> getPubmedsOverCiteLimit(int limit) {
 		List<String> megapubs = new ArrayList<String>();
 		
@@ -238,6 +314,11 @@ class GeneToPubmedDB {
 		return megapubs;
 	}
 	
+	/**
+	 * Gets pubmed articles that reference a particular gene
+	 * @param entrez id
+	 * @return pubmed ids
+	 */
 	public List<String> getPubmedsForGene(String id) {
 		List<String> pmids = new ArrayList<String>();
 		try {
@@ -252,19 +333,23 @@ class GeneToPubmedDB {
 		return pmids;
 	}
 	
-	public List<String> getFilteredPubmedsForGene(String id, int limit) {
+	/**
+	 * Returns pubmed articles that reference a particular gene, but do not reference more than the specified
+	 * number of genes in total (i.e. filters out large sequencing papers, etc)
+	 * @param entrez id
+	 * @param reference limit (compares as references < limit)
+	 * @return filtered list of pmids
+	 * @throws SQLException if a SQL error occurs (usually indicates unavailable database)
+	 */
+	public List<String> getFilteredPubmedsForGene(String id, int limit) throws SQLException {
 		List<String> pmids = new ArrayList<String>();
-		try {
-			Connection con = connect();
-			// FIXME I know PreparedStatement is preferred but it's not working atm and I don't know why - eclarke
-			ResultSet results = con.createStatement().executeQuery(String.format(
-					"select genes.pubmed from genes,citations where gene=\"%s\" " +
-					"and citations.cites<%d and genes.pubmed=citations.pubmed;", id, limit));
-			while (results.next()) 
-				pmids.add(results.getString("pubmed"));
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		Connection con = connect();
+		// FIXME I know PreparedStatement is preferred but it's not working atm and I don't know why
+		ResultSet results = con.createStatement().executeQuery(String.format(
+				"select genes.pubmed from genes,citations where gene=\"%s\" " +
+				"and citations.cites<%d and genes.pubmed=citations.pubmed;", id, limit));
+		while (results.next()) 
+			pmids.add(results.getString("pubmed"));
 		return pmids;
 	}
 	
