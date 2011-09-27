@@ -19,18 +19,16 @@ public enum Configs {
 	private HashMap<String, String>	 strings = new HashMap<String, String>();
 	
 	private final String[] keys = {
-			"name", 			"dryRun", 			"useCache", 
-			"strictChecking", 	"verbose", 			"debug", 
-			"cacheLocation", 	"logs", 			"username", 
-			"password", 		"commonsUsername", 	"commonsPassword", 
-			"templatePrefix", 	"templateName", 	"api_root", 
-			"commonsRoot", 		"loggerLevel", 		"pymol"
+			"username",			"password",			"commonsUsername",
+			"commonsPassword",	"templatePrefix",	"templateName",
+			"commonsRoot", 		"pywikipedia",		"pymol"
 			};
 	
 
 	/**
 	 * When the Configs object is created by the JRE, the configurations
-	 * still need to be set by calling setFromFile(). Until then
+	 * still need to be set by calling setFromFile(). Until then we can't
+	 * use Configs.
 	 */
 	private Configs() {
 		flags.put("initialized", false); // Unusable until initialized
@@ -116,6 +114,8 @@ public enum Configs {
 			return flag;
 		} else if (initialized()) {
 			throw new ConfigException(key);
+		} else if (flags.get(key) == null) {
+			return false;
 		} else {
 			throw new ConfigException();
 		}

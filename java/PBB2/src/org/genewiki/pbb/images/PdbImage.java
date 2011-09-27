@@ -1,17 +1,11 @@
 package org.genewiki.pbb.images;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import javax.security.auth.login.LoginException;
-
-import org.genewiki.api.Wiki;
 import org.genewiki.pbb.Configs;
-import org.genewiki.pbb.exceptions.ConfigException;
 import org.genewiki.pbb.util.FileHandler;
+import org.genewiki.util.FindRoot;
+import org.genewiki.util.SubProcess;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +18,12 @@ import com.google.common.io.ByteStreams;
  * Large parts of this module derived from PDBBot, a much more elegant
  * Python script by emw. Find it on <a href="http://code.google.com/p/pdbbot/">Google Code</a> and
  * <a href="http://commons.wikimedia.org/wiki/User:PDBbot">Wikimedia Commons</a>.
+ * <p>Unfortunately, the Wiki.java framework that has been used in the rest of this code
+ * had issues with passing the correct edit token for image uploads. I don't know why. 
+ * For the sake of expediency and at the cost of elegance, the uploadPdbImg() method uses 
+ * a series of external process calls to the pywikipedia Python framework. 
+ * This needs to be configured correctly by running the config scripts in the
+ * pywikipedia distribution. Sorry.
  * @author Erik Clarke
  * @author emw
  *
@@ -32,7 +32,8 @@ public class PdbImage {
 	private String pymol;
 	private String username;
 	private String password;
-	private String commonsRoot;
+	private String pywikipedia;
+	private boolean verbose;
 	private FileHandler filer;
 	private String pdbId;
 	private String entrez;
@@ -59,8 +60,10 @@ public class PdbImage {
 		pymol = Configs.INSTANCE.str("pymol");
 		username = Configs.INSTANCE.str("commonsUsername");
 		password = Configs.INSTANCE.str("commonsPassword");
-		commonsRoot = Configs.INSTANCE.str("commonsRoot");
-		filer = new FileHandler("pdb");
+		pywikipedia = Configs.INSTANCE.str("pywikipedia");
+		verbose = Configs.INSTANCE.flag("verbose");
+		String root = FindRoot.conditional();
+		filer = new FileHandler(root+"pdb");
 		this.pdbId = pdbId;
 		this.entrez = symbol;
 		this.pdbFile = downloadPdbFile(this.pdbId);
@@ -70,7 +73,7 @@ public class PdbImage {
 		this.description = 
 				"== {{int:filedesc}} == " +
 				"{{Information " +
-				"| Description={{en | 1=Structure of protein "+symbol+"." +
+				"| Description={{en | 1=Structure of protein "+symbol+". " +
 						"Based on [[w:PyMOL | PyMOL]] rendering of PDB {{PDB2|"+pdbId+"}}.}} " +
 				"| Source = {{own}} " +
 				"| Author = [[User:"+username+" | "+username+"]] " +
@@ -137,8 +140,10 @@ public class PdbImage {
 		Process process = rt.exec(pymol);
 		
 		// Comment this out if you don't want to see pymol's chatter
-//		InputStream stdout = process.getInputStream();
-//		ByteStreams.copy(stdout, System.out);
+		if (verbose) {
+			InputStream stdout = process.getInputStream();
+			ByteStreams.copy(stdout, System.out);
+		}
 		
 		// Wait for PyMOL to finish before continuing
 		try {
@@ -163,30 +168,37 @@ public class PdbImage {
 	 * Wikimedia Commons base URL.
 	 */
 	public void uploadPdbImg() {
-		Wiki wmc = new Wiki(commonsRoot);
+		Runtime rt = Runtime.getRuntime();
+		String filename = filer.getRoot().getAbsolutePath()+"/"+this.pdbImage;
+		String[] testLoginCmd = {"python", pywikipedia+"login.py", "-test"};
+		String[] loginCmd = {"python", pywikipedia+"login.py", "-pass:"+password};
+		String[] uploadCmd = {"python", pywikipedia+"upload.py", "-keep", "-noverify", filename, this.description}; 
 		try {
-		wmc.login(username, password.toCharArray());
-		File file = new File(filer.getRoot(), this.pdbImage);
-		wmc.upload(file, this.pdbImage, this.description, "New rendering of molecular structure for Gene Wiki template.");
-		} catch (LoginException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void main(String[] args) {
-		try {
-			Configs.INSTANCE.setFromFile("bot.properties");
-			PdbImage img = new PdbImage("1B09", "1401");
-//			System.out.println(img.description);
-			//img.uploadPdbImg();
+			String testLogin = SubProcess.getOutput(rt.exec(testLoginCmd), false);
+			System.out.println(testLogin);
+			if (testLogin.contains("You are not logged in"))
+				SubProcess.getOutput(rt.exec(loginCmd), true);
+			String uploadResults = SubProcess.getOutput(rt.exec(uploadCmd), false);
+			if (!uploadResults.contains("Upload successful")) 
+				System.out.println(uploadResults);			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
+	
+//	public static void main(String[] args) {
+//		try {
+//			Configs.INSTANCE.setFromFile("bot.properties");
+//			PdbImage img = new PdbImage("1GZ8", "1017");
+//			System.out.println(img.description);
+//			img.uploadPdbImg();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//	}
 
 }
 

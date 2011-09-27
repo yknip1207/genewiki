@@ -17,13 +17,15 @@ import java.util.List;
 
 import org.genewiki.pbb.exceptions.FatalException;
 import org.genewiki.pbb.exceptions.NonFatalException;
+import org.genewiki.util.FileHandler;
 
 /*
  * Provides static methods to manage the pbb logfile, a SQLite db
  * that can be queried post-mortem to provide update statistics.
  */
 public class DatabaseManager {
-	private final static String DBNAME = "PBBGeneral.db";
+	static FileHandler fh = new FileHandler();
+	private final static String DBNAME = fh.getRoot()+"/PBBGeneral.db";
 	private static Calendar cal = Calendar.getInstance();
 	public DatabaseManager() {
 		init();
@@ -46,6 +48,7 @@ public class DatabaseManager {
 				stat.executeUpdate("create table general (gene, updated, fields_changed, time);");
 				stat.executeUpdate("drop table if exists changes;");
 				stat.executeUpdate("create table changes (gene, field, old, new, time);");
+//				stat.executeUpdate("drop table if exists ");
 				conn.close();
 				//System.out.println("Created database.");
 			} catch (Exception e) {
@@ -136,6 +139,12 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * Finds non-updated ProteinBoxes (as recorded in the database) and returns a list
+	 * up to the specified size for updating.
+	 * @param updateSize
+	 * @return list of targets
+	 */
 	public static List<String> findPBBTargets(int updateSize) {
 		List<String> targets = new ArrayList<String>(updateSize);
 		try {
@@ -154,6 +163,12 @@ public class DatabaseManager {
 		return targets;
 	}
 	
+	/**
+	 * Updates the database to reflect a change in a target's state (i.e. failed, updated, etc)
+	 * @param state
+	 * @param geneId
+	 * @param fields_changed
+	 */
 	public static void updateDb(String state, String geneId, String fields_changed) {
 		try {
 			Connection dbc = connect();
@@ -207,6 +222,9 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Resets the update flags to enable a full re-run
+	 */
 	public static void clearUpdated() {
 		try {
 			Connection dbc = connect();

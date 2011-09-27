@@ -58,7 +58,7 @@ public class WikipediaInterface {
 		username = configs.str("username");
 		password = configs.str("password");
 		template = configs.str("templatePrefix");
-		wp.setMaxLag(10); 
+		wp.setMaxLag(0); 
 		wp.setLogLevel(Level.OFF);
 		try {
 			authenticate();

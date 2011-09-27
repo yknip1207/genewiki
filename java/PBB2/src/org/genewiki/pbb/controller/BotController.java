@@ -149,7 +149,7 @@ public class BotController implements Runnable {
 	 * Updates using the given ProteinBox object.
 	 */
 	public boolean update(ProteinBox update) throws Exception {
-		if (botState.isFine() || Configs.INSTANCE.flag("dryrun")) {
+		if (botState.isFine()) {
 			wpi.putTemplate(update.toString(), update.getId(), update.getSummary());
 			DatabaseManager.updateDb("true", update.getId(), update.getChangedFields());
 			return true;

@@ -27,18 +27,17 @@ public class InfoboxParser {
 	private static ExceptionHandler botState;
 	private final static Logger logger = Logger.getLogger(InfoboxParser.class.getName());
 	private String rawText = "";
-	private boolean strict;
 	private boolean verbose;
 	private String templateName;
 	private String textBeforeTemplate;
 	private String textAfterTemplate;
 	
-	public InfoboxParser(String rawText, boolean strict, boolean verbose, String templateName, ExceptionHandler exh) {
+	public InfoboxParser(String rawText, boolean verbose, String templateName, ExceptionHandler exh) {
 		
 		
 		botState = exh;
 		this.rawText = rawText;
-		this.strict = strict;
+		
 		this.verbose = verbose;
 		this.templateName = templateName;
 		textBeforeTemplate = "";
@@ -50,8 +49,8 @@ public class InfoboxParser {
 	
 	public static InfoboxParser factory(String rawText) {
 		try {
-			return new InfoboxParser(rawText, Configs.INSTANCE.flag("strictChecking"), 
-					Configs.INSTANCE.flag("verbose"),
+			return new InfoboxParser(rawText,  
+					true,
 					Configs.INSTANCE.str("templateName"),
 					ExceptionHandler.INSTANCE);		
 		} catch (ConfigException e) {
@@ -70,10 +69,8 @@ public class InfoboxParser {
 	 * @throws ValidationException 
 	 */
 	public ProteinBox parse() throws NoBotsException, ValidationException {
-		if (strict) {
-			findNoBotsFlag();
-			validateTemplateName();
-		}
+		findNoBotsFlag();
+		validateTemplateName();
 		ProteinBox fields = postprocessFields(parseFields(extractTemplate(rawText)));
 		textBeforeTemplate = preTemplateContent(rawText);
 		textAfterTemplate = postTemplateContent(rawText);

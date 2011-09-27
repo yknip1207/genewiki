@@ -16,15 +16,29 @@ import org.genewiki.pbb.images.PdbImage;
 import com.google.common.base.Preconditions;
 
 /**
- * ProteinBox represents all possible fields in the GNF_Protein_box wikipedia template.
- * It uses the Builder construction pattern to allow optional fields. See ProteinBox.Builder
- * for construction.
- * @author erikclarke
+ * <p>ProteinBox represents all possible fields in the GNF_Protein_box wikipedia template.
+ * It can update these fields by specifying another ProteinBox as the update source, in which
+ * case it performs a field-by-field comparison, favoring the values in the update source
+ * over the original values, and retaining any values in the original that are missing from
+ * the source.
+ * <p>To construct a ProteinBox from an external source, such as MyGene.Info or Wikipedia,
+ * first initialize a ProteinBox.Builder and then add fields to it as appropriate. When the 
+ * parsing is complete, call the ProteinBox constructor with the Builder as its argument to
+ * generate a valid ProteinBox.
+ * <p>To add a novel field to the ProteinBox, add it to the list of ALL_VALUES and then to either
+ * the single- or multiple-value lists. This cues the toString() method to include it
+ * when generating the wikitext, and allows the field to be added during parsing.
+ * @author eclarke@scripps.edu
  *
  */
 public class ProteinBox {
 	
-	
+	/*
+	 * The following lists contain all the fields that can be put in a GNF_Protein_box
+	 * template. If you're adding fields, be sure to add them both to the appropriate 
+	 * category (single vs multiple) and to the list of ALL_VALUES (which determines
+	 * ordering).
+	 */
 	
 	// Keys that may only correspond to one value
 	private static final List<String> SINGLE_VALUES = Arrays.asList(new String[]{
@@ -58,7 +72,8 @@ public class ProteinBox {
 			"Mm_GenLoc_chr",
 			"Mm_GenLoc_start",
 			"Mm_GenLoc_end",
-			"Mm_Uniprot"});
+			"Mm_Uniprot",
+			"path"});
 	
 	// Keys that correspond to a list of values
 	private static final List<String> MULTIPLE_VALUES = Arrays.asList(new String[]{
@@ -105,7 +120,8 @@ public class ProteinBox {
 			"Mm_GenLoc_chr",
 			"Mm_GenLoc_start",
 			"Mm_GenLoc_end",
-			"Mm_Uniprot"});
+			"Mm_Uniprot",
+			"path"});
 	
 	private LinkedHashMap<String, String> singleValueFields;
 	private LinkedHashMap<String, List<String>> multipleValueFields;
@@ -128,7 +144,7 @@ public class ProteinBox {
 	 * </code>
 	 * <br \>
 	 * See Bloch, Joshua. Effective Java, 2nd Ed. Item 2.
-	 * @author erikclarke
+	 * @author eclarke@scripps.edu
 	 *
 	 */
 	public static class Builder {
@@ -156,10 +172,11 @@ public class ProteinBox {
 			}
 			
 			// initializing the two required fields
-			if (!(name == null) || !(entrezId == null)) {
+			if ((name != null) && (entrezId != null)) {
 				singleValFields.put("Name", name);
 				singleValFields.put("Hs_EntrezGene", entrezId);
-			} else if (Configs.INSTANCE.flag("canCreate")){
+				singleValFields.put("path", "PBB/"+entrezId);
+			} else {
 				throw new IllegalArgumentException("Name and/or EntrezId fields cannot be null.");
 			}
 		}

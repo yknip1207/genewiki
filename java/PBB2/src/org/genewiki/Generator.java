@@ -1,26 +1,43 @@
 package org.genewiki;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+
 import org.codehaus.jackson.JsonNode;
 import org.genewiki.pbb.mygeneinfo.MyGeneInfoParser;
 import org.genewiki.pbb.wikipedia.ProteinBox;
 import org.genewiki.pbb.util.FileHandler;
+import org.genewiki.util.FindRoot;
 import org.genewiki.util.Serialize;
 import org.gnf.util.BioInfoUtil;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+
+import com.google.common.io.InputSupplier;
+import com.google.common.io.Resources;
 
 /**
  * The Generator class provides utilities for creating new GNF_Protein_box templates
@@ -47,21 +64,28 @@ public class Generator {
 	private final MyGeneInfoParser parser;
 	private ProteinBox box;
 	private String symbol;
+	private String root;
 	/**
 	 * Returns a new Generator with a parser for mygene.info.
 	 */
 	public Generator() {
 		parser = new MyGeneInfoParser();
+		root = FindRoot.conditional();
 	}
 	
-//	public static void main(String[] args ) {
-//		Generator gen = new Generator();
-//		GeneToPubmedDB db = new GeneToPubmedDB();
-////		db.init();
-////		db.populate(gen.getGene2PubList());
-//		System.out.println(db.getPubmedsForGene("716").size());
-//		System.out.println(db.getFilteredPubmedsForGene("716", 40).size());
-//	}
+	public static void main(String[] args ) throws SQLException {
+		Generator gen = new Generator();
+		GeneToPubmedDB db = new GeneToPubmedDB();
+//		db.init();
+//		db.populate(gen.getGene2PubList());
+		System.out.println(db.getPubmedsForGene("716").size());
+		System.out.println(db.getFilteredPubmedsForGene("716", 40).size());
+		System.out.println("Resetting database...");
+		gen.initDB();
+		System.out.println("Database reset.");
+		System.out.println(db.getPubmedsForGene("716").size());
+		System.out.println(db.getFilteredPubmedsForGene("716", 40).size());
+	}
 	
 	/**
 	 * Returns the wiki-formatted text for a ProteinBox template
@@ -127,7 +151,8 @@ public class Generator {
 		out.append("{{PBB|geneid="+id+"}} \n");
 		out.append("'''"+name+"''' is a [[protein]] that in humans is encoded by the "+sym+" [[gene]].");
 		out.append(entrezCite);
-		out.append(summary).append(entrezCite);
+		if (summary != null)
+			out.append(summary).append(entrezCite);
 		out.append("==References== \n {{reflist}} \n");
 		out.append("==Further reading == \n {{refbegin | 2}}\n");
 		
@@ -146,7 +171,7 @@ public class Generator {
 		
 		for (int i = 0; i < 10; i++ ) {
 			try {
-				out.append("{{Cite pmid|"+pmids.get(i)+"}}\n");
+				out.append("*{{Cite pmid|"+pmids.get(i)+"}}\n");
 			} catch (IndexOutOfBoundsException e) {}
 		}
 		out.append("{{refend}}\n");
@@ -171,9 +196,9 @@ public class Generator {
 		Map<String, List<String>> gene2pub = null;
 		try {
 			DateTime now = DateTime.now();
-			DateTime lastSerialized = (DateTime) Serialize.in("last_g2p_serialization.datetime.ser");
+			DateTime lastSerialized = (DateTime) Serialize.in(root+"last_g2p_serialization.datetime.ser");
 			if (Days.daysBetween(lastSerialized, now).getDays() < 30) {
-				gene2pub = (Map<String, List<String>>) Serialize.in("gene2pub.map.string_list.string.ser");
+				gene2pub = (Map<String, List<String>>) Serialize.in(root+"gene2pub.map.string_list.string.ser");
 			} else {
 				throw new FileNotFoundException("");
 			}
@@ -186,8 +211,8 @@ public class Generator {
 				catch (IOException ioe) { ioe.printStackTrace(); }
 				gene2pub = BioInfoUtil.getHumanGene2pub(jarRoot+"/gene2pubmed");
 			}	
-			Serialize.out("last_g2p_serialization.datetime.ser", DateTime.now());
-			Serialize.out("gene2pub.map.string_list.string.ser", new HashMap<String, List<String>>(gene2pub));
+			Serialize.out(root+"last_g2p_serialization.datetime.ser", DateTime.now());
+			Serialize.out(root+"gene2pub.map.string_list.string.ser", new HashMap<String, List<String>>(gene2pub));
 		}
 		return gene2pub;
 	}
@@ -219,7 +244,50 @@ public class Generator {
 		return filtered;
 	}
 	
+	public void initDB() {
+		GeneToPubmedDB db = new GeneToPubmedDB();
+		db.init();
+		downloadGene2PubGzip();
+		db.populate(getGene2PubList());
+	}
+	
+	public void downloadGene2PubGzip() {
+		try{
+			FileOutputStream fos = new FileOutputStream(root+"gene2pubmed.gz");
+			System.out.println("Downloading gene2pubmed file. This may take some time (the NCBI server is very slow)...");
+			URL ncbi = new URL("ftp://ftp.ncbi.nih.gov/gene/DATA/gene2pubmed.gz");
+			URLConnection urlC = ncbi.openConnection();
+			InputStream in = urlC.getInputStream();
+			byte[] buffer = new byte[2048];
+			int size;
+			BufferedOutputStream bOut = new BufferedOutputStream(fos, buffer.length);
+			while ((size = in.read(buffer, 0, buffer.length)) != -1) {
+				bOut.write(buffer, 0, size);
+			}
+			bOut.flush();
+			bOut.close();
+			in.close();
+			fos.flush();
+			fos.close();
+		
+			GZIPInputStream gzin = new GZIPInputStream(new FileInputStream(root+"gene2pubmed.gz"));
+			buffer = new byte[2048];
+			bOut = new BufferedOutputStream(new FileOutputStream(root+"gene2pubmed"), buffer.length);
+			while ((size = gzin.read(buffer, 0, buffer.length)) != -1) {
+				bOut.write(buffer, 0, size);
+			}
+			bOut.flush();
+			bOut.close();
+			gzin.close();
+			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
+
 
 /**
  * Handles a small SQLite database that contains a mapping between each gene<->pubmed link, as well
@@ -230,7 +298,11 @@ public class Generator {
  */
 class GeneToPubmedDB {
 	
-	private final String dbName = "g2p.db";
+	// Debug option for root
+//	private final String root = "";
+	private final String root = FindRoot.conditional();
+	private final String dbName = root+"g2p.db";
+	
 	
 	/**
 	 * Creates database structure

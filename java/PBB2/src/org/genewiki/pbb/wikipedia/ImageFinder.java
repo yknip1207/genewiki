@@ -1,7 +1,6 @@
 package org.genewiki.pbb.wikipedia;
 
 import org.genewiki.pbb.Configs;
-import org.genewiki.pbb.exceptions.ImageNotFoundException;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.User;
 

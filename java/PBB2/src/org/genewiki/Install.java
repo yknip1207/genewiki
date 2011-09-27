@@ -15,6 +15,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -42,6 +43,7 @@ public class Install {
 		
 		/* ------ Default properties file wizard ------ */
 		String username, password, cwUsername, cwPassword, pymolBin, pywikipedia;
+		Properties props = new Properties();
 		username = readline("Enter the username this bot will operate under:");
 		password = readline("Enter the password for "+username+" (warning! password stored as plaintext!): ");
 		if (readline("Do you have PyMOL installed and want the bot to generate and upload images? (y/N)").equalsIgnoreCase("y")) {

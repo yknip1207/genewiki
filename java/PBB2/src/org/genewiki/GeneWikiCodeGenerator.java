@@ -6,9 +6,11 @@ package org.genewiki;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 import org.genewiki.pbb.Configs;
 import org.genewiki.pbb.controller.BotController;
@@ -20,6 +22,7 @@ import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.User;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -31,11 +34,8 @@ import joptsimple.OptionSpec;
  * @author eclarke@scripps.edu
  *
  */
-public class GeneWikiUtils {
+public class GeneWikiCodeGenerator {
 	static ExceptionHandler exHandler = ExceptionHandler.INSTANCE; // Bridge between the bot state and this controller
-	static {
-		Configs.INSTANCE.setFromFile("bot.properties");
-	}
 	private static boolean upload = false;
 	private static String uploadTitle = null;
 	private static boolean debug = false; 
@@ -43,6 +43,7 @@ public class GeneWikiUtils {
 	 * @param args
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
 		OptionParser parser = new OptionParser();
 		
@@ -52,9 +53,11 @@ public class GeneWikiUtils {
 		OptionSpec<String> stubs = parser.accepts("stubs", "generate stub wikicode")
 				.withOptionalArg().ofType(String.class)
 				.describedAs("entrez ids");
+		OptionSpec<String> check = parser.accepts("check", "check title existence")
+				.withRequiredArg().ofType(String.class).withValuesSeparatedBy('|')
+				.describedAs("titles");
 		parser.accepts("i", "input file").withRequiredArg().describedAs("filename");
 		parser.accepts("o", "output file").withRequiredArg().describedAs("filename");
-		parser.accepts("check", "check existence of title").withRequiredArg().describedAs("title");
 		parser.accepts("upload", "upload result of template or stub option.").withOptionalArg().describedAs("title (req'd for stub)");
 		parser.accepts("debug", "debug mode diverts uploads to sandbox");
  		OptionSet options = null;
@@ -63,12 +66,14 @@ public class GeneWikiUtils {
 		} catch (OptionException e) {
 			printHelp(parser);
 		}
+	
+		Configs.INSTANCE.setFromFile("bot.properties");
 		
 		if (options.has("debug")) {
 			debug = true;
 		} else {
-			System.out.println("debug mode enforced.");
-			printHelp(parser);
+//			System.out.println("debug mode enforced.");
+//			printHelp(parser);
 		}
 		
 		File infile = null;
@@ -86,18 +91,18 @@ public class GeneWikiUtils {
 			upload = true;
 			if (options.hasArgument("upload")) {
 				uploadTitle = (String) options.valueOf("upload");
-				if (debug) 
-					uploadTitle = "User:Pleiotrope/sandbox/"+uploadTitle;
-			} else if (options.has(templates)) {
-				Configs.INSTANCE.set("templatePrefix", "User:Pleiotrope/sandbox/");
+				if (debug) {
+					uploadTitle = "User:Pleiotrope/sandbox/"+uploadTitle;	
+					Configs.INSTANCE.set("templatePrefix", "User:Pleiotrope/sandbox/");
+				}
 			} else if (options.has(stubs)) {
 				System.out.println("Stub upload requires the specification of a title.");
 				printHelp(parser);
 			}
 		}
 		
-		if (options.has("check")) 
-			checkExistence((String) options.valueOf("check")); 
+		if (options.has(check)) 
+			checkExistence((List<String>) options.valuesOf("check")); 
 		
 		if (options.has(templates)) {
 			if (infile != null || outfile != null) {
@@ -142,13 +147,16 @@ public class GeneWikiUtils {
 		// we don't handle lists larger than size=1 yet
 		if (ids.size() != 1) {
 			System.out.println("Parsing more than one id at a time not yet implemented (sorry!)");
-			System.exit(-1);
+			System.exit(1);
 			return Collections.emptyList();
 		}
 		
 		
 		Generator gen = new Generator();
 		String stub = "";
+		String talk = "{{WikiProjectBannerShell| " +
+				"{{Wikiproject MCB|class=stub|importance=Low}} " +
+				"{{WikiProject Gene Wiki|class=stub|importance=Low}} }}";
 		for (String id : ids) {
 			stub = gen.generateStub(id);
 			String summary = "Created page as part of the expansion of the Gene Wiki project.";
@@ -156,6 +164,8 @@ public class GeneWikiUtils {
 				WikipediaInterface wpi = new WikipediaInterface();
 				String title = strip(uploadTitle, "#{}[]<>|");
 				wpi.putArticle(stub, title, summary);
+				String talkTitle = (title.startsWith("User:"))? title.replace("User:", "User_talk:") : "Talk:"+title;
+				wpi.putArticle(talk, talkTitle, summary);
 				System.out.print("success!");
 				System.exit(0);
 				return Collections.emptyList();
@@ -178,7 +188,6 @@ public class GeneWikiUtils {
 			System.exit(1);
 			return Collections.emptyList();
 		}
-		Configs.INSTANCE.setFromFile("bot.properties");
 		Generator gen = new Generator();
 		BotController bot = new BotController(ids);
 		for (String id : ids) {
@@ -210,47 +219,54 @@ public class GeneWikiUtils {
 	 * @param title
 	 * @return true if exists
 	 */
-	public static boolean checkExistence(String title) {
+	public static List<Boolean> checkExistence(List<String> titles) {
 		Map<String, String> map = null;
+		List<Boolean> results = new ArrayList<Boolean>(titles.size());
+		List<String> titleResults = new ArrayList<String>(titles.size());
 		try {
 			map = PageList.in();
 		} catch (FileNotFoundException e) {
 			PageList.out();
 			System.out.println("Created new entrez-title map.");
 		//	checkExistence(title); // recursion! kind of
-			return false;
+			return results;
 		}
-		
-		if (map.containsKey(title)) {
-			System.out.print(map.get(title));
-			return true;
-		} else if (map.containsValue(title)) {
-			System.out.print(title);
-			return true;
-		} else {
-			if (!Configs.INSTANCE.initialized())
-				Configs.INSTANCE.setFromFile("bot.properties");
-			User user = new User(Configs.INSTANCE.str("username"), Configs.INSTANCE.str("password"),
-					"http://en.wikipedia.org/w/api.php");
-			Connector connector = new Connector();
-			String[] valuePairs = {"titles", title, "redirects",""};
-			String response = connector.queryXML(user, valuePairs);
-			if (response.contains("missing=\"\"")) {
-				System.out.print("_false");
-				return false;
-			} else if (response.contains("<redirects>")){
-				String line = "<r from="+title+" to=";
-				int a = response.indexOf(line, response.indexOf("<redirects>")+11)+line.length();
-				int b = response.indexOf(" />", a);
-				String redirectedTitle = response.substring(a, b);
-				
-				System.out.print(redirectedTitle);
-				return true;
+		if (!Configs.INSTANCE.initialized())
+			Configs.INSTANCE.setFromFile("bot.properties");
+		User user = new User(Configs.INSTANCE.str("username"), Configs.INSTANCE.str("password"),
+				"http://en.wikipedia.org/w/api.php");
+		for (String title : titles) {
+			if (map.containsKey(title)) {
+				titleResults.add(map.get(title));
+				results.add(true);
+			} else if (map.containsValue(title)) {
+				titleResults.add(title);
+				results.add(true);
 			} else {
-				System.out.print(title);
-				return true;
+				
+				Connector connector = new Connector();
+				String[] valuePairs = {"titles", title, "redirects",""};
+				String response = connector.queryXML(user, valuePairs);
+				if (response.contains("missing=\"\"")) {
+					titleResults.add("#missing");
+					results.add(false);
+				} else if (response.contains("<redirects>")){
+					String line = "<r from=\""+title+"\" to=\"";
+					int a = response.indexOf(line)+line.length();
+					int b = response.indexOf("\" />", a);
+					String redirectedTitle = response.substring(a, b);
+					
+					titleResults.add(redirectedTitle);
+					results.add(false);
+				} else {
+					titleResults.add(title);
+					results.add(false);
+				}
 			}
-		}	
+		}
+		Joiner joiner = Joiner.on("|");
+		System.out.println(joiner.join(titleResults));
+		return results;
 	}
 	
 	/* ---- Utility methods ---- */
