@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,6 +74,8 @@ public class GeneSetSelector {
 	Map<String, Double> mesh2pubmedfreq;
 	UmlsDb db;
 	MeshRDF meshtree;
+	AuthorSelector author_selector;
+	Map<String, ProteinPage> gene_protein;
 
 
 	public GeneSetSelector() {
@@ -80,12 +83,13 @@ public class GeneSetSelector {
 		gene2gwtitle = GeneWikiUtils.getGeneWikiGeneIndex(gene2gwtitlefile, false, creds);//GeneWikiUtils.readGeneWikiGeneIndex(gene2gwtitlefile);		
 		gene2pubs = BioInfoUtil.getHumanGene2pub(gene2pubmedfile);	
 		pub2meshes = PubMed.getCachedPmidMeshMap(pmid_mesh_cache);
-		pub2authors = AuthorSelector.readCachedPmid2Authors(pmid_author_cache);
+		author_selector = new AuthorSelector();
+		pub2authors = author_selector.pmid_authors;
 		gw2meshes = getCachedGWMeshMap(gw_mesh_cache);
 		mesh2pubmedfreq = new HashMap<String, Double>();
 		db = new UmlsDb();
 		meshtree = new MeshRDF();
-
+		gene_protein = ProteinPage.loadSerializedDir("/Users/bgood/data/bioinfo/protein_template_pages/", 1000000000);
 		double total = 0;
 		//make counts
 		for(Entry<String, Set<String>> pub_meshes : pub2meshes.entrySet()){
@@ -141,20 +145,23 @@ public class GeneSetSelector {
 		//Gather data
 		////////////////
 		String infile = "/Users/bgood/data/journal_collab/gene_data.txt";
-		String outfile = "/Users/bgood/data/journal_collab/gene_data_1.txt";
-		//		String exloutfile = "/Users/bgood/data/journal_collab/gene_data_exl.txt";
-		//		int limit = 100000;
-		//		int minPubs = 10;
-		//		boolean useannotator = false; //else use metamap
-		//		boolean usecachedgenewiki = true;
-		//g.gatherGeneProfiles(limit, minPubs, useannotator, usecachedgenewiki, infile, outfile);
-		//g.convertToExcellableFile(infile, exloutfile);
+		String outfile = "/Users/bgood/data/journal_collab/gene_data_lite.txt";
+		String exloutfile = "/Users/bgood/data/journal_collab/gene_data_exl_lite.txt";
+		int limit = 10000000;
+		int minPubs = 10;
+		boolean useannotator = false; //else use metamap
+		boolean usecachedgenewiki = true;
+		//		g.gatherGeneProfiles(limit, minPubs, useannotator, usecachedgenewiki, infile, outfile);
+		//		g.convertToExcellableFile(infile, exloutfile);
+
+		g.gatherLiteGeneProfiles(limit, minPubs, usecachedgenewiki, outfile);
+
 
 		///////////////////
 		//Identify interesting MeSH topics
 		//////////////////
-		String meshoutfile = "/Users/bgood/data/journal_collab/mesh_data______.txt";
-		g.buildMeshProfiles(infile, meshoutfile);
+		//String meshoutfile = "/Users/bgood/data/journal_collab/mesh_data______.txt";
+		//g.buildMeshProfiles(infile, meshoutfile);
 
 		///////////////////
 		//build some specific reports
@@ -168,7 +175,7 @@ public class GeneSetSelector {
 		//				"Violence", "Gambling", "Alcohol Drinking",
 		//				"War","Breast Implants"};
 		//		Map<String, GeneProfile> gene_profiles = g.readGeneProfiles(infile);
-		//		Map<String, ProteinPage> protein_pages = ProteinPage.loadSerializedDir("/Users/bgood/data/bioinfo/protein_template_pages/", 1000000000);
+
 		//		for(String mesh : terms){
 		//			System.out.println("working on mesh term "+mesh);
 		//			String filename = mesh.replace(",", ":");
@@ -177,6 +184,51 @@ public class GeneSetSelector {
 		//			g.makeReportforMeSHterm(gene_profiles, protein_pages, mesh, meshout);
 		//		}
 		//g.makeReportsForSemanticGroup(infile, "Chemicals & Drugs", "/Users/bgood/data/journal_collab/MeSHgeneSets/Chemicals_Drugs/");
+
+	}
+
+	public void gatherLiteGeneProfiles(int limit, int minPubs,
+			boolean usecachedgenewiki, String outfile) {
+		Map<String, GeneProfile> pros = new HashMap<String, GeneProfile>();
+		File test = new File(outfile);
+		try {
+			FileWriter f = new FileWriter(outfile);
+			f.write(getGeneProfileHeaderLite()+"\n");
+			f.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		int c = 0;
+		//now start gathering more
+		for(String gene_id : gene2pubs.keySet()){
+			c++;
+			if(c>= limit){
+				break;
+			}
+			System.out.println(c+" working on "+gene_id);
+			GeneProfile p = pros.get(gene_id);
+			//			//check to see if we need to actually go get this one (if not we already had it..)
+			if(gene2pubs.get(gene_id).size()>=minPubs&&p==null){ 
+				p = profileGeneLite(gene_id, false, true);
+				System.out.println(c+" profiling "+gene_id);
+				//write the profile out to the new file
+				if(p!=null){
+					try {
+						FileWriter f = new FileWriter(outfile, true);
+						f.write(p.getAsStringLite()+"\n");
+						System.out.println(p.getAsStringLite());
+						f.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}else{
+					System.out.println("nothing found for "+gene_id);
+				}
+			}
+		}
 
 	}
 
@@ -409,7 +461,7 @@ public class GeneSetSelector {
 				System.out.println("Reloading mesh ontology");
 				meshtree.reload();
 			}
-			
+
 			n_genes = gene_profiles.size();
 			f_overlaps = new DescriptiveStatistics();
 			intersects = new DescriptiveStatistics();
@@ -436,14 +488,14 @@ public class GeneSetSelector {
 		String getAsString(int maxgenes){
 			String genetext = "";
 
-//			int c = 0;
-//			for(String gene : genes){
-//				c++;
-//				genetext+=gene+",";
-//				if(c>=maxgenes){
-//					break;
-//				}
-//			}
+			//			int c = 0;
+			//			for(String gene : genes){
+			//				c++;
+			//				genetext+=gene+",";
+			//				if(c>=maxgenes){
+			//					break;
+			//				}
+			//			}
 
 			String g = "";
 			if(groups!=null&&groups.size()>0){
@@ -465,7 +517,7 @@ public class GeneSetSelector {
 					meshparents += p+" ; ";
 				}
 			}
-			
+
 			return term+"\t"+
 			g+"\t"+
 			t+"\t"+
@@ -650,13 +702,13 @@ public class GeneSetSelector {
 					String pmids = row[7];
 					String[] pm_meshes = row[12].split("::");
 					String[] gw_meshes = row[13].split("::");
-					Map<String, Double> authors = new HashMap<String, Double>();
+					Map<String, Double> author_counts = new HashMap<String, Double>();
 					if(row.length>19){
 						String[] authortext = row[19].split(",");					
 						if(authortext!=null&&authortext.length>0){
 							for(String author : authortext){
 								String[] a = author.split("::");
-								authors.put(a[0], Double.parseDouble(a[1]));
+								author_counts.put(a[0], Double.parseDouble(a[1]));
 							}
 						}
 					}
@@ -691,7 +743,7 @@ public class GeneSetSelector {
 					if(inline_refs!=null&&!inline_refs.equals("null")){
 						pro.gw_inline_refs = Integer.parseInt(inline_refs);
 					}
-					pro.authors = authors;
+					pro.author_counts = author_counts;
 					gps.put(gene_id, pro);
 				}
 				line = f.readLine();
@@ -732,6 +784,20 @@ public class GeneSetSelector {
 		"Top_authors\t";
 	}
 
+	private String getGeneProfileHeaderLite(){
+		return 
+		"Gene_id\t"+
+		"GW_title\t"+
+		"GW_bytes\t"+
+		"GW_words\t"+
+		"All_gene2pubmed_refs\t"+
+		"Gene_wiki_priority\t"+
+		"Most_recent_pub\t"+
+		"Most_frequent_author\t"+
+		"Top_authors_by_frequency\t"+
+		"Top_authors_by_date\t";
+	}
+
 	class GeneProfile{
 		SetComparison sc;
 		GeneWikiPage page;
@@ -742,7 +808,23 @@ public class GeneSetSelector {
 		int pubmed_refs;
 		Map<String, Double> pub_mesh_freq;
 		Set<String> gw_mesh;
-		Map<String, Double> authors;
+		Map<String, Double> author_counts;
+		Map<String, Integer> author_lpdate;
+
+		private GeneProfile(GeneWikiPage page_){
+			page = page_;
+			if(page==null){
+				page = new GeneWikiPage();
+			}else{
+				VolumeReport vr = new VolumeReport();
+				vr.extractVolumeFromPopulatedPage(page);
+				gw_sentences = (int)vr.getSentences();
+				gw_words = (int)vr.getWords();
+				gw_headings = (int)vr.getHeadings();
+				gw_inline_refs = (int)vr.getPubmed_refs();
+			}
+		}
+
 		private GeneProfile(SetComparison sc_, GeneWikiPage page_, Map<String, Double> pub_mesh_, Set<String> gw_mesh_){
 			sc = sc_;
 			page = page_;
@@ -763,15 +845,105 @@ public class GeneSetSelector {
 		private void setAuthorList(){
 			//authors = AuthorSelector.getRankedAuthorListForPmids(gene2pubs.get(page.getNcbi_gene_id()));
 			if(page!=null&&page.getNcbi_gene_id()!=null){
-				authors = AuthorSelector.getRankedAuthorListForPmidsFromCache(gene2pubs.get(page.getNcbi_gene_id()),pub2authors);
+				List<String> pubs = gene2pubs.get(page.getNcbi_gene_id());
+				if(pubs!=null){
+					author_counts = author_selector.getRankedAuthorListForPmids(pubs);
+					author_lpdate = author_selector.getRecentAuthorListForPmids(pubs);
+				}
 			}
 		}
 
-		private String getAsString(boolean keepalltext){
+
+		private String getAsStringLite(){
+			if(page.getTitle()==null||page.getTitle().equals("null")){
+				if(gene_protein.containsKey(page.getNcbi_gene_id())){
+					ProteinPage np = gene_protein.get(page.getNcbi_gene_id());
+					np.setTitle(np.getTitle()+" (non_gw_article)");
+					page = np;
+					VolumeReport vr = new VolumeReport();
+					vr.extractVolumeFromPopulatedPage(page);
+					gw_sentences = (int)vr.getSentences();
+					gw_words = (int)vr.getWords();
+					gw_headings = (int)vr.getHeadings();
+					gw_inline_refs = (int)vr.getPubmed_refs();
+				}else{
+					String symbol;
+					try {
+						symbol = MyGeneInfo.getSymbolByGeneid(page.getNcbi_gene_id(), true);
+						page.setTitle(symbol);
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+			}		
+
 			int max_authors = 10;
 			setAuthorList();
-			String top_authors = AuthorSelector.getTopForExcelCell(authors, max_authors);
+			//	String top_authors = AuthorSelector.getTopForExcelCell(author_counts, max_authors);
+			String recent_authors = AuthorSelector.getRecentForExcelCell(author_lpdate, author_counts,max_authors+10);
+			String top_recent_authors = AuthorSelector.getTopRecentForExcelCell(author_counts, author_lpdate, max_authors);
 
+			int pubs = 0;
+			if(gene2pubs.get(page.getNcbi_gene_id())!=null){
+				pubs = gene2pubs.get(page.getNcbi_gene_id()).size();
+			}
+
+			float priority = (float)pubs/(1+gw_words);
+
+			int mr = 0; double mf = 0;
+			if(author_lpdate!=null&&author_lpdate.size()>0){
+				mr = author_lpdate.values().iterator().next();
+			}
+			if(author_counts!=null&&author_counts.size()>0){
+				mf = author_counts.values().iterator().next();
+			}
+
+			return 
+			page.getNcbi_gene_id()+"\t"+
+			page.getTitle()+"\t"+
+			page.getSize()+"\t"+
+			gw_words+"\t"+
+			pubs+"\t"+
+			priority+"\t"+
+			mr+"\t"+
+			(int)mf+"\t"+
+			top_recent_authors+"\t"+
+			recent_authors+"\t";
+
+		}
+
+		private String getAsString(boolean keepalltext){
+			if(page.getTitle()==null||page.getTitle().equals("null")){
+				if(gene_protein.containsKey(page.getNcbi_gene_id())){
+					ProteinPage np = gene_protein.get(page.getNcbi_gene_id());
+					np.setTitle(np.getTitle()+" (non_gw_article)");
+					page = np;
+					VolumeReport vr = new VolumeReport();
+					vr.extractVolumeFromPopulatedPage(page);
+					gw_sentences = (int)vr.getSentences();
+					gw_words = (int)vr.getWords();
+					gw_headings = (int)vr.getHeadings();
+					gw_inline_refs = (int)vr.getPubmed_refs();
+				}else{
+					String symbol;
+					try {
+						symbol = MyGeneInfo.getSymbolByGeneid(page.getNcbi_gene_id(), true);
+						page.setTitle(symbol);
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+			}		
+
+			int max_authors = 10;
+			setAuthorList();
+			//	String top_authors = AuthorSelector.getTopForExcelCell(author_counts, max_authors);
+			//	String recent_authors = AuthorSelector.getRecentForExcelCell(author_lpdate, max_authors);
+			String top_recent_authors = AuthorSelector.getTopRecentForExcelCell(author_counts, author_lpdate, max_authors);
 			//limit comparison to more interesting mesh terms
 			boolean penalize_prior = true;
 			Map<String, Double> pubmeshfreq = count2freq(pub_mesh_freq, penalize_prior);
@@ -846,7 +1018,9 @@ public class GeneSetSelector {
 			superset.getSet_intersection()+"\t"+
 			superset.getInterset()+"\t"+
 			weighted_pub_mesh_terms+"\t"+
-			top_authors+"\t";
+			top_recent_authors+"\t";
+			//	top_authors+"\t"+
+			//	recent_authors+"\t";
 
 		}
 
@@ -869,6 +1043,28 @@ public class GeneSetSelector {
 			termfreq.put(termcount.getKey(), freq);
 		}
 		return termfreq;
+	}
+
+	public GeneProfile profileGeneLite(String gene_id, boolean useannotator, boolean usecache){
+		Map<String, Double> pm_sig = getPubmedMeshSignatureForGene(gene_id);
+		//retrieve text from wikipedia (or from local cache)
+		Set<String> gw_sig = null;
+		GeneWikiPage page = new GeneWikiPage();
+		page.setNcbi_gene_id(gene_id);
+		String title = gene2gwtitle.get(gene_id);
+		if(title!=null){
+			if(usecache){
+				page = GeneWikiUtils.deserializeGeneWikiPage(gene_wiki_article_cache+gene_id);
+				if(page==null){
+					System.out.println("Gene Wiki page missing for "+title);
+				}
+			}else{
+				page.setTitle(title);
+				page.controlledPopulate(true, false, true, false, false, true, true, false);	
+			}
+		}
+
+		return new GeneProfile(page);
 	}
 
 	public GeneProfile profileGene(String gene_id, boolean useannotator, boolean usecache){
@@ -897,7 +1093,7 @@ public class GeneSetSelector {
 		return new GeneProfile(sc, page, pm_sig, gw_sig);
 	}
 
-	public Map<String, Set<String>> getCachedGWMeshMap(String gwmeshcache){
+	public static Map<String, Set<String>> getCachedGWMeshMap(String gwmeshcache){
 		Map<String, Set<String>> gw_meshs = new HashMap<String, Set<String>>();
 		try {
 			BufferedReader f = new BufferedReader(new FileReader(gwmeshcache));

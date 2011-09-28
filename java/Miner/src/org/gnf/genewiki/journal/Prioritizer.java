@@ -69,9 +69,8 @@ public class Prioritizer {
 		}
 // 		gene2pub.put(gene, ps);		
 
-
-
-		Map<String, Set<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
+		AuthorSelector pm = new AuthorSelector();
+		Map<String, Set<String>> pmid_authors = pm.pmid_authors;
 		if(pmid_authors!=null){
 			Map<String, Integer> auth_count = new HashMap<String, Integer>();
 			for(String pub : gene2pub.get(gene)){
@@ -193,7 +192,8 @@ public class Prioritizer {
 						for(String p : gene2pub.get(gene)){
 							pmids+=p+",";
 						}
-						Map<String, Set<String>> pmid_authors = PubMed.getPubmedAuthors(pmids);
+						AuthorSelector pm = new AuthorSelector();
+						Map<String, Set<String>> pmid_authors = pm.pmid_authors;
 						if(pmid_authors!=null){
 							Map<String, Integer> auth_count = new HashMap<String, Integer>();
 							for(String pub : gene2pub.get(gene)){

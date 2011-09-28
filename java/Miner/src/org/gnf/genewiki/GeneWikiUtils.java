@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +29,8 @@ import org.gnf.go.GOmapper;
 import org.gnf.go.GOowl;
 import org.gnf.go.GOterm;
 import org.gnf.umls.UmlsRelationship;
+import org.gnf.util.Gene;
+import org.gnf.util.MyGeneInfo;
 
 /**
  * This class is a collection of small, static utility methods used within the GeneWikiMiner project
@@ -41,21 +44,34 @@ public class GeneWikiUtils {
 	 */
 	public static void main(String[] args) {
 		boolean usewikitrust = false;
-		retrieveAndStoreGeneWikiAsJava(100000, "/Users/bgood/workspace/Config/gw_creds.txt", "/Users/bgood/data/bioinfo/gene_wiki_as_java/", usewikitrust);
+		//retrieveAndStoreGeneWikiAsJava(100000, "/Users/bgood/workspace/Config/gw_creds.txt", "/Users/bgood/data/bioinfo/gene_wiki_as_java/", usewikitrust);
+		try {
+			saveAllText(1000000000, "/Users/bgood/data/bioinfo/gene_wiki_as_java/", "/Users/bgood/data/bioinfo/gene_wiki_as_text/");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	//	public static String toPlainText(String wikitext){
-	//		WikiModel wikiModel = new WikiModel(
-	//				Configuration.DEFAULT_CONFIGURATION, Locale.ENGLISH, "${image}", "${title}");
-	//		wikiModel.setUp();
-	//		String result = "";
-	//		try {
-	//			result = wikiModel.render(new PlainTextConverter(), wikitext);
-	//		} finally {
-	//			wikiModel.tearDown();
-	//		}
-	//		return result;
-	//	}
+	public static void saveAllText(int limit, String input_dir, String output_dir) throws IOException{
+		Map<String, GeneWikiPage> gene_gws = loadSerializedDir(input_dir, limit);
+		int c = 0;
+		for(Entry<String, GeneWikiPage> gene_gw : gene_gws.entrySet()){
+			String gene_id = gene_gw.getKey();
+			String title = gene_id+"_none_none";
+			
+			Gene g = MyGeneInfo.getGeneInfoByGeneid(gene_id, false);
+			if(g!=null){
+				title = gene_id+"_"+g.getGeneSymbol()+"_"+g.getUniprot();
+			}
+			FileWriter f = new FileWriter(output_dir+title);
+			for(Sentence s : gene_gw.getValue().getSentences()){				
+				f.write(s.getPrettyText());
+			}
+			f.close();
+			System.out.println(c++);
+		}
+	}
 
 	public static List<String> getTitlesfromNcbiGenes(List<String> ncbis){
 		Map<String, String> gene_wiki = new HashMap<String, String>();

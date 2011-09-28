@@ -40,6 +40,11 @@ public class VolumeCounter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		GeneWikiPage p = 
+			GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/bioinfo/gene_wikitrust_as_java/6422");
+		VolumeReport v = getArticleVolume(p);
+		System.out.println(VolumeReport.getHeader());
+		System.out.println(v.toString());
 		//	processGeneWiki(1000000, Config.gwikidir, "/Users/bgood/data/wikiportal/jan11");
 		//	System.out.println(Volumetrics.getHeader());
 		//	System.out.println(summary);

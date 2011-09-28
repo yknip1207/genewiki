@@ -208,26 +208,26 @@ public class MeshRDF {
 				mterm = term.as(OntClass.class);
 
 			}
-			//			else{
-			//				//check alt labels before giving up
-			//				queryString = "" +
-			//				"PREFIX rdfs: <"+RDFS.getURI()+"> " +
-			//				"PREFIX skos: <http://www.w3.org/2004/02/skos/core#> "+
-			//				"SELECT ?term WHERE { "+
-			//				" ?term skos:altLabel ?label . "+
-			//				" FILTER (str(?label) = \""+label+"\") }";	//regex(?name,'^da','i') 
-			//				//System.out.println(getXref);
-			//				query = QueryFactory.create(queryString);
-			//				// Execute the query and obtain results
-			//				qe = QueryExecutionFactory.create(query, mesh);
-			//
-			//				rs = qe.execSelect();
-			//				if(rs.hasNext()){
-			//					QuerySolution rb = rs.nextSolution() ;
-			//					RDFNode term = rb.get("term") ;
-			//					mterm = term.as(OntClass.class);
-			//				}
-			//			}
+			else{
+				//check alt labels before giving up
+				queryString = "" +
+				"PREFIX rdfs: <"+RDFS.getURI()+"> " +
+				"PREFIX skos: <http://www.w3.org/2004/02/skos/core#> "+
+				"SELECT ?term WHERE { "+
+				" ?term skos:altLabel ?label . "+
+				" FILTER (str(?label) = \""+label+"\") }";	//regex(?name,'^da','i') 
+				//System.out.println(getXref);
+				query = QueryFactory.create(queryString);
+				// Execute the query and obtain results
+				qe = QueryExecutionFactory.create(query, mesh);
+
+				rs = qe.execSelect();
+				if(rs.hasNext()){
+					QuerySolution rb = rs.nextSolution() ;
+					RDFNode term = rb.get("term") ;
+					mterm = term.as(OntClass.class);
+				}
+			}
 		}finally{
 			// Important � free up resources used running the query
 			qe.close();		

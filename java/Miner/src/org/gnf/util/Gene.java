@@ -7,6 +7,7 @@ public class Gene implements Comparable{
 	String geneID;
 	String geneSymbol;
 	String geneDescription;
+	String uniprot;
 	boolean isPseudo;
 	String genetype;
 	List<String> altids;
@@ -66,6 +67,14 @@ public class Gene implements Comparable{
 	public boolean equals(Object o){
 		Gene other = (Gene)o;
 		return this.getGeneID().equals(other.getGeneID());
+	}
+
+	public String getUniprot() {
+		return uniprot;
+	}
+
+	public void setUniprot(String uniprot) {
+		this.uniprot = uniprot;
 	}
 
 	

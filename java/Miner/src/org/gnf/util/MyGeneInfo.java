@@ -39,51 +39,42 @@ public class MyGeneInfo {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static void main(String[] args) throws UnsupportedEncodingException {
-//		Gene g = getGeneInfoByGeneid("6840", true);
-//		System.out.println(g);
-		// [588, 6840, 6843, 6844, 6845, 6855, 6853, 6854, 6857, 81127]
-		
-		
-		String[] genes = {"588","6840", "6843", "6844", "6845", "6855", "6853", "6854", "6857", "81127"};
-		List<String> g = new ArrayList<String>();
-		for(String gene : genes){
-			g.add(gene);
-		}
-		System.out.println(getBatchGeneInfo(g, false));
+		Gene g = getGeneInfoByGeneid("2989", true);
+		System.out.println(g);
 
-		//		String f = "gw_data/gene_wiki_index.txt";
-		//		Map<String, String> gene_wiki = GeneWikiUtils.getGeneWikiGeneIndex(f, false);
-		//		try {
-		//			FileWriter o = new FileWriter("gw_data/gene_symbol_wiki.txt");
-		//			int n = 0;
-		//			for(Entry<String, String> gw : gene_wiki.entrySet()){
-		//				o.write(gw.getKey()+"\t"+getSymbolByGeneid(gw.getKey(), false)+"\t"+gw.getValue()+"\n");
-		//				n++;
-		//				System.out.println(n+"\t"+gw.getKey()+"\t"+getSymbolByGeneid(gw.getKey(), false)+"\t"+gw.getValue());
-		//			}
-		//			o.close();
-		//		} catch (IOException e) {
-		//			// TODO Auto-generated catch block
-		//			e.printStackTrace();
-		//		}
 	}
 
 
 	public static Gene getGeneInfoByGeneid(String id, boolean external) throws UnsupportedEncodingException{
 		Gene g = null;
 		String symbol = "";
-		String jsonr = getGeneInfo(id, external,"name,symbol,type_of_gene");
+		String jsonr = getGeneInfo(id, external,"name,symbol,type_of_gene,uniprot");
 		if(jsonr==null||jsonr.length()==0||jsonr.startsWith("<html><title>404")){
 			return null;
 		}
 		//System.out.println(jsonr);
 		try {
 			JSONObject r = new JSONObject(jsonr);
-			symbol = r.getString("symbol");
+
 			g = new Gene();
 			g.setGeneID(id);
-			g.setGeneSymbol(symbol);
+			if(r.has("symbol")){
+				symbol = r.getString("symbol");
+				g.setGeneSymbol(symbol);
+			}
 			g.setGeneDescription(r.getString("name"));
+			g.setUniprot("none");
+			if(r.has("uniprot")){
+				JSONObject u = new JSONObject(r.getString("uniprot"));
+				if(u!=null&&u.has("Swiss-Prot")){
+					String uni = u.getString("Swiss-Prot");
+					if(uni.startsWith("[")){
+						g.setUniprot("multi");
+					}else{
+						g.setUniprot(uni);
+					}
+				}
+			}
 			String t = r.getString("type_of_gene");
 			if(t!=null){
 				if(t.equals("pseudo")){
@@ -232,7 +223,7 @@ public class MyGeneInfo {
 		}
 		//make non-redundant list
 		List<String> geneids = new ArrayList<String>(new HashSet<String>(geneidss));
-		
+
 		Map<String, Gene> genes = new HashMap<String, Gene>();
 		int batchsize = 1000;
 		String out = "";
@@ -255,7 +246,7 @@ public class MyGeneInfo {
 			PostMethod post = new PostMethod(u);
 			post.addParameter("ids", batch);
 			post.addParameter("filter","name,id,symbol,type_of_gene");
-			
+
 			// Get HTTP client
 			HttpClient httpclient = new HttpClient();
 			// Execute request
@@ -265,7 +256,7 @@ public class MyGeneInfo {
 				out = post.getResponseBodyAsString();
 				if(result==200&&out!=null&&(!out.startsWith("<html"))){
 					JSONArray r = new JSONArray(out);
-					
+
 					for(int j=0; j<r.length(); j++){
 						JSONObject o = r.getJSONObject(j);
 						String name = o.getString("name");
@@ -290,7 +281,7 @@ public class MyGeneInfo {
 					System.out.println(out);
 				}
 				if(response_set.size()!=current_set.size()){
-					
+
 					System.out.println("MyGeneInfo returned "+response_set.size()+" results for "+current_set.size()+" queried gene ids, missing ids:");
 					current_set.removeAll(response_set);
 					System.out.println(current_set);
@@ -320,7 +311,7 @@ public class MyGeneInfo {
 		//http://mygene.info/query?q=cdk2+AND+species:human
 		String encoded = URLEncoder.encode(geneid, "UTF8");
 		//http://mygene.info/gene/117
-		String u = "http://cwudev/gene/";
+		String u = "http://cwudev/gene/"; //http://cwudev/gene
 		if(external){
 			u = "http://mygene.info/gene/";
 		}
