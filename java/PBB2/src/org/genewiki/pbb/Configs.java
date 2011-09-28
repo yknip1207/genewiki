@@ -21,7 +21,8 @@ public enum Configs {
 	private final String[] keys = {
 			"username",			"password",			"commonsUsername",
 			"commonsPassword",	"templatePrefix",	"templateName",
-			"commonsRoot", 		"pywikipedia",		"pymol"
+			"commonsRoot", 		"pywikipedia",		"pymol", 
+			"verbose"
 			};
 	
 

@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
@@ -15,7 +16,6 @@ import java.util.Arrays;
 import org.genewiki.pbb.Configs;
 import org.genewiki.pbb.controller.BotController;
 import org.genewiki.pbb.exceptions.ExceptionHandler;
-import org.genewiki.pbb.util.PageList;
 import org.genewiki.pbb.wikipedia.ProteinBox;
 import org.genewiki.pbb.wikipedia.WikipediaInterface;
 import org.gnf.wikiapi.Connector;
@@ -223,14 +223,17 @@ public class GeneWikiCodeGenerator {
 		Map<String, String> map = null;
 		List<Boolean> results = new ArrayList<Boolean>(titles.size());
 		List<String> titleResults = new ArrayList<String>(titles.size());
-		try {
-			map = PageList.in();
-		} catch (FileNotFoundException e) {
-			PageList.out();
-			System.out.println("Created new entrez-title map.");
-		//	checkExistence(title); // recursion! kind of
-			return results;
-		}
+//		TODO: re-implement entrez-title map checking
+//		try {
+//			map = PageList.in();
+//		} catch (FileNotFoundException e) {
+//			PageList.out();
+//			System.out.println("Created new entrez-title map.");
+//		//	checkExistence(title); // recursion! kind of
+//			return results;
+//		}
+		map = new HashMap<String,String>();
+		
 		if (!Configs.INSTANCE.initialized())
 			Configs.INSTANCE.setFromFile("bot.properties");
 		User user = new User(Configs.INSTANCE.str("username"), Configs.INSTANCE.str("password"),

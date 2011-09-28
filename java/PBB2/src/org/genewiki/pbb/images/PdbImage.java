@@ -2,10 +2,12 @@ package org.genewiki.pbb.images;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeoutException;
+
 import org.genewiki.pbb.Configs;
 import org.genewiki.pbb.util.FileHandler;
 import org.genewiki.util.FindRoot;
-import org.genewiki.util.SubProcess;
+import org.genewiki.util.Processes;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
@@ -166,6 +168,13 @@ public class PdbImage {
 	 * this method after initializing your PdbImage object, and requires valid
 	 * usernames and passwords set in the bot.properties file, and valid
 	 * Wikimedia Commons base URL.
+	 * <p>This method uses the pywikipedia framework for uploading images, as the
+	 * Wiki.java framework appears to have issues (unsurprisingly). However, the 
+	 * processes may hang if the user has not configured pywikipedia correctly, so
+	 * a timeout is used forcibly abort the processes if they take too long. One
+	 * way to hit a timeout is to attempt to upload a preexisting image. Failures
+	 * here do not affect the rest of the template, but will create a redlink in the
+	 * final rendered wikitext.
 	 */
 	public void uploadPdbImg() {
 		Runtime rt = Runtime.getRuntime();
@@ -174,31 +183,44 @@ public class PdbImage {
 		String[] loginCmd = {"python", pywikipedia+"login.py", "-pass:"+password};
 		String[] uploadCmd = {"python", pywikipedia+"upload.py", "-keep", "-noverify", filename, this.description}; 
 		try {
-			String testLogin = SubProcess.getOutput(rt.exec(testLoginCmd), false);
-			System.out.println(testLogin);
+			String testLogin = Processes.runAndReturnOutput(rt.exec(testLoginCmd), false, 5000);
+			log(testLogin);
 			if (testLogin.contains("You are not logged in"))
-				SubProcess.getOutput(rt.exec(loginCmd), true);
-			String uploadResults = SubProcess.getOutput(rt.exec(uploadCmd), false);
-			if (!uploadResults.contains("Upload successful")) 
-				System.out.println(uploadResults);			
+				log(Processes.runAndReturnOutput(rt.exec(loginCmd), false, 5000));
+			
+			String uploadResults = Processes.runAndReturnOutput(rt.exec(uploadCmd), false, 5000);
+			
+			log(uploadResults);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// nobody cares
+		} catch (TimeoutException e) {
+			log("One of the subprocesses timed out. This may be due to a configuration error or " +
+					"resistance from wikimedia (perhaps the image already exists?)");
+		}
+	}
+	
+	private void log(String message) {
+		if (verbose) {
+			System.out.println(message);
+		}
+	}
+	
+	public static void main(String[] args) {
+		try {
+			Configs.INSTANCE.setFromFile("bot.properties");
+			PdbImage img = new PdbImage("1GIH", "CDK2");
+			System.out.println(img.description);
+			img.uploadPdbImg();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
-	
-//	public static void main(String[] args) {
-//		try {
-//			Configs.INSTANCE.setFromFile("bot.properties");
-//			PdbImage img = new PdbImage("1GZ8", "1017");
-//			System.out.println(img.description);
-//			img.uploadPdbImg();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//	}
 
 }
 

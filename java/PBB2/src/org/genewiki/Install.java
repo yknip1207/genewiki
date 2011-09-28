@@ -79,7 +79,7 @@ public class Install {
 				"# PDB image rendering\n");
 		sb.append("pymol = "+pymolBin);
 		try {
-			Files.write(sb, new File("bot.properties.test"), Charset.forName("UTF-8"));
+			Files.write(sb, new File("bot.properties"), Charset.forName("UTF-8"));
 			System.out.println("New bot.properties file created in working directory. Please ensure this \n" +
 					"file is in the same folder as the bot jar file.");
 		} catch (IOException e) {
