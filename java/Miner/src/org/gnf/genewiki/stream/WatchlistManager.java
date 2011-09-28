@@ -197,7 +197,7 @@ public class WatchlistManager {
 	 * @param total
 	 * @return
 	 */
-	public List<GWRevision> getRecentChangesFromWatchlist(Calendar earliest, int batch, int total){
+	public List<GWRevision> getRecentChangesFromWatchlist(Calendar earliest, int batch, int total, boolean includeBots){
 		SimpleDateFormat timestamp = new SimpleDateFormat("yyyyMMddHHmmss");
 		TimeZone tz = TimeZone.getTimeZone("GMT");
 		timestamp.setTimeZone(tz);
@@ -211,7 +211,7 @@ public class WatchlistManager {
 					"generator", "watchlist", 
 					"gwllimit", batch+"",
 					"gwlnamespace", "0",  //namespace = 10 equals the template namespace.
-					"gwlshow", "!bot",
+					"gwlshow", (includeBots)?"":"!bot",
 					"", "",
 					"gwlstart",start,
 					"gwldir", "newer",

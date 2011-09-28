@@ -78,7 +78,7 @@ public class WatchlistTweeterTask extends TimerTask {
 		Calendar now = Calendar.getInstance();
 		System.out.println(n+", Checking for edits from: "+timestamp.format(lastchecked.getTime())+" to now "+timestamp.format(now.getTime()));
 
-		List<GWRevision> newones = wl_man.getRecentChangesFromWatchlist(lastchecked, 50, 50);
+		List<GWRevision> newones = wl_man.getRecentChangesFromWatchlist(lastchecked, 50, 50, false);
 		lastchecked = Calendar.getInstance();
 		//process revisions to make tweets
 		if(newones!=null){
