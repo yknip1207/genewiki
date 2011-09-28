@@ -15,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.gnf.genewiki.GeneWikiUtils;
 import org.gnf.genewiki.journal.Prioritizer;
@@ -29,6 +31,7 @@ import org.gnf.genewiki.ncbi.PubMed;
 import org.gnf.genewiki.ncbi.PubMed.PubmedSummary;
 import org.gnf.go.GOterm;
 import org.gnf.search.GoogleSearch;
+import org.gnf.util.BigFile;
 import org.gnf.util.BioInfoUtil;
 import org.gnf.util.Gene;
 import org.gnf.util.MapFun;
@@ -47,16 +50,235 @@ public class NAR2ReportBuilder {
 	public static void main(String[] args) {
 		//getGenePubGoWordCounts();
 		//runGoogleRankAnalysis();
-		buildPublicationGrowthTable();
-
+		//buildPublicationGrowthTable();
+		//buildRevisionGrowthTrustTable();
+		//buildRevisionGrowthTrustTableForNonGeneWikiSample();
+		buildSizeViewsEdits();
 	}
 
-//TODO - finish up and link to gene wiki growth
+	/**
+	 * build monthly size, views, edits table
+	 * @throws ClassNotFoundException 
+	 */
+
+	public static void buildSizeViewsEdits(){
+		SimpleDateFormat format_exl = new SimpleDateFormat("MM/dd/yyyy");
+
+		MetricsDB db = new MetricsDB();
+		try {
+			//get page_views by month
+			//indexes each cumulative count with the first day of the following month (e.g. sept 2010 would be indexed as oct 1, 2010)
+			Map<String, Integer> month_views = db.getSumPageViewsByMonth();
+			//get size by month
+			Map<String, Integer> month_words = db.getSumWordsByMonth();
+			//refs by month
+			Map<String, Integer> month_refs = db.getSumReferencesByMonth();
+			
+			//get edits by month
+
+			//output
+			System.out.println("Month\tt0\tt1\tTotal views\tTotal words\tTotal edits\tTotal refs");
+			for(Entry<String, Integer> month_view : month_views.entrySet()){
+				Date m = format_exl.parse(month_view.getKey());
+				Calendar t1 = Calendar.getInstance();
+				t1.clear();
+				t1.setTime(m);
+				t1.set(Calendar.HOUR_OF_DAY, 24);
+				t1.set(Calendar.MINUTE, 59);
+				t1.set(Calendar.SECOND, 59);
+				Calendar t0 = Calendar.getInstance();
+				t0.clear();
+				t0.setTime(m);
+				t0.set(Calendar.DAY_OF_MONTH, 1);
+				int revs =  db.getRevCountInDateRange(t0, t1);
+				System.out.print(month_view.getKey()+"\t"+format_exl.format(t0.getTime())+"\t"+format_exl.format(t1.getTime())+"\t"+month_view.getValue()+"\t");
+				System.out.print(month_words.get(month_view.getKey())+"\t"+revs+"\t"+month_refs.get(month_view.getKey())+"\n");
+			}
+
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/***
+	 * This uses data from wikitrust, supplied by luca di alfaro to build a tabel describing the accumulation of 'good' and 'bad' edits to the gene wiki.	
+	 */
+	public static void buildRevisionGrowthTrustTableForNonGeneWikiSample(){
+		String luca_revs = "/Users/bgood/data/NARupdate2011/luca/rev_details_c79f3a9.csv";
+		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs_gw_onlybots.txt";
+		MetricsDB db = new MetricsDB();
+		float total_good = 0; float total_bad = 0; 
+		try {
+			TreeSet<String> page_ids = db.getPageids();
+			BigFile revs = new BigFile(luca_revs);
+			int c = 0;
+			int page_id_index = 50; int page_title_index = 51;
+
+			Map<Calendar,String> sorted = new TreeMap<Calendar, String>();
+			Map<Calendar,Float> qs = new TreeMap<Calendar, Float>();
+			SimpleDateFormat format = new SimpleDateFormat("\"yyyyMMddHHmmss\"");
+			SimpleDateFormat format_exl = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+			Calendar start = Calendar.getInstance();
+			start.clear();
+			start.set(2009, Calendar.SEPTEMBER,1);
+			Calendar stop = Calendar.getInstance();
+			stop.clear();
+			stop.set(2011, Calendar.SEPTEMBER,1);
+			for (String line : revs){
+				c++;
+				if(c==1){
+					continue;
+				}
+				int quality_index = 67; int rev_id_index = 69; int time_index = 71;int user_index = 74;
+				String[] row = line.split(",");
+				String title = row[51];
+				if(row.length>75){
+					int n = row.length - 75;					
+					for(int i = 52;i<52+n;i++){
+						title += ","+row[i];
+						quality_index++; rev_id_index++; time_index++;user_index++;
+					}
+				}
+				String page_id = row[page_id_index];
+				String page_title = title;
+				String rev_id = row[rev_id_index];
+				String time = row[time_index];
+
+				if(user_index<row.length&&time.length()==16){
+					//2010 04 16 09 22 30
+
+					Calendar stamp = Calendar.getInstance();
+					stamp.clear();
+					stamp.setTime(format.parse(time));
+					String user = row[user_index];
+					if(stamp.after(start)&&stamp.before(stop)){
+						if(user.toLowerCase().contains("bot")){
+							float quality = Float.parseFloat(row[quality_index]);					
+							if(page_ids.contains(page_id)){		
+								qs.put(stamp, quality);
+								String r = quality+"\t"+page_id+"\t"+page_title+"\t"+rev_id+"\t"+user+"\t";
+								sorted.put(stamp, r);
+							}
+						}
+					}
+				}
+			}
+			FileWriter f = new FileWriter(file);
+			f.write("date\ttotal_good\ttotal_bad\tquality\tpage_id\tpage_title\trev_id\teditor\n");
+			for(Entry<Calendar,String> q : sorted.entrySet()){
+				float quality = qs.get(q.getKey());
+				if(quality>=0.4){
+					total_good++;
+				}else{
+					total_bad++;
+				}
+				f.write(format_exl.format(q.getKey().getTime())+"\t"+total_good+"\t"+total_bad+"\t"+q.getValue()+"\n");
+			}
+			f.close();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("vandalism rate "+total_bad/(total_good+total_bad));
+	}
+
+	/***
+	 * This uses data from wikitrust, supplied by luca di alfaro to build a tabel describing the accumulation of 'good' and 'bad' edits to the gene wiki.	
+	 */
+	public static void buildRevisionGrowthTrustTableForGeneWiki(){
+		String luca_revs = "/Users/bgood/data/NARupdate2011/luca/rev_details_c79f3a9.csv";
+		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs.txt";
+		MetricsDB db = new MetricsDB();
+		try {
+			TreeSet<String> page_ids = db.getPageids();
+			BigFile revs = new BigFile(luca_revs);
+			int c = 0;
+			int page_id_index = 50; int page_title_index = 51;
+			int total_good = 0; int total_bad = 0; 
+			Map<Calendar,String> sorted = new TreeMap<Calendar, String>();
+			Map<Calendar,Float> qs = new TreeMap<Calendar, Float>();
+			SimpleDateFormat format = new SimpleDateFormat("\"yyyyMMddHHmmss\"");
+			SimpleDateFormat format_exl = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+			Calendar start = Calendar.getInstance();
+			start.clear();
+			start.set(2009, Calendar.SEPTEMBER,1);
+			Calendar stop = Calendar.getInstance();
+			stop.clear();
+			stop.set(2011, Calendar.SEPTEMBER,1);
+			for (String line : revs){
+				c++;
+				if(c==1){
+					continue;
+				}
+				int quality_index = 67; int rev_id_index = 69; int time_index = 71;int user_index = 74;
+				String[] row = line.split(",");
+				String title = row[51];
+				if(row.length>75){
+					int n = row.length - 75;					
+					for(int i = 52;i<52+n;i++){
+						title += ","+row[i];
+						quality_index++; rev_id_index++; time_index++;user_index++;
+					}
+				}
+				String page_id = row[page_id_index];
+				String page_title = title;
+				String rev_id = row[rev_id_index];
+				String time = row[time_index];
+
+				if(user_index<row.length&&time.length()==16){
+					//2010 04 16 09 22 30
+
+					Calendar stamp = Calendar.getInstance();
+					stamp.clear();
+					stamp.setTime(format.parse(time));
+					String user = row[user_index];
+					if(stamp.after(start)&&stamp.before(stop)){
+						//if(!user.toLowerCase().contains("bot")&&!user.equals("\"Yeast2Hybrid\"")){
+						float quality = Float.parseFloat(row[quality_index]);					
+						if(page_ids.contains(page_id)){		
+							qs.put(stamp, quality);
+							String r = quality+"\t"+page_id+"\t"+page_title+"\t"+rev_id+"\t"+user+"\t";
+							sorted.put(stamp, r);
+						}
+						//}
+					}
+				}
+			}
+			FileWriter f = new FileWriter(file);
+			f.write("date\ttotal_good\ttotal_bad\tquality\tpage_id\tpage_title\trev_id\teditor\n");
+			for(Entry<Calendar,String> q : sorted.entrySet()){
+				float quality = qs.get(q.getKey());
+				if(quality>=0.4){
+					total_good++;
+				}else{
+					total_bad++;
+				}
+				f.write(format_exl.format(q.getKey().getTime())+"\t"+total_good+"\t"+total_bad+"\t"+q.getValue()+"\n");
+			}
+			f.close();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+	//TODO - finish up and link to gene wiki growth
 	public static void buildPublicationGrowthTable(){
 		String pubmed_sum_cache = "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt";
 		PubMed pm = new PubMed();
 		SimpleDateFormat p_time = new SimpleDateFormat("yyyy MMM");
-		Map<String, PubMed.PubmedSummary> pmid_sum = pm.readCachedPubmedsums(pubmed_sum_cache);
+		Map<String, PubMed.PubmedSummary> pmid_sum = pm.getCachedPubmedsums(pubmed_sum_cache);
 		//build a map of pubs by month
 		Map<Calendar, List<PubMed.PubmedSummary>> month_psums = new TreeMap<Calendar, List<PubMed.PubmedSummary>>();
 		for(PubMed.PubmedSummary psum : pmid_sum.values()){

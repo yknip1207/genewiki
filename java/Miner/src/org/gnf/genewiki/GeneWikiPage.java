@@ -198,8 +198,8 @@ public class GeneWikiPage implements Serializable, Comparable{
 
 		//		prot.retrieveAllInBoundWikiLinks(true, false);
 
-		testParseGeneWikiPage("Novartis");
-
+		//testParseGeneWikiPage("Novartis");
+	
 	}
 
 	public static void testParseGeneWikiPage(String title){

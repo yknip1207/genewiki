@@ -20,6 +20,10 @@ import org.gnf.util.MapFun;
 
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AbstractTextType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AuthorListType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.AuthorType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.InvestigatorListType;
+import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.InvestigatorType;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MedlineCitationType;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MeshHeadingListType;
 import gov.nih.nlm.ncbi.www.soap.eutils.EFetchPubmedServiceStub.MeshHeadingType;
@@ -61,15 +65,24 @@ SO: 1986 Apr;83(8):2363-7
 public class PubMed {
 
 	public static void main(String[] args) {
-		//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
-		//		System.out.println(pmid_meshes.get("3458201"));
-
-		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/bioinfo/gene2pubmed");
-
-		Set<String> pmids = new HashSet<String>(MapFun.flipMapStringListStrings(gene2pub).keySet());
-		System.out.println(pmids.size()+" ");
-		PubMed pm = new PubMed();
-		pm.buildPubmedSummaryCache(pmids, "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt");
+//		//		Map<String, Set<String>> pmid_meshes = getCachedPmidMeshMap("/Users/bgood/data/bioinfo/pmidmeshcache.txt");
+//		//		System.out.println(pmid_meshes.get("3458201"));
+//
+//		Map<String, List<String>> gene2pub = BioInfoUtil.getHumanGene2pub("/Users/bgood/data/bioinfo/gene2pubmed");
+//
+//		Set<String> pmids = new HashSet<String>(MapFun.flipMapStringListStrings(gene2pub).keySet());
+//		System.out.println(pmids.size()+" ");
+//		PubMed pm = new PubMed();
+//		pm.buildPubmedSummaryCache(pmids, "/Users/bgood/data/bioinfo/pubmed_summary_cache.txt");
+//		Set<String> ids = new HashSet<String>();
+//		ids.add("21928318");
+//		PubMed pm = new PubMed();
+//		try {
+//			pm.getAuthorDetails(ids);
+//		} catch (AxisFault e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 	}
 
@@ -195,7 +208,7 @@ public class PubMed {
 		return pmid_meshs;
 	}
 
-	public Map<String, PubmedSummary> readCachedPubmedsums(String cachefile){
+	public Map<String, PubmedSummary> getCachedPubmedsums(String cachefile){
 		Map<String, PubmedSummary> pmid_sums = new HashMap<String, PubmedSummary>();
 		try {
 			BufferedReader f = new BufferedReader(new FileReader(cachefile));
@@ -219,12 +232,92 @@ public class PubMed {
 		return pmid_sums;
 	}
 
+	public Map<String, Set<String>> readCachedPmid2Authors(String cachefile){
+		Map<String, Set<String>> pmid_authors = new HashMap<String, Set<String>>();
+		try {
+			BufferedReader f = new BufferedReader(new FileReader(cachefile));
+			String line = f.readLine();
+			while(line!=null){
+				String[] row = line.split("\t");
+				if(row!=null&&row.length>1){
+					String pmid = row[0];
+					String[] authors = row[1].split("::");
+					Set<String> authorset = new HashSet<String>();
+					for(String a : authors){
+						authorset.add(a);
+					}
+					pmid_authors.put(pmid, authorset);
+				}
+				line = f.readLine();
+			}
+			f.close();
+		}catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pmid_authors;
+	}
+	
+	public void buildCacheLinkingPmids2Authors(Set<String> pmids, String cachefile){
+		Map<String, Set<String>> old_pmid_authors = new HashMap<String, Set<String>>();
+		File cache = new File(cachefile);
+		try {
+			if(!cache.createNewFile()){
+				old_pmid_authors = readCachedPmid2Authors(cachefile);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Total pmids done = "+old_pmid_authors.keySet().size());
+		pmids.removeAll(old_pmid_authors.keySet());
+		System.out.println("Total pmids to get = "+pmids.size());
+		int max_batch = 500;
+		int c = 0; int n = 0;
+		String plist = "";
+		if(pmids!=null&&pmids.size()>0){
+			for(String pmid : pmids){
+				plist+=pmid+",";
+				c++;
+				n++;
+				if(c==max_batch||c==pmids.size()){
+					System.out.println("Getting author names - at "+n);
+					plist = plist.substring(0, plist.length()-1);
+					Map<String, Set<String>> tmp_authors = getPubmedAuthorsFromNCBI(plist);
+					try {
+						FileWriter f = new FileWriter(cachefile, true);
+						for(String pmid_ : tmp_authors.keySet()){
+							f.write(pmid_+"\t");
+							Set<String> authors = tmp_authors.get(pmid_);
+							if(authors!=null&&authors.size()>0){
+								String as = "";
+								for(String a : authors){
+									as+=a+"::";
+								}
+								as = as.substring(0,as.length()-2);
+								f.write(as+"\n");
+							}
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					plist = "";
+					c=0;
+				}
+			}
+		}				
+	}
+	
 	public void buildPubmedSummaryCache(Set<String> pmids, String cachefile){
 		Map<String, PubmedSummary> old_pmid_sums = new HashMap<String, PubmedSummary>();
 		File cache = new File(cachefile);
 		try {
 			if(!cache.createNewFile()){
-				old_pmid_sums = readCachedPubmedsums(cachefile);
+				old_pmid_sums = getCachedPubmedsums(cachefile);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -263,6 +356,52 @@ public class PubMed {
 		}				
 	}
 
+	public class AuthorDetails{
+		String name;
+		String email;
+		String institution;
+	}
+
+// not working
+//	public Map<String, AuthorDetails> getAuthorDetails(Set<String> idlist) throws AxisFault{
+//		if(idlist==null){
+//			return null;
+//		}
+//		Map<String, AuthorDetails> author_details = new HashMap<String, AuthorDetails>();
+//		// call NCBI E utility
+//		EFetchPubmedServiceStub service = new EFetchPubmedServiceStub();
+//		//Call NCBI EFetch Utilities 
+//		EFetchPubmedServiceStub.EFetchRequest req = new EFetchPubmedServiceStub.EFetchRequest();
+//		int c = 0;
+//		for(String id : idlist){
+//			c++;
+//			String output = "";
+//			req.setId(id);
+//
+//			EFetchPubmedServiceStub.EFetchResult res;
+//			try {
+//				res = service.run_eFetch(req);
+//				// results output
+//				if(res==null){
+//					continue;
+//				}
+//				String affiliation = res.getPubmedArticleSet().getPubmedArticleSetChoice()[0].getPubmedArticle().getMedlineCitation().getArticle().getAffiliation();
+//				System.out.println(affiliation);
+//				
+//			} catch (RemoteException e) {
+//				System.out.println("error on "+id);
+//				e.printStackTrace();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}		
+//			if(c%10==0){
+//				System.out.println("on "+c+" of "+idlist.size());
+//			}
+//		}
+//		return author_details;
+//	}
+	
 	public static Map<String, String> getPubmedTitlesAndAbstracts(Set<String> idlist, String pubcache, boolean cache) throws AxisFault{
 		if(idlist==null){
 			return null;
@@ -452,7 +591,7 @@ public class PubMed {
 		return journal;
 	}
 
-	public static Map<String, Set<String>> getPubmedAuthors(String idlist){
+	public static Map<String, Set<String>> getPubmedAuthorsFromNCBI(String idlist){
 		if(idlist==null){
 			return null;
 		}
@@ -823,7 +962,7 @@ public class PubMed {
 
 
 	/**
-	 * return a map linking pubmed id to date published	
+	 * return a map linking pubmed id to complete pubmed summary
 	 * @param idlist
 	 * @return
 	 */
@@ -1052,7 +1191,7 @@ public class PubMed {
 		return getMeshTerms(pmids);
 	}
 
-	public static Map<String, Set<String>> getPubmedAuthors(Set<String> pmids) {
+	public static Map<String, Set<String>> getPubmedAuthorsNCBI(Set<String> pmids) {
 		String plist = "";
 		int max_batch = 500;
 		int c = 0;
@@ -1064,7 +1203,7 @@ public class PubMed {
 				if(c==max_batch||c==pmids.size()){
 					System.out.println("Getting author names for, batch size = "+c);
 					plist = plist.substring(0, plist.length()-1);
-					Map<String, Set<String>> tmp_authors = getPubmedAuthors(plist);
+					Map<String, Set<String>> tmp_authors = getPubmedAuthorsFromNCBI(plist);
 					pmid_authors = MapFun.mergeStringSetMaps(pmid_authors, tmp_authors);
 					plist = "";
 					c =0;

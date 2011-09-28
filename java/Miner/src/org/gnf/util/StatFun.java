@@ -73,6 +73,11 @@ public class StatFun {
 		
 	}
 	
+	public static double oddsRatio(int a, int b, int c, int d){
+		double o = (a/(a+c))/(b/(b+d));
+		return o;		
+		}
+	
 	public static double fishersExact2tailed(int a, int b, int c, int d){
 	//	double p = (MathUtils.factorial(a+b)*MathUtils.factorial(c+d)*MathUtils.factorial(a+c)*MathUtils.factorial(b+d))/(MathUtils.factorial(a)*MathUtils.factorial(b)*MathUtils.factorial(c)*MathUtils.factorial(d)*MathUtils.factorial(a+b+c+d));
 		double p = 0;

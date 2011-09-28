@@ -40,31 +40,11 @@ public class VolumeCounter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//	processGeneWiki(1000000, Config.gwikidir, "/Users/bgood/data/wikiportal/jan11");
-		//	System.out.println(Volumetrics.getHeader());
-		//	System.out.println(summary);
-		//	GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(Config.gwikidir+"/5649");
-		//	System.out.println(getArticleVolume(page));		
-		
-		String outdir = "/Users/bgood/data/wikiportal/facebase_feb11";
-		String article_name_file = "/users/bgood/data/wikiportal/facebase_genes.txt";
-		Set<String> titles = FileFun.readOneColFile(article_name_file);
-		List<GeneWikiPage> pages = new ArrayList<GeneWikiPage>();
-		for(String title : titles){
-			GeneWikiPage page = new GeneWikiPage();
-			page.setTitle(title);
-			System.out.println("processing "+title);
-			boolean gotext = page.defaultPopulate();
-			if(gotext){
-				page.retrieveAllInBoundWikiLinks(true, false);
-			}
-			pages.add(page);
-		}
-		VolumeReport r = summarizeArticleVolumes(getArticleVolumes(pages), outdir+"_volume");
-		r.setTimestamp(DateFun.year_month_day.format(Calendar.getInstance().getTime()));
-		JSONArray a = new JSONArray();
-		a.put(r.toJSON());
-		System.out.println(a.toString());
+		GeneWikiPage p = 
+			GeneWikiUtils.deserializeGeneWikiPage("/Users/bgood/data/bioinfo/gene_wikitrust_as_java/6422");
+		VolumeReport v = getArticleVolume(p);
+		System.out.println(VolumeReport.getHeader());
+		System.out.println(v.toString());
 	}
 	
 	
