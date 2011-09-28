@@ -15,7 +15,7 @@ import javax.security.auth.login.LoginException;
  * @author eclarke
  *
  */
-public class Sync implements RunnableFactory, Runnable {
+public class Sync2 implements RunnableFactory, Runnable {
 	
 	
 	private Wiki wikipedia;
@@ -32,7 +32,7 @@ public class Sync implements RunnableFactory, Runnable {
 	
 	private String id = null;
 	
-	private Sync(List<String> targets, String id) {
+	private Sync2(List<String> targets, String id) {
 		this.updates = targets;
 		this.id = id;
 		try {
@@ -61,7 +61,7 @@ public class Sync implements RunnableFactory, Runnable {
 	/**
 	 * Returns an instance to serve as a RunnableFactory.
 	 */
-	public Sync() {
+	public Sync2() {
 		// Nothing needs to happen.
 	}
 	
@@ -164,7 +164,7 @@ public class Sync implements RunnableFactory, Runnable {
 
 	@SuppressWarnings("unchecked")
 	public Runnable newRunnable(List<?> tasks, int id) {
-		return new Sync((List<String>) tasks, id+"");
+		return new Sync2((List<String>) tasks, id+"");
 	}
 	
 	

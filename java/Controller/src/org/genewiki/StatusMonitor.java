@@ -36,7 +36,7 @@ public enum StatusMonitor {
 	
 	private final Wiki wikipedia;
 	private final String wpUser = "Pleiotrope";
-	private final String wpPass = "Cynosura42";
+	private final String wpPass = "";
 	
 	private static final String template = "Template:GNF_Protein_box";
 	
@@ -201,7 +201,7 @@ public enum StatusMonitor {
 		WatchlistManager watcher = new WatchlistManager(wpUser, wpPass, null);
 		Calendar past = Calendar.getInstance();
 		past.add(Calendar.MINUTE, -minutesAgo);
-		List<GWRevision> live = watcher.getRecentChangesFromWatchlist(past, 50, 50*minutesAgo);
+		List<GWRevision> live = watcher.getRecentChangesFromWatchlist(past, 50, 50*minutesAgo, true);
 		Set<String> changed = new HashSet<String>(live.size());
 		for (GWRevision rev : live) {
 			changed.add(rev.getTitle());

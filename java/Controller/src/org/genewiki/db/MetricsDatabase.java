@@ -427,6 +427,37 @@ public enum MetricsDatabase {
 	}
 	
 	/**
+	 * Thread-safe way to add an entry to the revisions2 table.
+	 * @param rev_id unique revision id
+	 * @param date timestamp of revision
+	 * @param page_id wikipedia page id
+	 * @param bytes_changed difference in size between this revision and the previous
+	 * @param editor who wrote this revision
+	 * @param is_bot boolean determined generally by the presence of "bot" in the name
+	 * @throws SQLException
+	 */
+	public void insertRevisionRow2(
+			long rev_id, Calendar date, String title, long bytes_changed, long rev_size, String editor, boolean is_bot) throws SQLException {
+
+		synchronized (lock) {
+			Connection connection = this.connect();
+			PreparedStatement prep = connection.prepareStatement("insert into revisions2 values (?,?,?,?,?,?,?);");
+			prep.setLong(1, rev_id);
+			prep.setLong(2, date.getTimeInMillis());
+			prep.setString(3, title);
+			prep.setLong(4, bytes_changed);
+			prep.setLong(5, rev_size);
+			prep.setString(6, editor);
+			prep.setBoolean(7, is_bot);
+			prep.addBatch();
+			connection.setAutoCommit(false);
+			prep.executeBatch();
+			connection.setAutoCommit(true);
+			connection.close();
+		}
+	}
+	
+	/**
 	 * Utility method to get the number of revisions between two dates (NOT the list of revisions).
 	 * This method is not a Wikipedia query; the revisions must exist in the database for the
 	 * specified page_id.

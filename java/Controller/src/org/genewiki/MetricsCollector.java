@@ -49,7 +49,7 @@ public class MetricsCollector implements ThreadGenerator {
 		end = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 		end.clear();
 //		end.set(2011, Calendar.SEPTEMBER, 1, 0, 0, 0);
-		end.set(2009, Calendar.SEPTEMBER, 15, 0, 0, 0);	// FIXME this is only set to fill in early revisions
+		end.set(2011, Calendar.SEPTEMBER, 1, 0, 0, 0);	// FIXME this is only set to fill in early revisions
 		end.getTime();
 		username = "genewikiplus";
 		password = "Nv6w7QbL";
@@ -372,7 +372,7 @@ public class MetricsCollector implements ThreadGenerator {
 		}
 	}
 	
-	public void fillInEarlyRevisions() {
+	public void remakeRevisionsTable() {
 		RevisionCounter revCounter = new RevisionCounter(username, password);
 		SimpleDateFormat wp_time = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 		TimeZone tz = TimeZone.getTimeZone("GMT");
@@ -394,13 +394,14 @@ public class MetricsCollector implements ThreadGenerator {
 					long rev_id = Long.parseLong(rev.getRevid());
 					Calendar date = Calendar.getInstance();
 					date.setTime(wp_time.parse(rev.getTimestamp()));
-					int page_id = Integer.parseInt(rev.getParentid());
+					
 					long bytes_changed = rev.getSize() - prev.getSize();
+					long rev_size = rev.getSize();
 					prev = rev;
 					// Editor
 					String name = rev.getUser();
 					boolean is_bot = (name.toLowerCase(Locale.ENGLISH).contains("bot"));
-					db.insertRevisionRow(rev_id, date, page_id, bytes_changed, name, is_bot);
+					db.insertRevisionRow2(rev_id, date, title, bytes_changed, rev_size, name, is_bot);
 				}
 				completed.add(title);
 				Serialize.out("completed.list.string", new ArrayList<String>(completed));
@@ -415,6 +416,7 @@ public class MetricsCollector implements ThreadGenerator {
 			}
 		}
 	}
+	
 	
 	public void completeAugustPageViews() {
 		Calendar august = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
@@ -615,7 +617,7 @@ public class MetricsCollector implements ThreadGenerator {
 			collectMetrics();
 		} else if (mode.equals("update")) {
 			System.out.println("Updating...");
-			completeAugustPageViews();
+			remakeRevisionsTable();
 		}
 	}
 	

@@ -67,7 +67,7 @@ public class SyncControl {
 	
 	public static void main(String[] args) throws IOException {
 	
-		Distributor<String> distributor = new Distributor<String>(4, new Sync());
+		Distributor<String> distributor = new Distributor<String>(4, new Sync2());
 		
 		OptionParser parser = new OptionParser( "ar:of:" );
 		OptionSet options = parser.parse(args);
