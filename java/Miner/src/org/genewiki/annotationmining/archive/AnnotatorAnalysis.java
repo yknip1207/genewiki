@@ -1,4 +1,4 @@
-package org.genewiki.annotationmining;
+package org.genewiki.annotationmining.archive;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.genewiki.annotationmining.annotations.CandidateAnnotations;
 import org.scripps.datasources.GoGeneCrawler;

@@ -1,4 +1,4 @@
-package org.genewiki.annotationmining;
+package org.genewiki.annotationmining.archive;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -20,9 +20,11 @@ import org.genewiki.GeneWikiUtils;
 import org.genewiki.Heading;
 import org.genewiki.Reference;
 import org.genewiki.Sentence;
+import org.genewiki.annotationmining.Config;
 import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.genewiki.annotationmining.annotations.CandidateAnnotations;
 import org.genewiki.annotationmining.annotations.Evidence;
+import org.genewiki.annotationmining.linkmining.Wiki2Concept;
 import org.scripps.nlp.ncbo.Ontologies;
 import org.scripps.nlp.ncbo.TextMapping;
 import org.scripps.nlp.ncbo.web.AnnotatorClient;
