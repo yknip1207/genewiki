@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.genewiki.Config;
 import org.genewiki.GeneWikiUtils;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 
 public class GOsurpriser {
 	

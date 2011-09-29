@@ -1,4 +1,4 @@
-package org.scripps.ncbi;
+package org.scripps.datasources.ncbi;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

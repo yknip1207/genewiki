@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.scripps.util.BioInfoUtil;
 
 public class GObayes {

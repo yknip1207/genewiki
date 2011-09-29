@@ -18,15 +18,15 @@ import java.util.TimeZone;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
 import org.genewiki.Heading;
 import org.genewiki.Reference;
 import org.genewiki.Sentence;
-import org.genewiki.mapping.GeneWikiPageMapper;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.GeneWikiPageMapper;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.scripps.nlp.lingpipe.SentenceSplitter;
 import org.scripps.nlp.ncbo.web.AnnotatorClient;
 import org.scripps.nlp.ncbo.web.NcboAnnotation;

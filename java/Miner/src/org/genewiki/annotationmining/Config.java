@@ -1,4 +1,4 @@
-package org.genewiki;
+package org.genewiki.annotationmining;
 
 public class Config {
 	

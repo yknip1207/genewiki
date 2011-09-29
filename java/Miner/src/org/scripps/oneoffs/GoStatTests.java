@@ -19,10 +19,10 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.apache.axis2.AxisFault;
-import org.genewiki.Config;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.CandidateAnnotations;
-import org.scripps.ncbi.PubMed;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotations;
+import org.scripps.datasources.ncbi.PubMed;
 import org.scripps.nlp.ncbo.GenericTextToAnnotation;
 import org.scripps.ontologies.go.Annotation;
 import org.scripps.ontologies.go.GOterm;

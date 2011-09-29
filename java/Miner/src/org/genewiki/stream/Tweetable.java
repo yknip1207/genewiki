@@ -12,7 +12,7 @@ import org.genewiki.GeneWikiPage;
 import org.genewiki.Heading;
 import org.genewiki.Reference;
 import org.genewiki.metrics.VolumeReport;
-import org.scripps.util.MyGeneInfo;
+import org.scripps.datasources.MyGeneInfo;
 import org.scripps.util.TextFun;
 
 /**

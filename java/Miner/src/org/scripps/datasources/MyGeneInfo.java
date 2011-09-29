@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.scripps.util;
+package org.scripps.datasources;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,11 +22,13 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.genewiki.Config;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.scripps.util.Gene;
+import org.scripps.util.HttpUtil;
 
 /**
  * @author bgood

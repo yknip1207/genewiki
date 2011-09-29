@@ -1,4 +1,4 @@
-package org.genewiki.mapping.annotations;
+package org.genewiki.annotationmining.annotations;
 
 import java.util.Set;
 

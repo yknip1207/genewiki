@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.scripps.ncbi.PubMed;
+import org.scripps.datasources.ncbi.PubMed;
 import org.scripps.ontologies.go.Annotation;
 import org.scripps.ontologies.go.GOterm;
 import org.scripps.util.BioInfoUtil;

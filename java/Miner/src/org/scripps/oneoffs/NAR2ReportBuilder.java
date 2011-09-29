@@ -27,8 +27,9 @@ import java.util.TreeSet;
 
 import org.genewiki.GeneWikiUtils;
 import org.genewiki.metrics.MetricsDB;
-import org.scripps.ncbi.PubMed;
-import org.scripps.ncbi.PubMed.PubmedSummary;
+import org.scripps.datasources.MyGeneInfo;
+import org.scripps.datasources.ncbi.PubMed;
+import org.scripps.datasources.ncbi.PubMed.PubmedSummary;
 import org.scripps.oneoffs.journal.Prioritizer;
 import org.scripps.ontologies.go.GOterm;
 import org.scripps.search.GoogleSearch;
@@ -36,7 +37,6 @@ import org.scripps.util.BigFile;
 import org.scripps.util.BioInfoUtil;
 import org.scripps.util.Gene;
 import org.scripps.util.MapFun;
-import org.scripps.util.MyGeneInfo;
 /**
  * Keep track of how stats used for Gene Wiki NAR update article were assembled
  * @author bgood

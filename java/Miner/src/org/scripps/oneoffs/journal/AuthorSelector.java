@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.scripps.ncbi.PubMed;
-import org.scripps.ncbi.PubMed.PubmedSummary;
+import org.scripps.datasources.ncbi.PubMed;
+import org.scripps.datasources.ncbi.PubMed.PubmedSummary;
 import org.scripps.util.MapFun;
 
 import edu.emory.mathcs.backport.java.util.Collections;

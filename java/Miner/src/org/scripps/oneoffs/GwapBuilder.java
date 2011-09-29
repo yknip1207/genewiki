@@ -1,4 +1,4 @@
-package org.scripps.ncbi;
+package org.scripps.oneoffs;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genewiki.mapping.externaldata;
+package org.scripps.datasources;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.genewiki.Config;
+import org.genewiki.annotationmining.Config;
 
 /**
  * @author bgood

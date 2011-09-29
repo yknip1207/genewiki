@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 
 public class Annotation {
 

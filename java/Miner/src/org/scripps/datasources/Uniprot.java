@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.scripps.util;
+package org.scripps.datasources;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

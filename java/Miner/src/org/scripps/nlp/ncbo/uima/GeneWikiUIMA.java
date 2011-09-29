@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 
 public class GeneWikiUIMA {
 

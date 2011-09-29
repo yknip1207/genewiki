@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.gnf.umls.Client;
 import org.scripps.nlp.ncbo.TextMapping;
 import org.scripps.nlp.umls.UmlsDb;

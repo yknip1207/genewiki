@@ -1,4 +1,4 @@
-package org.genewiki.mapping;
+package org.genewiki.annotationmining;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -14,16 +14,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
 import org.genewiki.Heading;
 import org.genewiki.Reference;
 import org.genewiki.Sentence;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.CandidateAnnotations;
-import org.genewiki.mapping.annotations.Evidence;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotations;
+import org.genewiki.annotationmining.annotations.Evidence;
 import org.scripps.nlp.ncbo.Ontologies;
 import org.scripps.nlp.ncbo.TextMapping;
 import org.scripps.nlp.ncbo.web.AnnotatorClient;

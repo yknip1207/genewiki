@@ -18,9 +18,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.genewiki.Config;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.scripps.ontologies.go.GOterm;

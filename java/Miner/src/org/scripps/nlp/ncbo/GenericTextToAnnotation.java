@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.genewiki.Heading;
 import org.genewiki.Sentence;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.scripps.nlp.lingpipe.SentenceSplitter;
 import org.scripps.nlp.ncbo.web.AnnotatorClient;
 import org.scripps.nlp.ncbo.web.NcboAnnotation;

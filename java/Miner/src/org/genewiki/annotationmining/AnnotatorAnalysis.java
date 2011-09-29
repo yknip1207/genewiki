@@ -1,4 +1,4 @@
-package org.scripps.nlp.ncbo;
+package org.genewiki.annotationmining;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,13 +13,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.CandidateAnnotations;
-import org.genewiki.mapping.externaldata.GoGeneCrawler;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotations;
+import org.scripps.datasources.GoGeneCrawler;
 import org.scripps.nlp.ncbo.uima.ParseUIMA;
 import org.scripps.nlp.ncbo.uima.UimaAnnotation;
 import org.scripps.ontologies.go.GOmapper;

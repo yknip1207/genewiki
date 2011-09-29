@@ -1,4 +1,4 @@
-package org.scripps.ncbi;
+package org.scripps.oneoffs;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -14,9 +14,10 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.genewiki.Config;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.CandidateAnnotations;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotations;
+import org.scripps.datasources.ncbi.PubMed;
 import org.scripps.util.BioInfoUtil;
 
 

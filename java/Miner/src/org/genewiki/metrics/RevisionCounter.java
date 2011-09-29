@@ -4,10 +4,10 @@
 package org.genewiki.metrics;
 
 
-import org.genewiki.Config;
 import org.genewiki.GWRevision;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.genewiki.parse.ParserAccess;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.Page;

@@ -15,10 +15,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 
+import org.scripps.datasources.MyGeneInfo;
 import org.scripps.ontologies.go.GOterm;
 import org.scripps.util.BioInfoUtil;
 import org.scripps.util.Gene;
-import org.scripps.util.MyGeneInfo;
 
 public class DO_OMIM {
 

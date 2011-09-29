@@ -1,13 +1,14 @@
 package org.genewiki;
 
 
+import org.genewiki.annotationmining.Config;
 import org.gnf.wikiapi.Page;
+import org.scripps.datasources.MyGeneInfo;
 import org.scripps.nlp.umls.UmlsRelationship;
 import org.scripps.ontologies.go.GOmapper;
 import org.scripps.ontologies.go.GOowl;
 import org.scripps.ontologies.go.GOterm;
 import org.scripps.util.Gene;
-import org.scripps.util.MyGeneInfo;
 
 import java.io.BufferedReader;
 import java.io.File;

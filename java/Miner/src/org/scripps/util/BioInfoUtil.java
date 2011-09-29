@@ -1,10 +1,10 @@
 package org.scripps.util;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.genewiki.parse.ParseUtils;
 import org.gnf.wikiapi.Connector;
 import org.gnf.wikiapi.Page;

@@ -1,4 +1,4 @@
-package org.scripps.ncbi;
+package org.scripps.datasources.ncbi;
 import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceStub;
 import gov.nih.nlm.ncbi.www.soap.eutils.*;
 

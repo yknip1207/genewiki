@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.genewiki.asgraph.AllegroConnector;
 import org.genewiki.asgraph.Grapher;
 import org.gnf.umls.Client;

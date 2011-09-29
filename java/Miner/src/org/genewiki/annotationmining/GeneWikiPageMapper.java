@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genewiki.mapping;
+package org.genewiki.annotationmining;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -11,14 +11,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
 import org.genewiki.Heading;
 import org.genewiki.Reference;
 import org.genewiki.Sentence;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.Filter;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.Filter;
 import org.genewiki.trust.GeneWikiTrust;
 import org.genewiki.trust.WikiTrustBlock;
 import org.genewiki.trust.WikiTrustClient;

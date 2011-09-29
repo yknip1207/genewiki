@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.genewiki.Config;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
-import org.genewiki.mapping.annotations.CandidateAnnotations;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.annotations.CandidateAnnotations;
 import org.scripps.ontologies.go.GOmapper;
 
 import com.jellymold.boss.WebSearch;

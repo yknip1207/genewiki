@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.genewiki.Config;
+import org.genewiki.annotationmining.Config;
 
 import org.mindswap.pellet.jena.PelletReasonerFactory;
 

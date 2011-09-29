@@ -13,11 +13,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.annotationmining.Config;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 import org.scripps.ontologies.go.GOmapper;
 import org.scripps.ontologies.go.GOowl;
 import org.scripps.ontologies.go.GOterm;

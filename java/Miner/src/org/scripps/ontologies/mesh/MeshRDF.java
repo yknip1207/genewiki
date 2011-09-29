@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.genewiki.Config;
+import org.genewiki.annotationmining.Config;
 import org.scripps.ontologies.go.GOterm;
 
 import com.hp.hpl.jena.ontology.OntClass;

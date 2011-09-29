@@ -1,12 +1,12 @@
 /**
  * 
  */
-package org.genewiki;
+package org.genewiki.annotationmining;
 
 import java.util.List;
 
-import org.genewiki.mapping.GeneWikiPageMapper;
-import org.genewiki.mapping.annotations.CandidateAnnotation;
+import org.genewiki.GeneWikiPage;
+import org.genewiki.annotationmining.annotations.CandidateAnnotation;
 
 /**
  * Provides a simple command-line program that will generate candidate gene annotations for a Gene Wiki article

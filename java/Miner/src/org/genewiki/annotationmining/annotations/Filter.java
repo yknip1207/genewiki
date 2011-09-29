@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genewiki.mapping.annotations;
+package org.genewiki.annotationmining.annotations;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
 import org.genewiki.Sentence;
+import org.genewiki.annotationmining.Config;
 import org.genewiki.parse.ParseUtils;
 
 /**

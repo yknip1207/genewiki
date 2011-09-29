@@ -1,4 +1,4 @@
-package org.genewiki.mapping.externaldata;
+package org.scripps.datasources;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,8 +16,8 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.genewiki.Config;
 import org.genewiki.GeneWikiUtils;
+import org.genewiki.annotationmining.Config;
 import org.scripps.ontologies.go.GOowl;
 import org.scripps.ontologies.go.GOterm;
 

@@ -1,4 +1,4 @@
-package org.genewiki.mapping.annotations;
+package org.genewiki.annotationmining.annotations;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,12 +16,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.genewiki.Config;
 import org.genewiki.GeneWikiLink;
 import org.genewiki.GeneWikiPage;
 import org.genewiki.GeneWikiUtils;
-import org.genewiki.mapping.externaldata.GoGeneCrawler;
-import org.genewiki.mapping.externaldata.PantherMapper;
+import org.genewiki.annotationmining.Config;
+import org.scripps.datasources.GoGeneCrawler;
+import org.scripps.datasources.PantherMapper;
 import org.scripps.ontologies.dont.DOmapping;
 import org.scripps.ontologies.dont.DOowl;
 import org.scripps.ontologies.dont.DOterm;

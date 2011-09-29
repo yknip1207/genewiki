@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genewiki.mapping;
+package org.genewiki.annotationmining;
 
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -1,4 +1,4 @@
-package org.genewiki.mapping;
+package org.genewiki.annotationmining;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,13 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.genewiki.Config;
-import org.genewiki.mapping.annotations.CandiAnnoSorter;
-import org.genewiki.mapping.externaldata.FuncBase;
-import org.genewiki.mapping.externaldata.GoGeneCrawler;
-import org.genewiki.mapping.externaldata.PantherMapper;
+import org.genewiki.annotationmining.annotations.CandiAnnoSorter;
 import org.genewiki.parse.ParseUtils;
 import org.genewiki.trust.GeneWikiTrust;
+import org.scripps.datasources.FuncBase;
+import org.scripps.datasources.GoGeneCrawler;
+import org.scripps.datasources.PantherMapper;
 import org.scripps.nlp.umls.UmlsRelationship;
 import org.scripps.ontologies.go.GOmapper;
 import org.scripps.search.YahooBOSS;

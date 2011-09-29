@@ -1,4 +1,4 @@
-package org.genewiki.mapping.annotations;
+package org.genewiki.annotationmining.annotations;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.genewiki.Config;
+import org.genewiki.annotationmining.Config;
 import org.scripps.nlp.ncbo.Ontologies;
 import org.scripps.ontologies.go.GOowl;
 import org.scripps.util.BioInfoUtil;

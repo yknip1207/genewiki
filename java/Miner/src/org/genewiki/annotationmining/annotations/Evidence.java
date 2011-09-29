@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genewiki.mapping.annotations;
+package org.genewiki.annotationmining.annotations;
 
 import org.scripps.nlp.ncbo.TextMapping;
 import org.scripps.search.SearchEngineIntersect;
