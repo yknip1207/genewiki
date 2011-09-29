@@ -15,10 +15,8 @@ import java.util.regex.Pattern;
 import javax.security.auth.login.FailedLoginException;
 
 import org.genewiki.api.Wiki;
+import org.genewiki.stream.WatchlistManager;
 import org.genewiki.util.Serialize;
-import org.gnf.genewiki.GWRevision;
-import org.gnf.genewiki.stream.WatchlistManager;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 

@@ -14,17 +14,13 @@ import java.util.TimeZone;
 
 import org.genewiki.concurrent.ThreadGenerator;
 import org.genewiki.db.MetricsDatabase;
+import org.genewiki.metrics.MonthlyPageViews;
+import org.genewiki.metrics.PageViewCounter;
+import org.genewiki.metrics.RevisionCounter;
+import org.genewiki.metrics.VolumeReport;
 import org.genewiki.util.FileHandler;
 import org.genewiki.util.Serialize;
 import org.genewiki.util.Stopwatch;
-import org.gnf.genewiki.GWRevision;
-import org.gnf.genewiki.GeneWikiPage;
-import org.gnf.genewiki.associations.CandidateAnnotation;
-import org.gnf.genewiki.mapping.GeneWikiPageMapper;
-import org.gnf.genewiki.metrics.MonthlyPageViews;
-import org.gnf.genewiki.metrics.PageViewCounter;
-import org.gnf.genewiki.metrics.RevisionCounter;
-import org.gnf.genewiki.metrics.VolumeReport;
 import org.gnf.wikiapi.User;
 
 public class MetricsCollector implements ThreadGenerator {
