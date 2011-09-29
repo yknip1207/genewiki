@@ -1,0 +1,77 @@
+==========================
+#   ProteinBoxBot v0.9   #
+==========================
+== Introduction ==
+ProteinBoxBot is a Java program to automatically update
+the infoboxes on GeneWiki pages. It also includes utilities
+for automatic code generation of article stubs and infoboxes
+for users to create their own Gene Wiki articles.
+
+For more information, see the bot's userpage at 
+http://en.wikipedia.org/wiki/User:ProteinBoxBot
+or visit the GeneWiki project portal at 
+http://en.wikipedia.org/wiki/Portal:GeneWiki.
+
+== License ==
+ProteinBoxBot is distributed under the Creative Commons
+Share-Alike license, available here at 
+creativecommons.org/licenses/by-sa/3.0. Libraries bundled
+with or used by ProteinBoxBot remain under their specific
+licenses. 
+ProteinBoxBot v0.9 was developed by the Su Lab at The Scripps
+Research Institute, 2011. It is maintained by eclarke@scripps.edu,
+who on Wikipedia goes by User:Pleiotrope.
+
+=== Installation ===
+System requirements:
+  1. Java JRE 1.6 or higher
+  2. PyMOL (for image rendering module)
+  3. Pywikipedia (for more robust image uploading routines)
+Installation procedure:
+  1. If desired, install PyMOL on the local
+     host to enable protein structure image
+     rendering and upload. If you do, note the
+     path of the PyMOL binary.
+  2. Download pywikipedia and run the configuration utility
+  	 to set it up with an account on commons.wikimedia. The 
+  	 bot will attempt to log in using pywikipedia when it
+  	 goes to upload the rendered image file.
+  3. Run "java -jar install.jar" to interactively set up
+     the bot.properties file as well as the
+     logging database (SQLite) and appropriate
+     directory structure. This also downloads
+     the appropriate gene2pubmed file, does a quick
+     overview scan of the GeneWiki, and initializes the
+     databases with the gathered information. This step
+     can take quite some time.
+  4. Updates to protein boxes can be conducted through 
+  	 ProteinBoxBot.jar, and code generation utilities
+  	 can be accessed through GeneWikiCodeGenerator.jar.
+
+=== Running ProteinBoxBot ===
+ProteinBoxBot can be run in one of two ways:
+Using main menu:
+  1. In the directory containing the jar file,
+     execute the command:
+       java -jar ProteinBoxBot.jar
+  2. Select desired operation from the menu.
+Using command-line arguments:
+  1. Execute the command:
+       java -jar ProteinBoxBot.jar [args]
+     where [args] consist of the following options:
+     resume   - selects ids that have not been updated from db
+     restart  - clears updated status of all ids and starts from
+     	      	scratch
+     ids      - prompts for specific ids to update
+     init     - re-initializes database (disabled)
+     help     - prints help message
+     
+=== Running GeneWikiCodeGenerator.jar ===
+GeneWikiCodeGenerator is a command-line only utility.
+Run java -jar GeneWikiCodeGenerator.jar without arguments to see
+usage description.
+
+=== Notes, Known Bugs, and Future Improvements ===
+1. 	The cache options in the bot.properties file have no effect and 
+	will be removed in the future.
+2. 	Bootstrap functions are a work-in-progress.

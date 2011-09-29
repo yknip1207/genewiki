@@ -1,0 +1,53 @@
+#MediaWiki::API - Provides a Perl interface to the MediaWiki API (http://www.mediawiki.org/wiki/API)
+
+
+use MediaWiki::API;
+
+  my $mw = MediaWiki::API->new();
+  $mw->{config}->{api_url} = 'http://en.wikipedia.org/w/api.php';
+
+  # log in to the wiki
+  $mw->login( { lgname => 'username', lgpassword => 'password' } )
+    || die $mw->{error}->{code} . ': ' . $mw->{error}->{details};
+
+
+####################################################
+
+	MediaWiki::API->upload( $params_hashref )
+
+	A function to upload files to a MediaWiki. This function does not use the MediaWiki API currently as support for file uploading is not yet implemented. Instead it uploads using the Special:Upload page, and as such an additional configuration value is needed.
+
+	  my $mw = MediaWiki::API->new( {
+	   api_url => 'http://en.wikipedia.org/w/api.php' }  );
+	  # configure the special upload location.
+	  $mw->{config}->{upload_url} = 'http://en.wikipedia.org/wiki/Special:Upload';
+
+	The upload function is then called as follows
+
+	  # upload a file to MediaWiki
+	  open FILE, "myfile.jpg" or die $!;
+	  binmode FILE;
+	  my ($buffer, $data);
+	  while ( read(FILE, $buffer, 65536) )  {
+	    $data .= $buffer;
+	  }
+	  close(FILE);
+
+	  $mw->upload( { title => 'file.jpg',
+	                 summary => 'This is the summary to go on the Image:file.jpg page',
+	                 data => $data } ) || die $mw->{error}->{code} . ': ' . $mw->{error}->{details};
+
+	Error checking is limited. Also note that the module will force a file upload, ignoring any warning for file size or overwriting an old file.
+
+#######################################################
+
+Download function: similar to the upload function, it should use the Special:Download page.
+
+########################################################
+	
+MediaWiki::API->list( $query_hashref, $options_hashref )
+
+A helper function for getting lists using the MediaWiki API. Parameters are passed as a hashref which are described on the MediaWiki API editing page (http://www.mediawiki.org/wiki/API:Query_-_Lists).
+
+Key parameter: list=recentchanges
+
