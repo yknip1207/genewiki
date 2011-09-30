@@ -15,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,9 +53,9 @@ public class NAR2ReportBuilder {
 		//getGenePubGoWordCounts();
 		//runGoogleRankAnalysis();
 		//buildPublicationGrowthTable();
-		//buildRevisionGrowthTrustTable();
+		buildRevisionGrowthTrustTableForGeneWiki();
 		//buildRevisionGrowthTrustTableForNonGeneWikiSample();
-		buildSizeViewsEdits();
+		//buildSizeViewsEdits();
 	}
 
 	/**
@@ -107,10 +108,10 @@ public class NAR2ReportBuilder {
 
 	/***
 	 * This uses data from wikitrust, supplied by luca di alfaro to build a tabel describing the accumulation of 'good' and 'bad' edits to the gene wiki.	
-	 */
+
 	public static void buildRevisionGrowthTrustTableForNonGeneWikiSample(){
 		String luca_revs = "/Users/bgood/data/NARupdate2011/luca/rev_details_c79f3a9.csv";
-		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs_gw_onlybots.txt";
+		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs_nongw_nodatecheck.txt";
 		MetricsDB db = new MetricsDB();
 		float total_good = 0; float total_bad = 0; 
 		try {
@@ -156,16 +157,16 @@ public class NAR2ReportBuilder {
 					stamp.clear();
 					stamp.setTime(format.parse(time));
 					String user = row[user_index];
-					if(stamp.after(start)&&stamp.before(stop)){
-						if(user.toLowerCase().contains("bot")){
+				//	if(stamp.after(start)&&stamp.before(stop)){
+				//		if(user.toLowerCase().contains("bot")){
 							float quality = Float.parseFloat(row[quality_index]);					
 							if(page_ids.contains(page_id)){		
 								qs.put(stamp, quality);
 								String r = quality+"\t"+page_id+"\t"+page_title+"\t"+rev_id+"\t"+user+"\t";
 								sorted.put(stamp, r);
 							}
-						}
-					}
+				//		}
+				//	}
 				}
 			}
 			FileWriter f = new FileWriter(file);
@@ -189,15 +190,16 @@ public class NAR2ReportBuilder {
 		}
 		System.out.println("vandalism rate "+total_bad/(total_good+total_bad));
 	}
-
+*/
 	/***
 	 * This uses data from wikitrust, supplied by luca di alfaro to build a tabel describing the accumulation of 'good' and 'bad' edits to the gene wiki.	
 	 */
 	public static void buildRevisionGrowthTrustTableForGeneWiki(){
 		String luca_revs = "/Users/bgood/data/NARupdate2011/luca/rev_details_c79f3a9.csv";
-		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs.txt";
+		String file = "/Users/bgood/data/NARupdate2011/luca/good_bad_revs_nodatecheck.txt";
 		MetricsDB db = new MetricsDB();
 		try {
+			Map<String, Integer> page_counts = new HashMap<String, Integer>();
 			TreeSet<String> page_ids = db.getPageids();
 			BigFile revs = new BigFile(luca_revs);
 			int c = 0;
@@ -218,7 +220,7 @@ public class NAR2ReportBuilder {
 				if(c==1){
 					continue;
 				}
-				int quality_index = 67; int rev_id_index = 69; int time_index = 71;int user_index = 74;
+				int quality_index = 67; int rev_id_index = 69; int time_index = 71;int user_index = 74;  
 				String[] row = line.split(",");
 				String title = row[51];
 				if(row.length>75){
@@ -240,20 +242,29 @@ public class NAR2ReportBuilder {
 					stamp.clear();
 					stamp.setTime(format.parse(time));
 					String user = row[user_index];
-					if(stamp.after(start)&&stamp.before(stop)){
+					//if(stamp.after(start)&&stamp.before(stop)){
 						//if(!user.toLowerCase().contains("bot")&&!user.equals("\"Yeast2Hybrid\"")){
-						float quality = Float.parseFloat(row[quality_index]);					
+						float quality = Float.parseFloat(row[quality_index]);	
+						//if gene wiki
 						if(page_ids.contains(page_id)){		
 							qs.put(stamp, quality);
 							String r = quality+"\t"+page_id+"\t"+page_title+"\t"+rev_id+"\t"+user+"\t";
 							sorted.put(stamp, r);
+							Integer pcount = page_counts.get(title);
+							if(pcount==null){
+								pcount = new Integer(0);
+							}
+							pcount++;
+							page_counts.put(title, pcount);
+						}else{
+							
 						}
 						//}
-					}
+					//}
 				}
 			}
-			FileWriter f = new FileWriter(file);
-			f.write("date\ttotal_good\ttotal_bad\tquality\tpage_id\tpage_title\trev_id\teditor\n");
+		//	FileWriter f = new FileWriter(file);
+		//	f.write("date\ttotal_good\ttotal_bad\tquality\tpage_id\tpage_title\trev_id\teditor\n");
 			for(Entry<Calendar,String> q : sorted.entrySet()){
 				float quality = qs.get(q.getKey());
 				if(quality>=0.4){
@@ -261,9 +272,18 @@ public class NAR2ReportBuilder {
 				}else{
 					total_bad++;
 				}
-				f.write(format_exl.format(q.getKey().getTime())+"\t"+total_good+"\t"+total_bad+"\t"+q.getValue()+"\n");
+		//		f.write(format_exl.format(q.getKey().getTime())+"\t"+total_good+"\t"+total_bad+"\t"+q.getValue()+"\n");
 			}
-			f.close();
+			System.out.println(total_bad+"\t"+total_good+"\t"+total_bad/(total_bad+total_good));
+		//	f.close();
+			
+			//most edited
+			List<String> sorted_titles = MapFun.sortMapByValue(page_counts);
+			Collections.reverse(sorted_titles);
+			for(int i=0; i<10000; i++){
+				System.out.println(sorted_titles.get(i)+"\t"+page_counts.get(sorted_titles.get(i)));
+			}
+			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

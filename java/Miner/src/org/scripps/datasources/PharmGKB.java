@@ -13,6 +13,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -28,17 +32,90 @@ public class PharmGKB {
 	public static void main(String[] args) {
 		PharmGKB gkb = new PharmGKB();
 		try {
-//			gkb.populateGeneDb("/Users/bgood/data/bioinfo/pharmgkb/genes_clean.txt");
-//			gkb.populateDiseaseDb("/Users/bgood/data/bioinfo/pharmgkb/diseases.tsv");
-			gkb.populateRelationDb("/Users/bgood/data/bioinfo/pharmgkb/relationships.tsv");
+			Map<String,Set<String>> gene_meshes = gkb.getGeneMeshLinks();
+			System.out.println(gene_meshes.size());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		
 	}
 
-//create table pgkb_rel(e1_type varchar (15), e1_id varchar(15), e1_name varchar(50), e2_type varch(15), e2_id varchar(15), e3_name varchar(50), evidence varchar(300), evidence_types varchar(30));	
+	public Map<String,Set<String>> getGeneMeshLinks() throws ClassNotFoundException{
+		Map<String,Set<String>> gene_meshes = new HashMap<String,Set<String>>();
+		// load the sqlite-JDBC driver using the current class loader
+		Class.forName("org.sqlite.JDBC");
+
+		Connection connection = null;
+		try
+		{
+			// create a database connection
+			connection = DriverManager.getConnection("jdbc:sqlite:"+db_loc);
+			String get_gene_diseases = "" +
+					"select e1_id,e1_name,entrez_id,e2_name,external_ids " +
+					"from pgkb_rel,pgkb_gene,pgkb_disease " +
+					"where e1_type = 'Gene' and e2_type = 'Disease' and e1_id=pgkb_gene.pgkb_acc and e2_id=pgkb_disease.pgkb_acc";
+			Statement statement = connection.createStatement();
+			ResultSet r = statement.executeQuery(get_gene_diseases);
+			//MeSH:D015430(Weight Gain),SnoMedCT:161831008(Weight increasing),SnoMedCT:262286000(Weight increased),SnoMedCT:8943002(Weight gain finding),UMLS:C0043094(C0043094)
+			while(r.next()){
+				String gene_id = r.getString("entrez_id");
+				Set<String> meshes = gene_meshes.get(gene_id);
+				String disease = r.getString("e2_name");
+				String ext = r.getString("external_ids");
+				if(ext!=null){
+					String[] ids = ext.split(",");
+					for(String id : ids){
+						if(id.startsWith("MeSH")){
+							String mesh = id.substring(5);
+							mesh = mesh.substring(0,mesh.indexOf("("));
+							if(meshes==null){
+								meshes = new HashSet<String>();
+							}
+							meshes.add(mesh);
+						}
+					}
+					if(meshes!=null){
+						gene_meshes.put(gene_id, meshes);
+					}
+				}
+			}
+			
+		}
+		catch(SQLException e)
+		{
+			// if the error message is "out of memory", 
+			// it probably means no database file is found
+			System.err.println(e.getMessage());
+		} 
+		finally
+		{
+			try
+			{
+				if(connection != null)
+					connection.close();
+			}
+			catch(SQLException e)
+			{
+				// connection close failed.
+				System.err.println(e);
+			}
+		}
+		return gene_meshes;
+	}
+	
+	public void populateDatabase(){
+		try {
+			populateGeneDb("/Users/bgood/data/bioinfo/pharmgkb/genes_clean.txt");
+			populateDiseaseDb("/Users/bgood/data/bioinfo/pharmgkb/diseases.tsv");
+			populateRelationDb("/Users/bgood/data/bioinfo/pharmgkb/relationships.tsv");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+//create table pgkb_rel(e1_type varchar (15), e1_id varchar(15), e1_name varchar(50), e2_type varch(15), e2_id varchar(15), e2_name varchar(50), evidence varchar(300), evidence_types varchar(30),pharmacodynamic varchar(5), pharmacokinetic varchar(5));	
 	public class Relation{
 		String e1_type;
 		String e1_id;
