@@ -28,13 +28,13 @@ public class AnnotateGwikiSimple {
 		//get the page
 		GeneWikiPage page = new GeneWikiPage(title);
 		System.out.println("#Getting Gene Wiki data from Wikipedia via WikiTrust (http://www.wikitrust.net/) for: "+title);
-		boolean worked = page.defaultPopulateWikiTrust();
+		boolean worked = page.litePopulateWikiTrust();
 		page.parseAndSetNcbiGeneId();
 		System.out.println("#Sentences:\t"+page.getSentences().size());
 		System.out.println("#Bytes:\t"+page.getSize());
 		boolean allowSynonyms = false; boolean useGO = true;  boolean useDO = true; boolean useFMA = false; boolean usePRO = false;
 		if(worked){
-			System.out.println("#Processing text with NCBO Annotator...\n");
+			System.out.println("#Processing text with NCBO Annotator...\n#");
 			List<CandidateAnnotation> annos = m.annotateArticleNCBO(page, allowSynonyms, useGO, useDO, useFMA, usePRO);
 			if(annos!=null&&annos.size()>0){
 				System.out.println("#Entrez_gene\tArticle_title\tSection_header\tMost_recent_editor\tScore_from_Annotator\tNCBO_ont_id/Term_id\tTerm_name\tSurrounding_text\tInline-references");

@@ -62,7 +62,8 @@ public class UmlsDb {
 		String atom = "Wounds and Injuries";
 
 		UmlsDb d = new UmlsDb();
-		System.out.println(d.getSemanticTypesForMeshAtom(atom));
+		System.out.println("groups "+d.getGroupForStypeName("Neoplastic Process"));
+		//System.out.println(d.getSemanticTypesForMeshAtom(atom));
 		//		System.out.println(d.getIdsFromSourceForCUI(cui, abbr));
 		//		System.out.println(d.getIdsFromSourceForCUI(cui, abbr));
 		//		System.out.println(d.getIdsFromSourceForCUI(cui, abbr));

@@ -18,10 +18,14 @@ import org.genewiki.metrics.MonthlyPageViews;
 import org.genewiki.metrics.PageViewCounter;
 import org.genewiki.metrics.RevisionCounter;
 import org.genewiki.metrics.VolumeReport;
-import org.genewiki.util.FileHandler;
-import org.genewiki.util.Serialize;
-import org.genewiki.util.Stopwatch;
+import org.genewiki.metrics.MonthlyPageViews;
+import org.genewiki.metrics.PageViewCounter;
+import org.genewiki.metrics.RevisionCounter;
+import org.genewiki.metrics.VolumeReport;
 import org.gnf.wikiapi.User;
+import org.scripps.util.FileHandler;
+import org.scripps.util.Serialize;
+import org.scripps.util.Stopwatch;
 
 public class MetricsCollector implements ThreadGenerator {
 

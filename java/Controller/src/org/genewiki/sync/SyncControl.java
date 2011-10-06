@@ -12,7 +12,7 @@ import joptsimple.OptionSet;
 
 import org.genewiki.StatusMonitor;
 import org.genewiki.concurrent.Distributor;
-import org.genewiki.util.Serialize;
+import org.scripps.util.Serialize;
 
 
 import com.google.common.io.Files;

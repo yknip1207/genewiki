@@ -30,6 +30,39 @@ public class OMIM {
 		}
 	}
 
+	public void loadOMIM2Genedb(String file){
+		Map<String, Set<String>> human = new HashMap<String, Set<String>>();
+		BufferedReader f;
+		try {
+			f = new BufferedReader(new FileReader(file));
+			String line = f.readLine();
+			line = f.readLine();
+			while(line!=null){
+				String[] item = line.split("\t");
+				if(item!=null&&item.length>2){
+					String omim = item[0];
+					String gene = item[1];
+					String type = item[2];
+						Set<String> genes = human.get(omim);
+						if(genes==null){
+							genes = new HashSet<String>();
+						}
+						genes.add(gene);
+						human.put(omim, genes);
+					}
+				line = f.readLine();
+			}
+			f.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
 	/**
 	 * reads in a file produced from the omim text file via
 	 * egrep '^#|^%' omim.txt > omim_id_name.txt
@@ -94,7 +127,7 @@ public class OMIM {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Map<String, Set<String>> m = loadOMIM2Gene(omim2gene, onlydiseases);
+		Map<String, Set<String>> m = readOMIM2Gene2map(omim2gene, onlydiseases);
 		Map<String, Set<String>> omim_uniprot = new HashMap<String, Set<String>>();
 		for(String omim : m.keySet()){
 			Set<String> genes = m.get(omim);
@@ -149,7 +182,7 @@ public class OMIM {
 		return human;
 	}
 
-	public static Map<String, Set<String>> loadOMIM2Gene(String file, boolean onlydiseases){
+	public static Map<String, Set<String>> readOMIM2Gene2map(String file, boolean onlydiseases){
 		Map<String, Set<String>> human = new HashMap<String, Set<String>>();
 		BufferedReader f;
 		try {

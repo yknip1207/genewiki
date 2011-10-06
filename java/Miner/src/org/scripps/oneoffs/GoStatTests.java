@@ -43,7 +43,6 @@ public class GoStatTests {
 	public static void main(String[] args) {
 		//getDataForAbstract2Annotations();
 		//measureGeneWikiValueforOverrepresentationAnalysis();
-		measureGeneWikiValueforOverrepresentationAnalysis();
 	}
 
 	/**

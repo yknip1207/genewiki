@@ -16,7 +16,9 @@ import javax.security.auth.login.FailedLoginException;
 
 import org.genewiki.api.Wiki;
 import org.genewiki.stream.WatchlistManager;
-import org.genewiki.util.Serialize;
+import org.genewiki.stream.WatchlistManager;
+import org.scripps.util.Serialize;
+
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 

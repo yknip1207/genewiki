@@ -252,6 +252,18 @@ public class GeneWikiPage implements Serializable, Comparable{
 		return controlledPopulate(setredirects, getAllWikiLinks, getWikiLinksInText, getHyperLinks, setReferences, setHeaders, setSentences, useWikiTrust);
 	}
 
+	public boolean litePopulateWikiTrust(){
+		boolean setredirects = true; 
+		boolean getAllWikiLinks = false; 
+		boolean getWikiLinksInText = false; 
+		boolean getHyperLinks = false;
+		boolean setReferences = true;
+		boolean setHeaders = true;
+		boolean setSentences = true;
+		boolean useWikiTrust = true;
+		return controlledPopulate(setredirects, getAllWikiLinks, getWikiLinksInText, getHyperLinks, setReferences, setHeaders, setSentences, useWikiTrust);
+	}
+	
 	/**
 	 * populates this page object with everything except for wikilinks that appear in templates 
 	 * (only wikilinks that appear in the text are kept by default because templates are often used to import

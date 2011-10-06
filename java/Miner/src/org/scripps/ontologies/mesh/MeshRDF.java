@@ -60,29 +60,37 @@ public class MeshRDF {
 		//convertSkosRDF2simpleRDFS();
 
 		MeshRDF m = new MeshRDF();
-		String label = "Clinical Trials, Phase III as Topic";
-		for(int i=0; i<2; i++){
+//		OntClass m2 = m.mesh.getOntClass("http://www.nlm.nih.gov/mesh/D019698#concept");
+	//	System.out.println(m.getFamily(m2, true));
+		
+		String label = "Lung Neoplasms";
+//		for(int i=0; i<2; i++){
 			OntClass oc = m.getTermByLabel(label);
-			System.out.println(i+" "+label);
-			//		System.out.println(i+"\t"+m.getOntclassAsString(oc));
-			//		System.out.println(m.getRoot(m.getFamily(oc, true)));
-		}
-		label = "West Nile Fever";
-		for(int i=0; i<2; i++){
-			OntClass oc = m.getTermByLabel(label);
-			System.out.println(i+" "+label);
-			//System.out.println(i+"\t"+m.getOntclassAsString(oc));
-			//		System.out.println(m.getRoot(m.getFamily(oc, true)));
-		}
-		label = "Antigens, CD164";
-		for(int i=0; i<2; i++){
-			OntClass oc = m.getTermByLabel(label);
-			System.out.println(i+" "+label);
-			//		System.out.println(i+"\t"+m.getOntclassAsString(oc));
-			//		System.out.println(m.getRoot(m.getFamily(oc, true)));
-		}
+			System.out.println(" "+label);
+					System.out.println(m.getOntclassAsString(oc));
+					System.out.println(m.getRoot(m.getFamily(oc, true)));
+//		}
+//		label = "West Nile Fever";
+//		for(int i=0; i<2; i++){
+//			OntClass oc = m.getTermByLabel(label);
+//			System.out.println(i+" "+label);
+//			//System.out.println(i+"\t"+m.getOntclassAsString(oc));
+//			//		System.out.println(m.getRoot(m.getFamily(oc, true)));
+//		}
+//		label = "Antigens, CD164";
+//		for(int i=0; i<2; i++){
+//			OntClass oc = m.getTermByLabel(label);
+//			System.out.println(i+" "+label);
+//			//		System.out.println(i+"\t"+m.getOntclassAsString(oc));
+//			//		System.out.println(m.getRoot(m.getFamily(oc, true)));
+//		}
 	}
 
+	public OntClass getMeshConceptById(String id){
+		OntClass oc = mesh.getOntClass("http://www.nlm.nih.gov/mesh/"+id+"#concept");
+		return oc;
+	}
+	
 	public String getRoot(Set<String> parents){
 		String root = "";
 		for(String p : parents){
@@ -132,6 +140,53 @@ public class MeshRDF {
 		return s;
 	}
 
+	public Set<String> getFamilyIds(OntClass t, boolean parents){
+		String uri = t.getURI();
+		String qlabel = t.getLabel(null);
+		Set<String> fam = new HashSet<String>();
+		String queryString =  	
+			"PREFIX RDFS: <http://www.w3.org/2000/01/rdf-schema#> "+
+			"SELECT ?super "+ 
+			"WHERE { "+
+			" <"+uri+"> RDFS:subClassOf ?super "+
+			"} ";
+
+		if(!parents){
+			queryString =  "PREFIX RDFS: <http://www.w3.org/2000/01/rdf-schema#> "+
+			"SELECT ?super "+ 
+			"WHERE { "+
+			" ?super RDFS:subClassOf <"+uri+"> "+
+			"} ";
+		}
+
+		Query query = QueryFactory.create(queryString);
+
+		// Execute the query and obtain results
+		QueryExecution qe = QueryExecutionFactory.create(query, mesh);
+		try{
+			ResultSet rs = qe.execSelect();
+
+			while(rs.hasNext()){
+				QuerySolution rb = rs.nextSolution() ;
+				String id = rb.getResource("super").getURI();
+				if(!id.equals(uri)){
+					fam.add(id);
+				}
+//				Literal labelnode = rb.getLiteral("super");
+//				String ln = labelnode.getString();
+//				if(!ln.equals(qlabel)){
+//					fam.add(labelnode.getString());
+//				}
+			}
+
+		}finally{
+			// Important � free up resources used running the query
+			qe.close();
+		}
+		return fam;
+	}
+	
+	
 	public Set<String> getFamily(OntClass t, boolean parents){
 		String uri = t.getURI();
 		String qlabel = t.getLabel(null);

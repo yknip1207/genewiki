@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.genewiki.util.Serialize;
+import org.scripps.util.Serialize;
 
 /**
  * <p> Manages the GeneWiki metrics database. All methods are 
