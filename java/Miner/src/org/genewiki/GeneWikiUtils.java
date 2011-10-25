@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,24 +45,49 @@ public class GeneWikiUtils {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean usewikitrust = false;
-		//retrieveAndStoreGeneWikiAsJava(100000, "/Users/bgood/workspace/Config/gw_creds.txt", "/Users/bgood/data/bioinfo/gene_wiki_as_java/", usewikitrust);
-		try {
-			saveAllText(1000000000, "/Users/bgood/data/bioinfo/gene_wiki_as_java/", "/Users/bgood/data/bioinfo/gene_wiki_as_text/");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		boolean usewikitrust = true;
+//
+		
+//		try {
+//			saveGeneIdMappings(1000000, "/Users/bgood/data/bioinfo/gene_wiki_as_java/", "/Users/bgood/data/gw_mashup/ids.txt");
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
 	}
 
+	public static void saveGeneIdMappings(int limit, String input_dir, String output_file) throws IOException{
+		Map<String, GeneWikiPage> gene_gws = loadSerializedDir(input_dir, limit);
+		int c = 0;
+		FileWriter f = new FileWriter(output_file);
+		f.write("NCBI_gene\tgene_symbol\tgene_wiki_title\n");
+		for(Entry<String, GeneWikiPage> gene_gw : gene_gws.entrySet()){
+			String gene_id = gene_gw.getKey();
+			String row = gene_id+"\t";
+			boolean external = true;
+			Gene g = MyGeneInfo.getGeneInfoByGeneid(gene_id, external);
+			if(g!=null){
+				row += g.getGeneSymbol()+"\t";
+			}else{
+				row += "none\t";
+			}
+			row+=gene_gw.getValue().getTitle()+"\n";
+			f.write(row);
+			System.out.println(c++);
+		}
+		f.close();
+		
+	}
+	
 	public static void saveAllText(int limit, String input_dir, String output_dir) throws IOException{
 		Map<String, GeneWikiPage> gene_gws = loadSerializedDir(input_dir, limit);
 		int c = 0;
 		for(Entry<String, GeneWikiPage> gene_gw : gene_gws.entrySet()){
 			String gene_id = gene_gw.getKey();
 			String title = gene_id+"_none_none";
-			
-			Gene g = MyGeneInfo.getGeneInfoByGeneid(gene_id, false);
+			boolean external = true;
+			Gene g = MyGeneInfo.getGeneInfoByGeneid(gene_id, external);
 			if(g!=null){
 				title = gene_id+"_"+g.getGeneSymbol()+"_"+g.getUniprot();
 			}
@@ -196,6 +222,7 @@ public class GeneWikiUtils {
 		//loads an index linking gene wiki page titles to NCBI geneids
 		WikiCategoryReader r = new WikiCategoryReader(credfile);
 		List<Page> pages = r.getPagesPlusRevidsWithTemplate("Template:GNF_Protein_box",limit, 500);
+		Collections.reverse(pages);
 		System.out.println("N pages = "+pages.size());
 		//checks to see which are already done
 		Map<String, GeneWikiPage> done = loadSerializedDir(directory, 1000000000);

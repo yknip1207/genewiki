@@ -27,6 +27,8 @@ import org.scripps.nlp.ncbo.web.AnnotatorClient;
 import org.scripps.nlp.ncbo.web.NcboAnnotation;
 import org.scripps.nlp.ncbo.web.SemanticType;
 
+import edu.emory.mathcs.backport.java.util.Collections;
+
 /**
  * @author bgood
  *
@@ -49,7 +51,7 @@ public class GeneWikiPageMapper {
 	public static void main(String[] args) {
 		GeneWikiPageMapper m = new GeneWikiPageMapper();
 		String swt = "/Users/bgood/data/bioinfo/gene_wikitrust_as_java/";
-		String out = "/Users/bgood/data/NARupdate2011/ncbo_annotations/";
+		String out = "/Users/bgood/data/GW_mashup/ncbo_annotations/";
 		m.annotateGeneWikiArticlesWithNCBO(1000000, true, swt, out);
 		System.out.println(CandidateAnnotation.getHeader());
 //		GeneWikiPage page = new GeneWikiPage();
@@ -78,8 +80,16 @@ public class GeneWikiPageMapper {
 		}
 		
 		if(folder.isDirectory()){
-			int n = 0;
+			List<String> files = new ArrayList<String>();
 			for(String geneid : folder.list()){
+				files.add(geneid);
+			}
+			Collections.reverse(files);
+			int n = 0;
+			for(String geneid : files){
+				if(geneid.startsWith(".")){
+					continue;
+				}
 				n++;
 				if(n%100==0){
 					System.out.print("finished annotating "+n+"\t");
@@ -93,6 +103,7 @@ public class GeneWikiPageMapper {
 				if(donegeneids.contains(geneid)){
 					continue;
 				}
+
 				GeneWikiPage page = GeneWikiUtils.deserializeGeneWikiPage(serialized_wiktrust+geneid);				
 				List<CandidateAnnotation> annos = annotateArticleNCBO(page, allowSynonyms);
 				try {
